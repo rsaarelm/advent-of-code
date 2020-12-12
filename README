@@ -1,1 +1,8 @@
 Polyglot Advent of Code solution collection
+
+Days are encoded by %y%d, 2015-12-18 becomes 1518.
+
+All implementations take the input from stdin and print the two solutions for
+the two parts on separate lines of stdout.
+
+Advent of Code is at https://adventofcode.com/
