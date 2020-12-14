@@ -42,10 +42,16 @@
 
   When called without a regex,
   converts a single token to a number if it's numbery,
-  otherwise returns it as is."
+  otherwise returns it as is.
+
+  Can also be called with a sequence of multiple regexs.
+  In this case they will be matched sequentially
+  and the first match is returned."
   ([str]
    (let
-    [expr (if (empty? str) str (read-string str))]
+    [expr (if (empty? str)
+            str
+            (try (read-string str) (catch Exception _ str)))]
      (if (number? expr) expr str)))
   ([regexps input]
    (let [match (fn [str]
