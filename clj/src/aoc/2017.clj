@@ -1,34 +1,20 @@
 (ns aoc.2017
   (:require [aoc.util :refer [str->grid]]
             [clojure.set :as set]
+            [clojure.math.combinatorics :refer [cartesian-product]]
             [clojure.string :as str]
             [clojure.test :refer [is]]))
 
-(defn parse [input]
+(defn parse [dim input]
   (->> (str->grid input)
-       (keep (fn [[[x y] c]] (when (#{\#} c) [x y])))
+       (keep (fn [[[x y] c]]
+               (when (#{\#} c)
+                 (vec (take dim (concat [x y] (repeat 0)))))))
        (into #{})))
 
-(defn threedify [[x y z]] [(or x 0) (or y 0) (or z 0)])
-(defn fourdify [[x y z w]] [(or x 0) (or y 0) (or z 0) (or w 0)])
-
-(defn expansion-3
-  "Expand single cell to a set with all its neighbors."
-  [[x y z]]
-  (->> (for [x' (range -1 2)
-             y' (range -1 2)
-             z' (range -1 2)]
-         (mapv + [x y z] [x' y' z']))
-       (into #{})))
-
-(defn expansion-4
-  "Expand single cell to a set with all its neighbors."
-  [[x y z w]]
-  (->> (for [x' (range -1 2)
-             y' (range -1 2)
-             z' (range -1 2)
-             w' (range -1 2)]
-         (mapv + [x y z w] [x' y' z' w']))
+(defn expansion [dim p]
+  (->> (apply cartesian-product (take dim (repeat (range -1 2))))
+       (map (partial mapv + p))
        (into #{})))
 
 (defn expand
@@ -55,25 +41,34 @@
       (and (not (grid cell)) (= n 3)) #{cell}
       :else nil)))
 
-(defn update
+(defn update-grid
   "Construct next state of a grid of cells."
   [ex grid]
   (->> (expand ex grid)
        (map (partial new-state ex grid))
        (reduce set/union)))
 
+(def d3 (partial expansion 3))
+
+(comment (neighbors d3 (parse "
+                           .#.
+                           ..#
+                           ###") [1 0]))
+
 (defn run-1 [input]
-  (let [grid (into #{} (map threedify (parse input)))]
-    (count (last (take 7 (iterate (partial update expansion-3) grid))))))
+  (let [grid (parse 3 input)]
+    (count (last (take 7 (iterate (partial update-grid d3) grid))))))
 
 (is (= 112 (run-1 "
                   .#.
                   ..#
                   ###")))
 
+(def d4 (partial expansion 4))
+
 (defn run-2 [input]
-  (let [grid (into #{} (map fourdify (parse input)))]
-    (count (last (take 7 (iterate (partial update expansion-4) grid))))))
+  (let [grid (parse 4 input)]
+    (count (last (take 7 (iterate (partial update-grid d4) grid))))))
 
 (is (= 848 (run-2 "
                   .#.
