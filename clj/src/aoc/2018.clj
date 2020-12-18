@@ -8,11 +8,11 @@
 (def parse-expr
   (insta/parser
    "EXPR = (EXPR | OPERAND) OP OPERAND
-     <OPERAND> = NUM | <'('> EXPR <')'>
-     <NUM> = #'[0-9]+'
-     <OP> = PLUS | TIMES
-     PLUS = <' + '>
-     TIMES = <' * '>"))
+    <OPERAND> = NUM | <'('> EXPR <')'>
+    <NUM> = #'[0-9]+'
+    <OP> = PLUS | TIMES
+    PLUS = <' + '>
+    TIMES = <' * '>"))
 
 (defn eval-parsed [expr]
   (match [expr]
@@ -33,13 +33,13 @@
 ; Part 2: Sums take precedence over products
 (def parse-expr-2
   (insta/parser
-   "prod = sum | sum (<TIMES> sum)+
-     sum = OPERAND | OPERAND (<PLUS> OPERAND)+
-     <OPERAND> = num | <'('> prod <')'>
-     num = #'[0-9]+'
-     <OP> = PLUS | TIMES
-     PLUS = <' + '>
-     TIMES = <' * '>"))
+   "prod = sum | sum (<times> sum)+
+    sum = operand | operand (<plus> operand)+
+    <operand> = num | <'('> prod <')'>
+    num = #'[0-9]+'
+    <op> = plus | times
+    plus = <' + '>
+    times = <' * '>"))
 
 ; Super-improved transform evaluator!
 (defn eval-expr-2 [expr]
