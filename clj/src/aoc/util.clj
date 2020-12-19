@@ -156,3 +156,5 @@
             (char? c) (print c)
             :else (print \space))))
       (println))))
+
+(defn maptor [& args] (into {} args))
