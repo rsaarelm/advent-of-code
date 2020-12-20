@@ -101,6 +101,10 @@
 ; and uses a slightly different uniform indent removal strategy.
 ; Leave an empty leading line with str->grid string literals.
 
+; FIXME: If first line is non-empty,
+; first line should be reindented according to second line
+; to support sl-style strings without heading empty line.
+
 (defn str->grid
   "Turn a string into `{[x y] -> char}` map.
 
