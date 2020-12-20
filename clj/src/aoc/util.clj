@@ -158,3 +158,7 @@
       (println))))
 
 (defn maptor [& args] (into {} args))
+
+(defn assert-eq [a b]
+  (assert (= a b)
+          (with-out-str (pr a) (print " != ") (prn b))))
