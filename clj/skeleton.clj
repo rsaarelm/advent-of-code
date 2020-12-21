@@ -1,11 +1,16 @@
 (ns aoc.XXXX
-  (:require [aoc.util :refer [re-read]]
-            [clojure.string :as str]
-            [clojure.test :refer [is]]))
+  (:require [clojure.string :as str]
+            [clojure.test :refer [is]]
+            [instaparse.core :as insta]))
+
+(def parser
+  (insta/parser
+   "root = #'.*'"))
 
 (defn parse [input]
-  (->> (str/split-lines input)
-       (re-read)))
+  (->> (parser input)
+       (insta/transform
+        {:root vector})))
 
 (defn run-1 [input]
   nil)
