@@ -2,10 +2,11 @@ use aoc::util;
 use std::collections::{HashSet, VecDeque};
 use std::str::FromStr;
 
-#[derive(PartialEq, Eq, Clone, Hash, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 struct GameState {
-    decks: [VecDeque<usize>; 2],
+    decks: [VecDeque<u8>; 2],
     mode: Mode,
+    seen: HashSet<[VecDeque<u8>; 2]>,
 }
 
 impl FromStr for GameState {
@@ -26,6 +27,7 @@ impl FromStr for GameState {
         Ok(GameState {
             decks,
             mode: Mode::REGULAR,
+            seen: HashSet::new(),
         })
     }
 }
@@ -42,22 +44,28 @@ impl GameState {
         self
     }
 
-    fn score_deck(deck: &VecDeque<usize>) -> usize {
+    fn score_deck(deck: &VecDeque<u8>) -> u32 {
         deck.iter()
             .rev()
             .enumerate()
-            .map(|(i, c)| c * (i + 1))
+            .map(|(i, &c)| c as u32 * (i as u32 + 1))
             .sum()
     }
 
-    fn round_winner(&self, seen: &mut HashSet<GameState>, drawn_0: usize, drawn_1: usize) -> usize {
-        if seen.contains(self) {
-            return 0;
-        }
-        seen.insert(self.clone());
+    fn subdeck(&self, drawn_0: u8, drawn_1: u8) -> GameState {
+        let mut ret = GameState {
+            decks: self.decks.clone(),
+            mode: self.mode,
+            seen: HashSet::new(),
+        };
+        ret.decks[0].truncate(drawn_0 as usize);
+        ret.decks[1].truncate(drawn_1 as usize);
+        ret
+    }
 
+    fn round_winner(&mut self, drawn_0: u8, drawn_1: u8) -> usize {
         if self.can_recurse(drawn_0, drawn_1) {
-            self.clone().play_to_end(seen)
+            self.subdeck(drawn_0, drawn_1).play_to_end()
         } else {
             if drawn_0 > drawn_1 {
                 0
@@ -67,13 +75,13 @@ impl GameState {
         }
     }
 
-    fn can_recurse(&self, drawn_0: usize, drawn_1: usize) -> bool {
+    fn can_recurse(&self, drawn_0: u8, drawn_1: u8) -> bool {
         self.mode == Mode::RECURSIVE
-            && drawn_0 <= self.decks[0].len()
-            && drawn_1 <= self.decks[1].len()
+            && drawn_0 as usize <= self.decks[0].len()
+            && drawn_1 as usize <= self.decks[1].len()
     }
 
-    fn pop(&mut self) -> (usize, usize) {
+    fn pop(&mut self) -> (u8, u8) {
         (
             self.decks[0].pop_front().unwrap(),
             self.decks[1].pop_front().unwrap(),
@@ -90,10 +98,17 @@ impl GameState {
         }
     }
 
-    fn play_to_end(&mut self, seen: &mut HashSet<GameState>) -> usize {
+    fn play_to_end(&mut self) -> usize {
         while self.game_winner().is_none() {
+            if self.seen.contains(&self.decks) {
+                // Player 1 wins.
+                self.decks[1].clear();
+                break;
+            }
+            self.seen.insert(self.decks.clone());
+
             let (drawn_0, drawn_1) = self.pop();
-            match self.round_winner(seen, drawn_0, drawn_1) {
+            match self.round_winner(drawn_0, drawn_1) {
                 0 => {
                     self.decks[0].push_back(drawn_0);
                     self.decks[0].push_back(drawn_1);
@@ -108,20 +123,17 @@ impl GameState {
         self.game_winner().unwrap()
     }
 
-    pub fn play(mut self) -> usize {
-        let mut seen = HashSet::new();
-
-        let winner = self.play_to_end(&mut seen);
-        GameState::score_deck(&self.decks[winner])
+    pub fn play(mut self) -> u32 {
+        GameState::score_deck(&self.decks[self.play_to_end()])
     }
 }
 
-fn run_1(input: &str) -> usize {
+fn run_1(input: &str) -> u32 {
     let state = input.parse::<GameState>().unwrap();
     state.play()
 }
 
-fn run_2(input: &str) -> usize {
+fn run_2(input: &str) -> u32 {
     let state = input.parse::<GameState>().unwrap().recursive();
     state.play()
 }
@@ -162,7 +174,7 @@ Player 2:
     #[test]
     fn test_loop() {
         assert_eq!(
-            273,
+            105,
             run_2(
                 "\
 Player 1:
