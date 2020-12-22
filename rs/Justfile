@@ -1,2 +1,2 @@
 run task:
-    @cargo run --bin {{task}}
+    @cargo run --release --bin {{task}}
