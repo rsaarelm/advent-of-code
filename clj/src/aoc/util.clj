@@ -166,3 +166,5 @@
 (defn assert-eq [a b]
   (assert (= a b)
           (with-out-str (pr a) (print " != ") (prn b))))
+
+(def concat-vec (comp vec concat))
