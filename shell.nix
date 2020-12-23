@@ -1,5 +1,11 @@
-with import <nixpkgs> {};
-mkShell {
+let
+  mozilla = import (
+    builtins.fetchTarball https://github.com/mozilla/nixpkgs-mozilla/archive/master.tar.gz
+    );
+  nixpkgs = import <nixpkgs> { overlays = [ mozilla ]; };
+in
+
+with nixpkgs; mkShell {
   buildInputs = [
     babashka just
 
@@ -7,9 +13,12 @@ mkShell {
     clojure jdk11_headless clojure-lsp
 
     # Rust
-    rustc cargo rustfmt rust-analyzer clippy
+    nixpkgs.latest.rustChannels.nightly.rust
+    cargo rustfmt rust-analyzer clippy
 
     # Python
     python3
   ];
+
+  RUST_SRC_PATH="${rustPlatform.rustcSrc}";
 }
