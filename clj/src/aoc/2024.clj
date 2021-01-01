@@ -16,12 +16,8 @@
 ; y-axis is NE-SW
 ; x=y diagonal is NW-SE
 
-(def dirs {"e" [1 0]
-           "se" [1 1]
-           "sw" [0 1]
-           "w" [-1 0]
-           "nw" [-1 -1]
-           "ne" [0 -1]})
+(def dirs {"e" [1 0], "se" [1 1], "sw" [0 1],
+           "w" [-1 0], "nw" [-1 -1], "ne" [0 -1]})
 
 (defn parse [input]
   (->> (parser input)
