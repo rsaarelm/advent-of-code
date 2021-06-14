@@ -5,4 +5,8 @@ Days are encoded by %y%d, 2015-12-18 becomes 1518.
 All implementations take the input from stdin and print the two solutions for
 the two parts on separate lines of stdout.
 
+Run task by doing `$LANG/$TASK`, eg
+
+    just run py/1501
+
 Advent of Code is at https://adventofcode.com/
