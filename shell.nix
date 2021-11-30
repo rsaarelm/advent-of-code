@@ -7,17 +7,17 @@ in
 
 with nixpkgs; mkShell {
   buildInputs = [
-    babashka just
+    just
 
     # Clojure
     clojure jdk11_headless clojure-lsp
 
     # Rust
-    nixpkgs.latest.rustChannels.nightly.rust
-    cargo rustfmt rust-analyzer clippy
+    rustc cargo rustfmt rust-analyzer clippy
+    # nixpkgs.latest.rustChannels.nightly.rust
 
     # Python
-    python3
+    python3 python3Packages.python-language-server
   ];
 
   RUST_SRC_PATH="${rustPlatform.rustcSrc}";
