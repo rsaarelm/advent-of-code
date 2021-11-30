@@ -1,0 +1,27 @@
+# Polyglot Advent of Code solution collection
+
+Days are encoded by %y%d, 2015-12-18 becomes 1518.
+
+All implementations take the input from stdin and print the two solutions for
+the two parts on separate lines of stdout.
+
+Advent of Code is at https://adventofcode.com/
+
+## Writing a new solution
+
+* Save your input in a file named according to the year and the day,
+  2018-12-14 becomes `1814.txt`.
+
+* Write your solution using the same naming convention under the directory of
+  the language you're using. Details may vary by language. For Python, it's
+  just `py/1814.py`.
+
+* The solution receives the input from stdin and is expected to print its
+  results for parts 1 and 2 to stdout as two lines.
+
+## Running a solution
+
+Use the Justfile with your language suffix and date, for a Python solution for
+2015-12-01, you'd use
+
+    just run py/1501
