@@ -17,7 +17,10 @@ with nixpkgs; mkShell {
     # nixpkgs.latest.rustChannels.nightly.rust
 
     # Python
-    python3 python3Packages.python-language-server
+    python3
+    python3Packages.python-lsp-server
+    python3Packages.pylsp-mypy
+    black
   ];
 
   RUST_SRC_PATH="${rustPlatform.rustcSrc}";
