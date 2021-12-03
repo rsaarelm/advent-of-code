@@ -58,7 +58,7 @@ def parse_output(output: str) -> Tuple[int, Optional[int]]:
     elif len(results) == 2:
         return (results[0], results[1])
     else:
-        return die("Output was not one or two integers")
+        raise ValueError("Output was not one or two integers")
 
 
 def run_input(lang: str, day: str, input: IO) -> Tuple[int, Optional[int]]:
@@ -71,7 +71,10 @@ def run_input(lang: str, day: str, input: IO) -> Tuple[int, Optional[int]]:
     )
     if result.returncode != 0:
         die("Terminated with error")
-    return parse_output(result.stdout)
+    try:
+        return parse_output(result.stdout)
+    except ValueError:
+        return die("\x1b[1;31minvalid output\x1b[0m\n%s" % result.stdout)
 
 
 def expected_output(input_path: str) -> Tuple[Optional[int], Optional[int]]:
