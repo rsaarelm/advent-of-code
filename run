@@ -96,7 +96,7 @@ def expected_output(input_path: str) -> Tuple[Optional[int], Optional[int]]:
 def process_value(value: int, expected: Optional[int]):
     """Either print or test value."""
     if expected is None:
-        print(value)
+        print("\x1b[1;33m%s\x1b[0m" % value)
     else:
         if value == expected:
             eprint("\x1b[1;32mOK\x1b[0m %s" % value)
