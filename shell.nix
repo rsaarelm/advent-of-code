@@ -13,8 +13,8 @@ with nixpkgs; mkShell {
     clojure jdk11_headless clojure-lsp
 
     # Rust
-    rustc cargo rustfmt rust-analyzer clippy
-    # nixpkgs.latest.rustChannels.nightly.rust
+    cargo rustfmt rust-analyzer clippy
+    nixpkgs.latest.rustChannels.nightly.rust
 
     # Python
     python3
