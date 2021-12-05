@@ -8,3 +8,5 @@ edition = "2018"
 name = "aoc"
 
 [dependencies]
+lazy_static = "1"
+regex = "1"
