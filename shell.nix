@@ -1,8 +1,9 @@
 let
-  mozilla = import (
+  rust-overlay = import (
     builtins.fetchTarball https://github.com/mozilla/nixpkgs-mozilla/archive/master.tar.gz
+    # builtins.fetchTarball https://github.com/oxalica/rust-overlay/archive/master.tar.gz
     );
-  nixpkgs = import <nixpkgs> { overlays = [ mozilla ]; };
+  nixpkgs = import <nixpkgs> { overlays = [ rust-overlay ]; };
 in
 
 with nixpkgs; mkShell {
@@ -13,8 +14,9 @@ with nixpkgs; mkShell {
     clojure jdk11_headless clojure-lsp
 
     # Rust
-    cargo rustfmt rust-analyzer clippy
+    # rustc cargo rustfmt clippy rust-analyzer
     nixpkgs.latest.rustChannels.nightly.rust
+    nixpkgs.latest.rustChannels.nightly.rust-src
 
     # Python
     python3
@@ -23,5 +25,9 @@ with nixpkgs; mkShell {
     black
   ];
 
-  RUST_SRC_PATH="${rustPlatform.rustcSrc}";
+  # For stable rustc
+  # RUST_SRC_PATH="${rustPlatform.rustcSrc}";
+
+  # For nightly rustc from Mozilla overlay
+  RUST_SRC_PATH="${nixpkgs.latest.rustChannels.nightly.rust-src}/lib/rustlib/src/rust/library";
 }
