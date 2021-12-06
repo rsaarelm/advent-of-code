@@ -1,4 +1,4 @@
-use aoc::util;
+use aoc::prelude::*;
 
 fn parse(input: &str) -> (u64, u64) {
     let ret: Vec<u64> = input.lines().map(|s| s.parse().unwrap()).collect();
@@ -45,7 +45,7 @@ fn run_1(input: &str) -> u64 {
 }
 
 fn main() {
-    let input = util::slurp_stdin();
+    let input = stdin_string();
     println!("{}", run_1(&input));
 }
 

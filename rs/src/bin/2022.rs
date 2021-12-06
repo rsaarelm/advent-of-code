@@ -1,4 +1,4 @@
-use aoc::util;
+use aoc::prelude::*;
 use std::collections::{HashSet, VecDeque};
 use std::str::FromStr;
 
@@ -139,7 +139,7 @@ fn run_2(input: &str) -> u32 {
 }
 
 fn main() {
-    let input = util::slurp_stdin();
+    let input = stdin_string();
     println!("{}", run_1(&input));
     println!("{}", run_2(&input));
 }
