@@ -30,7 +30,7 @@ fn points(line: &Line) -> impl Iterator<Item = (i32, i32)> {
     })
 }
 
-fn intersections(lines: &[Line]) -> usize {
+fn intersections<'a>(lines: impl Iterator<Item = &'a Line>) -> usize {
     let mut hist = HashMap::new();
     for line in lines {
         for point in points(line) {
@@ -46,17 +46,8 @@ fn main() {
     let lines: Vec<Line> = stdin_lines().map(fixed_numbers).collect();
 
     // 1
-    println!(
-        "{}",
-        intersections(
-            &lines
-                .iter()
-                .filter(|a| orthogonal(a))
-                .cloned()
-                .collect::<Vec<Line>>()
-        )
-    );
+    println!("{}", intersections(lines.iter().filter(|a| orthogonal(a))));
 
     // 2
-    println!("{}", intersections(&lines));
+    println!("{}", intersections(lines.iter()));
 }
