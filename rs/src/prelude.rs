@@ -50,3 +50,19 @@ where
     ret.copy_from_slice(elts.as_slice());
     ret
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_numbers() {
+        let v: Vec::<i32> = vec![1, 2, 3, 4];
+        let s: Vec::<i32> = numbers("1 2 3 4");
+        assert_eq!(s, v);
+
+        let a: [i32; 4] = [1, 2, 3, 4];
+        let s: [i32; 4] = fixed_numbers("1, 2, 3, 4");
+        assert_eq!(a, s);
+    }
+}
