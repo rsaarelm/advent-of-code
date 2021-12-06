@@ -9,4 +9,5 @@ name = "aoc"
 
 [dependencies]
 lazy_static = "1"
+memoize = "0.1"
 regex = "1"

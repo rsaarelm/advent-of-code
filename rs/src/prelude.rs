@@ -1,4 +1,5 @@
 use lazy_static::lazy_static;
+pub use memoize::memoize;
 use regex::Regex;
 use std::str::FromStr;
 
