@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use aoc::prelude::*;
+use std::collections::HashMap;
 
 type Line = [i32; 4];
 
@@ -15,19 +14,7 @@ fn points(line: &Line) -> impl Iterator<Item = (i32, i32)> {
     let len = dx.abs().max(dy.abs());
     let (dx, dy) = (dx / len, dy / len);
 
-    let (mut x, mut y) = (x1, y1);
-    let mut n = len + 1;
-    std::iter::from_fn(move || {
-        let ret = Some((x, y));
-        if n == 0 {
-            None
-        } else {
-            x += dx;
-            y += dy;
-            n -= 1;
-            ret
-        }
-    })
+    (0..=len).map(move |r| (x1 + dx * r, y1 + dy * r))
 }
 
 fn intersections<'a>(lines: impl Iterator<Item = &'a Line>) -> usize {
@@ -45,9 +32,6 @@ fn intersections<'a>(lines: impl Iterator<Item = &'a Line>) -> usize {
 fn main() {
     let lines: Vec<Line> = stdin_lines().map(fixed_numbers).collect();
 
-    // 1
     println!("{}", intersections(lines.iter().filter(|a| orthogonal(a))));
-
-    // 2
     println!("{}", intersections(lines.iter()));
 }
