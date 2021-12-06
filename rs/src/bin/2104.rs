@@ -1,6 +1,8 @@
 use aoc::prelude::*;
 
-fn score_if_bingo(board: &Vec<Vec<u32>>, moves: &[u32]) -> Option<u32> {
+type Board = [[u32; 5]; 5];
+
+fn score_if_bingo(board: &Board, moves: &[u32]) -> Option<u32> {
     // Score accumulation per row and column.
     let mut rows = [0, 0, 0, 0, 0];
     let mut cols = [0, 0, 0, 0, 0];
@@ -42,10 +44,10 @@ fn main() {
         .map(|s| s.to_owned())
         .collect();
     let moves: Vec<u32> = numbers(&parts[0]);
-    let boards: Vec<Vec<Vec<u32>>> = parts
+    let boards: Vec<Board> = parts
         .into_iter()
         .skip(1)
-        .map(|b| b.split('\n').map(numbers).collect())
+        .map(|s| Matrix::parse(&s))
         .collect();
 
     'part1: for i in 1..moves.len() {
