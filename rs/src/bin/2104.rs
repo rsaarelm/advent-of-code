@@ -47,7 +47,7 @@ fn main() {
     let boards: Vec<Board> = parts
         .into_iter()
         .skip(1)
-        .map(|s| Matrix::parse(&s))
+        .map(Matrix::parse)
         .collect();
 
     'part1: for i in 1..moves.len() {

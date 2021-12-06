@@ -51,6 +51,50 @@ where
     ret
 }
 
+pub trait Row: Sized {
+    fn parse(s: impl AsRef<str>) -> Self;
+}
+
+impl<T: FromStr> Row for Vec<T> {
+    fn parse(s: impl AsRef<str>) -> Self {
+        numbers(s)
+    }
+}
+
+impl<T: Copy + FromStr, const N: usize> Row for [T; N] {
+    fn parse(s: impl AsRef<str>) -> Self {
+        fixed_numbers(s)
+    }
+}
+
+pub trait Matrix: Sized {
+    fn parse(s: impl AsRef<str>) -> Self;
+}
+
+impl<T: Row> Matrix for Vec<T> {
+    fn parse(s: impl AsRef<str>) -> Self {
+        s.as_ref()
+            .trim()
+            .split('\n')
+            .map(|line| Row::parse(line))
+            .collect()
+    }
+}
+
+impl<T: Row + Clone, const N: usize> Matrix for [T; N] {
+    fn parse(s: impl AsRef<str>) -> Self {
+        let mut ret: [T; N] = unsafe { std::mem::zeroed() };
+        let elts: Vec<T> = s
+            .as_ref()
+            .trim()
+            .split('\n')
+            .map(|line| Row::parse(line))
+            .collect();
+        ret.clone_from_slice(elts.as_slice());
+        ret
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -64,40 +108,5 @@ mod test {
         let a: [i32; 4] = [1, 2, 3, 4];
         let s: [i32; 4] = fixed_numbers("1, 2, 3, 4");
         assert_eq!(a, s);
-    }
-}
-
-pub trait Row: Sized {
-    fn parse(s: &str) -> Self;
-}
-
-impl<T: FromStr> Row for Vec<T> {
-    fn parse(s: &str) -> Self {
-        numbers(s)
-    }
-}
-
-impl<T: Copy + FromStr, const N: usize> Row for [T; N] {
-    fn parse(s: &str) -> Self {
-        fixed_numbers(s)
-    }
-}
-
-pub trait Matrix: Sized {
-    fn parse(s: &str) -> Self;
-}
-
-impl<T: Row> Matrix for Vec<T> {
-    fn parse(s: &str) -> Self {
-        s.trim().split('\n').map(|line| Row::parse(line)).collect()
-    }
-}
-
-impl<T: Row + Clone, const N: usize> Matrix for [T; N] {
-    fn parse(s: &str) -> Self {
-        let mut ret: [T; N] = unsafe { std::mem::zeroed() };
-        let elts: Vec<T> = s.trim().split('\n').map(|line| Row::parse(line)).collect();
-        ret.clone_from_slice(elts.as_slice());
-        ret
     }
 }
