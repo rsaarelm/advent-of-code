@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 pub use memoize::memoize;
 use regex::Regex;
-use std::str::FromStr;
+use std::{convert::TryInto, str::FromStr};
 
 pub fn stdin_string() -> String {
     use std::{io, io::prelude::*};
@@ -45,10 +45,7 @@ where
         })
         .collect();
 
-    // XXX: Couldn't get elts.as_slice().try_from().unwrap() to work.
-    let mut ret: [T; N] = unsafe { std::mem::zeroed() };
-    ret.copy_from_slice(elts.as_slice());
-    ret
+    elts.as_slice().try_into().unwrap()
 }
 
 pub trait Row: Sized {
