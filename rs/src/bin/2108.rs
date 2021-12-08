@@ -1,6 +1,5 @@
 use aoc::prelude::*;
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use std::{collections::BTreeSet, convert::TryInto, fmt};
 
 //   aaaa
@@ -11,28 +10,28 @@ use std::{collections::BTreeSet, convert::TryInto, fmt};
 //  e    f
 //   gggg
 //
-// Wire bit set equals number segment lit
+// Digit byte bit set equals number segment lit.
 
-const DIGITS: [Wire; 10] = [
-    //     gfedcba
-    Wire(0b1110111), // 0
-    Wire(0b0100100), // 1
-    Wire(0b1011101), // 2
-    Wire(0b1101101), // 3
-    Wire(0b0101110), // 4
-    Wire(0b1101011), // 5
-    Wire(0b1111011), // 6
-    Wire(0b0100101), // 7
-    Wire(0b1111111), // 8
-    Wire(0b1101111), // 9
+const DIGITS: [Digit; 10] = [
+    //      gfedcba
+    Digit(0b1110111), // 0
+    Digit(0b0100100), // 1
+    Digit(0b1011101), // 2
+    Digit(0b1101101), // 3
+    Digit(0b0101110), // 4
+    Digit(0b1101011), // 5
+    Digit(0b1111011), // 6
+    Digit(0b0100101), // 7
+    Digit(0b1111111), // 8
+    Digit(0b1101111), // 9
 ];
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-struct Wire(u8);
+struct Digit(u8);
 
-impl Wire {
-    pub fn new(a: impl AsRef<str>) -> Wire {
-        Wire(
+impl Digit {
+    pub fn new(a: impl AsRef<str>) -> Digit {
+        Digit(
             a.as_ref()
                 .chars()
                 .map(|c| (1 << (c as usize - 'a' as usize)))
@@ -45,13 +44,13 @@ impl Wire {
     }
 }
 
-impl fmt::Debug for Wire {
+impl fmt::Debug for Digit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:07b}", self.0)
     }
 }
 
-impl TryInto<u32> for Wire {
+impl TryInto<u32> for Digit {
     type Error = ();
 
     fn try_into(self) -> Result<u32, Self::Error> {
@@ -65,11 +64,11 @@ impl TryInto<u32> for Wire {
     }
 }
 
-/// Wire permutator.
+/// Wire permutator for digits.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-struct Key([u8; 7]);
+struct Wiring([u8; 7]);
 
-impl std::ops::Deref for Key {
+impl std::ops::Deref for Wiring {
     type Target = [u8; 7];
 
     fn deref(&self) -> &Self::Target {
@@ -77,12 +76,12 @@ impl std::ops::Deref for Key {
     }
 }
 
-impl std::ops::Mul<Key> for Wire {
-    type Output = Wire;
+impl std::ops::Mul<Wiring> for Digit {
+    type Output = Digit;
 
-    fn mul(self, rhs: Key) -> Self::Output {
-        // Rewire each set bit according to key.
-        Wire(
+    fn mul(self, rhs: Wiring) -> Self::Output {
+        // Rewire each set bit according to wiring.
+        Digit(
             (0..7)
                 .map(|i| {
                     if self.0 & (1 << i) != 0 {
@@ -96,22 +95,14 @@ impl std::ops::Mul<Key> for Wire {
     }
 }
 
-lazy_static! {
-    static ref ALL_KEYS: Vec<Key> = (0..7)
-        .permutations(7)
-        .map(|p| Key(p.as_slice().try_into().unwrap()))
-        .collect();
-    static ref VALID_WIRES: BTreeSet<Wire> = DIGITS.iter().cloned().collect();
-}
-
 fn main() {
-    let mut wirings: Vec<Vec<Wire>> = Vec::new();
-    let mut digits: Vec<Vec<Wire>> = Vec::new();
+    let mut wirings: Vec<Vec<Digit>> = Vec::new();
+    let mut numbers: Vec<Vec<Digit>> = Vec::new();
     for line in stdin_lines() {
         match line.split(" | ").collect::<Vec<&str>>().as_slice() {
             [w, d] => {
-                wirings.push(w.split(' ').map(|a| Wire::new(a)).collect());
-                digits.push(d.split(' ').map(|a| Wire::new(a)).collect());
+                wirings.push(w.split(' ').map(|a| Digit::new(a)).collect());
+                numbers.push(d.split(' ').map(|a| Digit::new(a)).collect());
             }
             _ => panic!(),
         }
@@ -120,7 +111,7 @@ fn main() {
     // 1
     println!(
         "{}",
-        digits
+        numbers
             .iter()
             .map(|d| d
                 .iter()
@@ -130,13 +121,20 @@ fn main() {
     );
 
     // 2
-    let mut acc = 0;
-    'top: for (ws, ds) in wirings.iter().zip(&digits) {
-        // brute force go brrr
-        for &k in ALL_KEYS.iter() {
-            let rewired: BTreeSet<Wire> = ws.iter().map(|&w| w * k).collect();
+    let all_wirings: Vec<Wiring> = (0..7)
+        .permutations(7)
+        .map(|p| Wiring(p.as_slice().try_into().unwrap()))
+        .collect();
 
-            if rewired == *VALID_WIRES {
+    let valid_digits: BTreeSet<Digit> = DIGITS.iter().cloned().collect();
+
+    let mut acc = 0;
+    'top: for (ws, ds) in wirings.iter().zip(&numbers) {
+        // brute force go brrr
+        for &k in &all_wirings {
+            let rewired: BTreeSet<Digit> = ws.iter().map(|&w| w * k).collect();
+
+            if rewired == valid_digits {
                 let num: u32 = ds
                     .iter()
                     .rev()
