@@ -77,19 +77,6 @@ impl std::ops::Deref for Key {
     }
 }
 
-impl Key {
-    pub fn new(a: Vec<char>) -> Key {
-        let bytes: Vec<u8> = a.into_iter().map(|c| c as u8 - 'a' as u8).collect();
-        debug_assert_eq!(
-            bytes.iter().collect::<BTreeSet<_>>().len(),
-            bytes.len(),
-            "Elements aren't unique!"
-        );
-        debug_assert_eq!(bytes.iter().max(), Some(&6), "More than 7 elements!");
-        Key(bytes.as_slice().try_into().unwrap())
-    }
-}
-
 impl std::ops::Mul<Key> for Wire {
     type Output = Wire;
 
@@ -110,10 +97,9 @@ impl std::ops::Mul<Key> for Wire {
 }
 
 lazy_static! {
-    static ref ALL_KEYS: Vec<Key> = "abcdefg"
-        .chars()
+    static ref ALL_KEYS: Vec<Key> = (0..7)
         .permutations(7)
-        .map(|p| Key::new(p))
+        .map(|p| Key(p.as_slice().try_into().unwrap()))
         .collect();
     static ref VALID_WIRES: BTreeSet<Wire> = DIGITS.iter().cloned().collect();
 }
