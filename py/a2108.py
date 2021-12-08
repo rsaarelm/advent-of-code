@@ -29,33 +29,32 @@ DIGITS: dict[str, str] = {
 
 
 def solve(wires: Iterable[str]) -> dict[str, str]:
-    # One
+    def comp(s):
+        return set("abcdefg") - s
+
+    # One.
     (cf,) = [set(x) for x in wires if len(x) == 2]
-    # Seven
+    # Seven.
     (acf,) = [set(x) for x in wires if len(x) == 3]
-    # Four
+    # Four.
     (bcdf,) = [set(x) for x in wires if len(x) == 4]
-    # Full set
-    abcdefg = set("abcdefg")
+    # Shared in 2, 3, 5.
+    adg = set.intersection(*[set(x) for x in wires if len(x) == 5])
+    # Shared in 0, 6, 9.
+    abfg = set.intersection(*[set(x) for x in wires if len(x) == 6])
+    # We already know 8 is abcdefg is abcdefg.
 
-    # Shared segments in 2, 3, 5:
-    adg: Set[str] = set.intersection(*[set(x) for x in wires if len(x) == 5])
-    bcef = abcdefg - adg
-
-    # Shared segments in 0, 6, 9
-    abfg: Set[str] = set.intersection(*[set(x) for x in wires if len(x) == 6])
-    dce = abcdefg - abfg
-
-    # Manually derived simplification:
+    # Solve manually.
     (a,) = acf - cf
     bd = bcdf - cf
     (b,) = bd - adg
-    cf = bcdf - bd
-    (g,) = abfg - {a} - bd - cf
-    (d,) = adg - {a} - {g}
-    (f,) = cf - dce
+    (d,) = bd - {b}
+    bcef = comp(adg)
     (e,) = bcef - {b} - cf
+    cde = comp(abfg)
+    (f,) = cf - cde
     (c,) = cf - {f}
+    (g,) = comp({a, b, c, d, e, f})
 
     return {a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g"}
 
