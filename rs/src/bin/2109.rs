@@ -1,15 +1,13 @@
 use aoc::prelude::*;
 use glam::IVec2;
-use itertools::Itertools;
 use std::{
-    collections::{BTreeSet, HashMap, HashSet},
+    collections::{HashMap, HashSet},
     hash::Hash,
     str::FromStr,
 };
 
 const BOUNDARY: u32 = 9;
 
-#[inline(always)]
 fn neighbors(p: IVec2) -> impl Iterator<Item = IVec2> {
     [[1i32, 0], [0, 1], [-1, 0], [0, -1]]
         .iter()
@@ -24,27 +22,26 @@ fn fill<N: Clone + Eq + Hash>(
     let mut open: HashSet<_> = Some(seed).into_iter().collect();
     let mut seen = HashSet::new();
     std::iter::from_fn(move || {
-        if open.is_empty() {
-            return None;
-        }
-        let elt = open.iter().next().cloned().unwrap();
-        open.remove(&elt);
+        if let Some(elt) = open.pop() {
+            seen.insert(elt.clone());
 
-        seen.insert(elt.clone());
-
-        for neighbor in neighbors(&elt) {
-            if !seen.contains(&neighbor) {
-                open.insert(neighbor);
+            for neighbor in neighbors(&elt) {
+                if !seen.contains(&neighbor) {
+                    open.insert(neighbor);
+                }
             }
-        }
 
-        Some(elt)
+            Some(elt)
+        } else {
+            None
+        }
     })
 }
 
+// All points, neighbors_fn
+
 struct Map {
     data: HashMap<IVec2, u32>,
-    dim: IVec2,
 }
 
 impl Map {
@@ -52,10 +49,11 @@ impl Map {
         *self.data.get(&pos).unwrap_or(&BOUNDARY)
     }
 
-    pub fn all_points(&self) -> impl Iterator<Item = IVec2> {
-        (0..self.dim[1])
-            .cartesian_product(0..self.dim[0])
-            .map(|(y, x)| IVec2::new(x, y))
+    pub fn iter(&self) -> impl Iterator<Item = (IVec2, u32)> + '_ {
+        self.data
+            .iter()
+            .filter(|&(_, &n)| n < BOUNDARY)
+            .map(|(&p, &v)| (p, v))
     }
 
     /// Neighbors function that does not cross `BOUNDARY` cells.
@@ -68,27 +66,19 @@ impl FromStr for Map {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut w = 0;
-        let mut h = 0;
         let data = s
             .lines()
             .enumerate()
             .map(|(y, line)| {
                 line.chars()
                     .enumerate()
-                    .map(|(x, c)| {
-                        let (x, y) = (x as i32, y as i32);
-                        w = w.max(x + 1);
-                        h = h.max(y + 1);
-                        (IVec2::new(x, y), c.to_digit(10).unwrap())
-                    })
+                    .map(|(x, c)| (IVec2::new(x as i32, y as i32), c.to_digit(10).unwrap()))
                     .collect::<Vec<(IVec2, u32)>>()
             })
             .flatten()
             .collect();
 
-        let dim = [w, h].into();
-        Ok(Map { data, dim })
+        Ok(Map { data })
     }
 }
 
@@ -97,8 +87,7 @@ fn main() {
 
     // 1
     let mut n = 0;
-    for p in map.all_points() {
-        let a = map.get(p);
+    for (p, a) in map.iter() {
         if neighbors(p).any(|n| map.get(n) <= a) {
             continue;
         }
@@ -107,27 +96,15 @@ fn main() {
     println!("{}", n);
 
     // 2
-    // Use BTreeSets for deduplication because lazy.
-    // (BTreeSet can contain BTreeSets, HashSet can't contain HashSets.)
-    let regions: BTreeSet<BTreeSet<_>> = map
-        .all_points()
-        .filter(|&p| map.get(p) != BOUNDARY)
-        .map(|p| {
-            fill(p, map.neighbors_fn())
-                // Can't BTreeSet IVec2s but can BTreeSet arrays.
-                .map(|v| <[i32; 2]>::from(v))
-                .collect::<BTreeSet<_>>()
-        })
-        .collect();
+    let mut basin_sizes = Vec::new();
+    let mut open_points: HashSet<IVec2> = map.iter().map(|(p, _)| p).collect();
 
-    // Top 3
-    println!(
-        "{}",
-        regions
-            .iter()
-            .map(|x| x.len() as i32)
-            .sorted_by_key(|x| -x)
-            .take(3)
-            .product::<i32>()
-    );
+    while !open_points.is_empty() {
+        let basin: HashSet<_> = fill(open_points.pop().unwrap(), map.neighbors_fn()).collect();
+        open_points = open_points.difference(&basin).cloned().collect();
+        basin_sizes.push(basin.len());
+    }
+
+    basin_sizes.sort();
+    println!("{}", basin_sizes.iter().rev().take(3).product::<usize>());
 }
