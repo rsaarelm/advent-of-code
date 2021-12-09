@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 pub use memoize::memoize;
 use regex::Regex;
-use std::{convert::TryInto, str::FromStr};
+use std::{collections::{HashSet, BTreeSet}, convert::TryInto, hash::Hash, str::FromStr};
 
 pub fn stdin_string() -> String {
     use std::{io, io::prelude::*};
@@ -89,6 +89,38 @@ impl<T: Row + Clone, const N: usize> Matrix for [T; N] {
             .collect();
         ret.clone_from_slice(elts.as_slice());
         ret
+    }
+}
+
+// Implement the missing pop method for sets.
+pub trait SetUtil {
+    type Item;
+    fn pop(&mut self) -> Option<Self::Item>;
+}
+
+impl<N: Hash + Eq + Clone> SetUtil for HashSet<N> {
+    type Item = N;
+
+    fn pop(&mut self) -> Option<Self::Item> {
+        if let Some(elt) = self.iter().next().cloned() {
+            self.remove(&elt);
+            Some(elt)
+        } else {
+            None
+        }
+    }
+}
+
+impl<N: Ord + Eq + Clone> SetUtil for BTreeSet<N> {
+    type Item = N;
+
+    fn pop(&mut self) -> Option<Self::Item> {
+        if let Some(elt) = self.iter().next().cloned() {
+            self.remove(&elt);
+            Some(elt)
+        } else {
+            None
+        }
     }
 }
 
