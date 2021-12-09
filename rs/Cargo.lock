@@ -15,6 +15,7 @@ dependencies = [
 name = "aoc-rust"
 version = "0.1.0"
 dependencies = [
+ "glam",
  "itertools",
  "lazy_static",
  "memoize",
@@ -26,6 +27,12 @@ name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
+
+[[package]]
+name = "glam"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68270e16582ea40f9c5b2fcd588fbc9cb696577222e04a64d9085cc314806a8a"
 
 [[package]]
 name = "itertools"
