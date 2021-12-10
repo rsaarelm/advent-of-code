@@ -1,64 +1,43 @@
+from functools import reduce
 from prelude import read
 
-PAIR = {
-    "(": ")",
-    "[": "]",
-    "{": "}",
-    "<": ">",
-}
-
-SCORE = {
-    ")": 3,
-    "]": 57,
-    "}": 1197,
-    ">": 25137,
-}
-
-SCORE2 = {
-    ")": 1,
-    "]": 2,
-    "}": 3,
-    ">": 4,
-}
+LEFT, RIGHT = "([{<", ")]}>"
 
 
-def corruption(line):
-    score = 0
+def analyze(line):
     stack = []
+    mismatch = []
     for c in line:
-        if c in PAIR:
-            stack.append(PAIR[c])
+        if c in LEFT:
+            stack.append(RIGHT[LEFT.index(c)])
         else:
-            if not stack or stack[-1] != c:
-                score += SCORE[c]
-            if stack:
-                stack.pop()
-    return score
-
-
-def completion(line):
-    stack = []
-    for c in line:
-        if c in PAIR:
-            stack.append(PAIR[c])
-        else:
-            stack.pop()
-
-    score = 0
-    for c in reversed(stack):
-        score *= 5
-        score += " )]}>".index(c)
-    return score
+            d = stack.pop()
+            if d != c:
+                mismatch.append(c)
+    return ("".join(mismatch), "".join(reversed(stack)))
 
 
 if __name__ == "__main__":
     data = read()
 
+    score_1 = 0
+    scores_2 = []
+    for line in data:
+        (mismatch, completion) = analyze(line)
+        if mismatch:
+            for c in mismatch:
+                score_1 += [3, 57, 1197, 25137][RIGHT.index(c)]
+        else:
+            scores_2.append(
+                reduce(
+                    lambda a, b: a * 5 + b,
+                    (RIGHT.index(c) + 1 for c in completion),
+                )
+            )
+
     # 1
-    print(sum(corruption(line) for line in data))
+    print(score_1)
 
     # 2
-    valid = [line for line in data if not corruption(line)]
-    scores = [completion(line) for line in valid]
-    scores = list(sorted(c for c in scores if c))
-    print(scores[len(scores) // 2])
+    scores_2.sort()
+    print(scores_2[len(scores_2) // 2])
