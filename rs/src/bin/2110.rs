@@ -1,48 +1,60 @@
 use aoc::prelude::*;
-use std::{convert::TryFrom, fmt};
+use std::convert::TryFrom;
+
+#[derive(Copy, Clone, Debug)]
+enum Bracket {
+    // Value is corresponding closing char.
+    Open(char),
+    // Value is score index of bracket pair.
+    Close(u8),
+}
+
+const fn bracket_table() -> [Option<Bracket>; 128] {
+    let mut ret = [None; 128];
+    ret['(' as usize] = Some(Bracket::Open(')'));
+    ret[')' as usize] = Some(Bracket::Close(0));
+    ret['[' as usize] = Some(Bracket::Open(']'));
+    ret[']' as usize] = Some(Bracket::Close(1));
+    ret['{' as usize] = Some(Bracket::Open('}'));
+    ret['}' as usize] = Some(Bracket::Close(2));
+    ret['<' as usize] = Some(Bracket::Open('>'));
+    ret['>' as usize] = Some(Bracket::Close(3));
+    ret
+}
+
+// Compile-time look-up table for char values.
+const BRACKET_TABLE: [Option<Bracket>; 128] = bracket_table();
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-struct Elt(u8);
-
-const ELT_CHARS: [char; 8] = ['(', '[', '{', '<', ')', ']', '}', '>'];
+struct Elt(char);
 
 impl TryFrom<char> for Elt {
     type Error = ();
 
-    fn try_from(value: char) -> Result<Self, Self::Error> {
-        if let Some(i) = ELT_CHARS.iter().position(|&p| p == value) {
-            Ok(Elt(i as u8))
+    fn try_from(c: char) -> Result<Self, Self::Error> {
+        if BRACKET_TABLE[c as usize].is_some() {
+            Ok(Elt(c))
         } else {
             Err(())
         }
     }
 }
 
-impl fmt::Display for Elt {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", ELT_CHARS[self.0 as usize])
-    }
-}
-
 impl Elt {
-    fn pair(self) -> Elt {
-        if self.0 < 4 {
-            Elt(self.0 + 4)
+    fn closing_pair(self) -> Option<Elt> {
+        if let Some(Bracket::Open(c)) = BRACKET_TABLE[self.0 as usize] {
+            Some(Elt(c))
         } else {
-            Elt(self.0 - 4)
+            None
         }
     }
 
-    fn is_opening(self) -> bool {
-        self.0 < 4
-    }
-
-    fn score_1(self) -> u64 {
-        [3, 57, 1197, 25137][self.0 as usize % 4]
-    }
-
-    fn score_2(self) -> u64 {
-        ((self.0 % 4) + 1) as u64
+    fn rank(self) -> Option<usize> {
+        if let Some(Bracket::Close(a)) = BRACKET_TABLE[self.0 as usize] {
+            Some(a as usize)
+        } else {
+            None
+        }
     }
 }
 
@@ -60,8 +72,8 @@ impl Status {
         let mut mismatches = Vec::new();
 
         for e in chunk {
-            if e.is_opening() {
-                stack.push(e.pair());
+            if let Some(c) = e.closing_pair() {
+                stack.push(c);
             } else {
                 if e != stack.pop().unwrap() {
                     mismatches.push(e);
@@ -81,7 +93,10 @@ impl Status {
 
     fn score_1(&self) -> u64 {
         if let Status::Corrupt(elts) = self {
-            elts.iter().map(|e| e.score_1()).sum()
+            elts.iter()
+                .filter_map(|e| e.rank())
+                .map(|rank| [3, 57, 1197, 25137][rank])
+                .sum()
         } else {
             0
         }
@@ -90,7 +105,11 @@ impl Status {
     fn score_2(&self) -> Option<u64> {
         match self {
             Status::Corrupt(_) => None,
-            Status::Incomplete(elts) => Some(elts.iter().fold(0, |a, b| a * 5 + b.score_2())),
+            Status::Incomplete(elts) => Some(
+                elts.iter()
+                    .filter_map(|e| e.rank())
+                    .fold(0, |a, b| a * 5 + (b as u64) + 1),
+            ),
             _ => Some(0),
         }
     }
