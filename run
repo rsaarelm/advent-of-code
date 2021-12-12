@@ -35,8 +35,7 @@ def input_files(day: str) -> Iterable[Tuple[str, Optional[str]]]:
             for f in os.listdir("input/")
             if day_part(f) == day and f.endswith(".txt")
         ),
-        key=len,
-        reverse=True,
+        key=lambda x: (-len(x), x),
     ):
         base, _ = os.path.splitext(f)
         output = base + ".out"
