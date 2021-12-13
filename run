@@ -4,7 +4,7 @@ from itertools import takewhile
 import os
 import subprocess
 import sys
-from typing import IO, Iterable, Optional, Tuple
+from typing import IO, Iterable, Optional, Tuple, Union
 
 
 def eprint(*args, **kwargs):
@@ -45,13 +45,24 @@ def input_files(day: str) -> Iterable[Tuple[str, Optional[str]]]:
             yield (f, None)
 
 
-def parse_output(output: str) -> Tuple[int, Optional[int]]:
+def clean_item(item: str) -> Union[int, str]:
+    ret: Union[int, str] = item.strip()
+    try:
+        ret = int(item)
+    except ValueError:
+        pass
+    return ret
+
+
+def parse_output(
+    output: str,
+) -> Tuple[Union[int, str], Optional[Union[int, str]]]:
     output = output.strip()
     if not output:
         die("No output produced")
 
     # Expecting one or two integers
-    results = [int(item.strip()) for item in output.split("\n")]
+    results = [clean_item(item) for item in output.split("\n")]
     if len(results) == 1:
         return (results[0], None)
     elif len(results) == 2:
@@ -60,7 +71,9 @@ def parse_output(output: str) -> Tuple[int, Optional[int]]:
         raise ValueError("Output was not one or two integers")
 
 
-def run_input(lang: str, day: str, input: IO) -> Tuple[int, Optional[int]]:
+def run_input(
+    lang: str, day: str, input: IO
+) -> Tuple[Union[int, str], Optional[Union[int, str]]]:
     result = subprocess.run(
         ["just", "run", day],
         cwd="%s/" % lang,
