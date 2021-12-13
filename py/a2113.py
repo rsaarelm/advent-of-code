@@ -30,9 +30,9 @@ if __name__ == "__main__":
     for y in range(7):
         for x in range(42):
             if (x, y) in folded:
-                eprint('#', end='')
+                eprint('██', end='')
             else:
-                eprint('.', end='')
+                eprint(' .', end='')
         eprint()
 
 # Lookup...
