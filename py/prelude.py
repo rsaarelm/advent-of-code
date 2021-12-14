@@ -1,3 +1,4 @@
+from collections import defaultdict
 import re
 import sys
 from typing import IO, Tuple
@@ -35,3 +36,13 @@ def re_match(r: str, text: str):
         except ValueError:
             pass
     return tuple(matches)
+
+
+def cat(s):
+    return ''.join(s)
+
+def histogram(n):
+    ret = defaultdict(int)
+    for a in n:
+        ret[a] += 1
+    return ret
