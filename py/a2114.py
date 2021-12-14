@@ -1,26 +1,46 @@
-from prelude import read, cat, histogram, eprint
-
-def expand(table, line):
-    ret = []
-    for x in (cat(p) for p in zip(line, line[1:])):
-        ret.append(x[0])
-        try:
-            ret.append(table[x])
-        except KeyError:
-            pass
-    ret.append(line[-1])
-    return cat(ret)
+from collections import defaultdict
+from prelude import read, cat
 
 
-if __name__ == '__main__':
+def update(table, pairs):
+    new_pairs = defaultdict(int)
+    for (p, n) in list(pairs.items()):
+        c = table[p]
+        new_pairs[cat(p[0], c)] += n
+        new_pairs[cat(c, p[1])] += n
+    return new_pairs
+
+
+def pairs_hist(init, pairs):
+    hist = defaultdict(int)
+    for p in pairs:
+        hist[p[0]] += pairs[p]
+    # The only char not accounted for by first elements of pairs.
+    hist[init[-1]] += 1
+    return hist
+
+
+if __name__ == "__main__":
     lines = read()
     init = lines[0]
-    table = dict(x.split(' -> ') for x in lines[2:])
+    table = dict(x.split(" -> ") for x in lines[2:])
+
+    pairs = defaultdict(int)
+    for x in (cat(p) for p in zip(init, init[1:])):
+        pairs[x] += 1
 
     # 1
-    x = init
+    state = pairs.copy()
     for _ in range(10):
-        x = expand(table, x)
+        state = update(table, state)
+        pairs_hist(init, state)
+    hist = pairs_hist(init, state)
+    print(max(hist.values()) - min(hist.values()))
 
-    hist = histogram(x)
+    # 2
+    state = pairs.copy()
+    for _ in range(40):
+        state = update(table, state)
+        pairs_hist(init, state)
+    hist = pairs_hist(init, state)
     print(max(hist.values()) - min(hist.values()))

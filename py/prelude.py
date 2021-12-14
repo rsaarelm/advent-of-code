@@ -38,8 +38,11 @@ def re_match(r: str, text: str):
     return tuple(matches)
 
 
-def cat(s):
-    return ''.join(s)
+def cat(*s):
+    if len(s) == 1:
+        return ''.join(*s)
+    else:
+        return ''.join(s)
 
 def histogram(n):
     ret = defaultdict(int)
