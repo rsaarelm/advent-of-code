@@ -40,9 +40,10 @@ def re_match(r: str, text: str):
 
 def cat(*s):
     if len(s) == 1:
-        return ''.join(*s)
+        return "".join(*s)
     else:
-        return ''.join(s)
+        return "".join(s)
+
 
 def histogram(n):
     ret = defaultdict(int)

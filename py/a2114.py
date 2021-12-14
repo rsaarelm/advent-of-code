@@ -11,15 +11,6 @@ def update(table, pairs):
     return new_pairs
 
 
-def pairs_hist(init, pairs):
-    hist = defaultdict(int)
-    for p in pairs:
-        hist[p[0]] += pairs[p]
-    # The only char not accounted for by first elements of pairs.
-    hist[init[-1]] += 1
-    return hist
-
-
 if __name__ == "__main__":
     lines = read()
     init = lines[0]
@@ -29,18 +20,12 @@ if __name__ == "__main__":
     for x in (cat(p) for p in zip(init, init[1:])):
         pairs[x] += 1
 
-    # 1
-    state = pairs.copy()
-    for _ in range(10):
-        state = update(table, state)
-        pairs_hist(init, state)
-    hist = pairs_hist(init, state)
-    print(max(hist.values()) - min(hist.values()))
-
-    # 2
-    state = pairs.copy()
-    for _ in range(40):
-        state = update(table, state)
-        pairs_hist(init, state)
-    hist = pairs_hist(init, state)
-    print(max(hist.values()) - min(hist.values()))
+    # 1, 2
+    for n in [10, 40]:
+        state = pairs.copy()
+        for _ in range(n):
+            state = update(table, state)
+        hist = defaultdict(int, {init[-1]: 1})
+        for ((c, _), n) in state.items():
+            hist[c] += n
+        print(max(hist.values()) - min(hist.values()))
