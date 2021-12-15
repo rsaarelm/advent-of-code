@@ -50,3 +50,8 @@ def histogram(n):
     for a in n:
         ret[a] += 1
     return ret
+
+
+def neighbors4(p):
+    for d in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
+        yield (p[0] + d[0], p[1] + d[1])
