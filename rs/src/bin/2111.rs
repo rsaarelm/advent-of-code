@@ -1,6 +1,5 @@
-use std::iter;
-
 use aoc::prelude::*;
+use std::iter;
 
 const PITCH: i64 = 12;
 

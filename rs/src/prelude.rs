@@ -1,12 +1,18 @@
 use lazy_static::lazy_static;
 pub use memoize::memoize;
 use regex::Regex;
-use std::{collections::{HashSet, BTreeSet}, convert::TryInto, hash::Hash, str::FromStr};
+use std::{
+    collections::{BTreeSet, HashSet},
+    convert::TryInto,
+    hash::Hash,
+    str::FromStr,
+};
 
 pub fn stdin_string() -> String {
     use std::{io, io::prelude::*};
     let mut ret = String::new();
     io::stdin().read_to_string(&mut ret).unwrap();
+    ret.truncate(ret.trim_end().len());
     ret
 }
 
@@ -46,6 +52,14 @@ where
         .collect();
 
     elts.as_slice().try_into().unwrap()
+}
+
+pub fn hex_to_bytes(hex: impl AsRef<str>) -> Vec<u8> {
+    hex.as_ref()
+        .as_bytes()
+        .chunks(2)
+        .map(|c| u8::from_str_radix(std::str::from_utf8(c).unwrap(), 16).unwrap())
+        .collect()
 }
 
 pub trait Row: Sized {
@@ -121,6 +135,52 @@ impl<N: Ord + Eq + Clone> SetUtil for BTreeSet<N> {
         } else {
             None
         }
+    }
+}
+
+pub trait Grid {
+    type Item;
+    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item;
+}
+
+impl<T: Default + Clone> Grid for Vec<Vec<T>> {
+    type Item = T;
+
+    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item {
+        let pos = pos.into();
+        if pos[1] < 0 || pos[1] >= self.len() as i32 {
+            return Default::default();
+        }
+
+        let row = &self[pos[1] as usize];
+        if pos[0] < 0 || pos[0] >= row.len() as i32 {
+            return Default::default();
+        }
+
+        row[pos[0] as usize].clone()
+    }
+}
+
+// Very inefficient access, for the lazy.
+impl Grid for String {
+    type Item = char;
+
+    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item {
+        let pos = pos.into();
+
+        if pos[0] < 0 || pos[1] < 0 {
+            return '\0';
+        }
+
+        for (y, line) in self.lines().enumerate() {
+            for (x, c) in line.chars().enumerate() {
+                let p = [x as i32, y as i32];
+                if p == pos {
+                    return c;
+                }
+            }
+        }
+        return '\0';
     }
 }
 
