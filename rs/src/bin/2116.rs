@@ -3,7 +3,6 @@ use nom::{
     bits::complete::{tag, take},
     branch::alt,
     combinator::map_opt,
-    error::Error,
     multi::many_till,
     sequence::{pair, preceded},
     IResult, Parser,
@@ -24,12 +23,14 @@ impl Packet {
 impl Packet {
     pub fn checksum(&self) -> u64 {
         use Op::*;
-        self.version as u64 +
-        match &self.op {
-            Sum(ps) | Product(ps) | Minimum(ps) | Maximum(ps) => ps.iter().map(|p| p.checksum()).sum(),
-            Literal(_) => 0,
-            Greater(a, b) | Less(a, b) | Equal(a, b) => a.checksum() + b.checksum(),
-       }
+        self.version as u64
+            + match &self.op {
+                Sum(ps) | Product(ps) | Minimum(ps) | Maximum(ps) => {
+                    ps.iter().map(|p| p.checksum()).sum()
+                }
+                Literal(_) => 0,
+                Greater(a, b) | Less(a, b) | Equal(a, b) => a.checksum() + b.checksum(),
+            }
     }
 
     pub fn eval(&self) -> u64 {
@@ -43,7 +44,7 @@ impl Packet {
             Greater(a, b) => (a.eval() > b.eval()) as u64,
             Less(a, b) => (a.eval() < b.eval()) as u64,
             Equal(a, b) => (a.eval() == b.eval()) as u64,
-       }
+        }
     }
 }
 
@@ -58,10 +59,6 @@ enum Op {
     Less(Box<Packet>, Box<Packet>),
     Equal(Box<Packet>, Box<Packet>),
 }
-
-
-// Bit stream error signature. Needs to be passed to nom turbofishes.
-type E<'a> = Error<(&'a [u8], usize)>;
 
 /// Parse packets given a buffer length in bits.
 fn length_packets(input: (&[u8], usize)) -> IResult<(&[u8], usize), Vec<Packet>> {
@@ -104,7 +101,7 @@ fn packet(input: (&[u8], usize)) -> IResult<(&[u8], usize), Packet> {
 
     // Parse 1-prefixed 5-bit chunks until we hit the terminal 0-bit prefixed
     // chunk. Then merge the non-marker nybbles into the number.
-    let number = many_till::<_, _, _, E, _, _>(
+    let number = many_till(
         preceded(tag(1, 1usize), take(4usize)),
         preceded(tag(0, 1usize), take(4usize)),
     )
@@ -155,7 +152,7 @@ fn packet(input: (&[u8], usize)) -> IResult<(&[u8], usize), Packet> {
 
 fn parse(input: &[u8]) -> IResult<&[u8], Packet> {
     // Wrapper for nom bit parsing.
-    nom::bits::<_, _, E, _, _>(packet)(input)
+    nom::bits(packet)(input)
 }
 
 fn main() {
