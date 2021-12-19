@@ -20,6 +20,7 @@ with nixpkgs; mkShell {
 
     # Python
     python3
+    python3Packages.numpy
     python3Packages.python-lsp-server
     python3Packages.pylsp-mypy
     black
