@@ -2,6 +2,7 @@ use aoc::prelude::*;
 use glam::IVec3;
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use rayon::prelude::*;
 use std::{
     collections::HashSet,
     convert::TryInto,
@@ -95,7 +96,9 @@ impl Region {
         // XXX: This doesn't check if this Scanner knows beacons that are in
         // the other's scan region but not accounted by the other.
         self.iter()
-            .filter_map(|&v| other.iter().find(|&&p| p == (v + translation)))
+            .map(|&p| p + translation)
+            .cartesian_product(other.iter())
+            .filter(|(u, v)| u == *v)
             .count()
             >= EXPECTED_MATCHES
     }
@@ -129,26 +132,32 @@ fn main() {
 
     let mut space = regions[0].clone();
     // Unmatched regions.
-    let mut open: Vec<Region> = regions.iter().skip(1).cloned().collect();
+    let mut open: Vec<[Region; 24]> = regions.iter().skip(1).map(|r| r.variants()).collect();
+
     // Centers of matched regions. The first one is origin by definition.
     let mut posns = vec![IVec3::new(0, 0, 0)];
 
-    'top: while !open.is_empty() {
-        for i in 0..open.len() {
-            for r in open[i].variants() {
-                for t in r.match_candidates(&space).into_iter() {
-                    if r.matches(t, &space) {
-                        eprintln!("Index {} of {} matched with {:?}!", i, open.len(), t);
-                        open.swap_remove(i);
-                        space.expand(t, &r);
-                        posns.push(t);
-                        continue 'top;
-                    }
-                }
-            }
+    while !open.is_empty() {
+        if let Some((i, j, pos)) = (0..open.len())
+            .cartesian_product(0..24)
+            .collect::<Vec<(usize, usize)>>()
+            .par_iter()
+            .find_map_first(|(i, j)| {
+                let region = &open[*i][*j];
+                region
+                    .match_candidates(&space)
+                    .par_iter()
+                    .find_any(|&&p| region.matches(p, &space))
+                    .map(|&p| (*i, *j, p))
+            })
+        {
+            eprintln!("Index {} of {} matched with {:?}.", i, open.len(), pos);
+            space.expand(pos, &open[i][j]);
+            open.swap_remove(i);
+            posns.push(pos);
+        } else {
+            panic!("Did not find a matching region.");
         }
-
-        panic!("Did not find a matching region.");
     }
 
     println!("{}", space.len());
