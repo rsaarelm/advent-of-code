@@ -55,3 +55,14 @@ def histogram(n):
 def neighbors4(p):
     for d in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
         yield (p[0] + d[0], p[1] + d[1])
+
+
+# fmt: off
+def neighbors8(p):
+    for d in [
+            (-1, -1), (0, -1), (1, -1),
+            (-1,  0), (0,  0), (1,  0),
+            (-1,  1), (0,  1), (1,  1),
+    ]:
+        yield (p[0] + d[0], p[1] + d[1])
+# fmt: on
