@@ -44,11 +44,7 @@ fn main() {
         .map(|s| s.to_owned())
         .collect();
     let moves: Vec<u32> = numbers(&parts[0]);
-    let boards: Vec<Board> = parts
-        .into_iter()
-        .skip(1)
-        .map(Matrix::parse)
-        .collect();
+    let boards: Vec<Board> = parts.into_iter().skip(1).map(Matrix::parse).collect();
 
     'part1: for i in 1..moves.len() {
         let moves = &moves[0..i];

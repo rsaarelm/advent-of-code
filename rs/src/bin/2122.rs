@@ -85,7 +85,6 @@ fn main() {
         grid.xs.len() * grid.ys.len() * grid.zs.len()
     );
 
-
     let filters: [Box<dyn Fn(&[i32; 6]) -> bool>; 2] = [
         // Part 1.
         Box::new(|cube| {
