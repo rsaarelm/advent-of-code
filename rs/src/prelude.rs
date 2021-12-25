@@ -21,6 +21,30 @@ pub fn stdin_lines() -> impl Iterator<Item = String> + 'static {
     std::iter::from_fn(|| stdin().lock().lines().next().map(|a| a.unwrap()))
 }
 
+pub fn stdin_grid() -> (usize, usize, Vec<Vec<char>>) {
+    let mut grid: Vec<Vec<char>> = stdin_lines()
+        .filter_map(|line| {
+            let line = line.trim_end();
+            if line.len() != 0 {
+                Some(line.chars().collect())
+            } else {
+                None
+            }
+        })
+        .collect();
+    let w = grid.iter().map(|line| line.len()).max().unwrap_or(0);
+    let h = grid.len();
+
+    // Make sure the right edge is uniform.
+    for line in grid.iter_mut() {
+        while line.len() < w {
+            line.push(' ');
+        }
+    }
+
+    (w, h, grid)
+}
+
 lazy_static! {
     static ref SIGNED_INTEGER: Regex = Regex::new(r"-?\d+").unwrap();
 }
