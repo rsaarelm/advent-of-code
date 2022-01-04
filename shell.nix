@@ -1,8 +1,5 @@
 let
-  rust-overlay = import (
-    builtins.fetchTarball https://github.com/mozilla/nixpkgs-mozilla/archive/master.tar.gz
-    # builtins.fetchTarball https://github.com/oxalica/rust-overlay/archive/master.tar.gz
-    );
+  rust-overlay = import (builtins.fetchTarball "https://github.com/oxalica/rust-overlay/archive/master.tar.gz");
   nixpkgs = import <nixpkgs> { overlays = [ rust-overlay ]; };
 in
 
@@ -15,8 +12,8 @@ with nixpkgs; mkShell {
 
     # Rust
     # rustc cargo rustfmt clippy rust-analyzer
-    nixpkgs.latest.rustChannels.nightly.rust
-    nixpkgs.latest.rustChannels.nightly.rust-src
+    nixpkgs.rust-bin.nightly.latest.default
+    nixpkgs.rust-analyzer
 
     # Python
     python3
@@ -26,10 +23,5 @@ with nixpkgs; mkShell {
     black
   ];
 
-  # For stable rustc
-  # RUST_SRC_PATH="${rustPlatform.rustcSrc}";
-
-  # For nightly rustc from Mozilla overlay
-  RUST_SRC_PATH="${nixpkgs.latest.rustChannels.nightly.rust-src}/lib/rustlib/src/rust/library";
   RUST_BACKTRACE=1;
 }
