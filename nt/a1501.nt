@@ -1,5 +1,7 @@
 module a1501;
 
+macro import std.macro.listcomprehension;
+
 import std.stdio;
 import std.string;
 
@@ -30,13 +32,12 @@ int delta(char c) {
 
 void main(string[] args) {
     auto input = readLine();
-    mut int floor = 0;
-    for (c in input) {
-        floor += delta(c);
-    }
-    print(ltoa(floor));
 
-    floor = 0;
+    // Part 1
+    print(ltoa([sum delta(c) for c in input]));
+
+    // Part 2
+    mut int floor = 0;
     for (i, c in input) {
         floor += delta(c);
         if (floor < 0) {
