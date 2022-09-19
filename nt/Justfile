@@ -1,3 +1,5 @@
+# Neat is https://github.com/neat-lang/neat
+
 run task:
     @neat ./a{{task}}.nt -o /tmp/nt-{{task}} > /dev/null
     @/tmp/nt-{{task}}
