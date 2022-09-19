@@ -31,17 +31,17 @@ int delta(char c) {
 }
 
 void main(string[] args) {
-    auto input = readLine();
+    auto input = readLine;
 
     // Part 1
-    print(ltoa([sum delta(c) for c in input]));
+    print("$([sum delta(c) for c in input])");
 
     // Part 2
     mut int floor = 0;
     for (i, c in input) {
         floor += delta(c);
         if (floor < 0) {
-            print(ltoa(i + 1));
+            print("$(i + 1)");
             break;
         }
     }
