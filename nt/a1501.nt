@@ -1,0 +1,47 @@
+module a1501;
+
+import std.stdio;
+import std.string;
+
+// TODO 2022-09-19 Use native stdin reader when available
+extern(C) int getline(char** input, size_t* n, void* f);
+extern(C) void* stdin;
+
+char[] readLine() {
+    mut int len = 65536;  // XXX Arbitrary
+    mut char[] buf = new char[](len);
+    mut char* bufptr = buf.ptr;
+
+    getline(&bufptr, &len, stdin);
+
+    return buf;
+}
+
+int delta(char c) {
+    // TODO 2022-09-19 Use proper char literals when available
+    if (c == "("[0]) {
+        return 1;
+    }
+    if (c == ")"[0]) {
+        return -1;
+    }
+    return 0;
+}
+
+void main(string[] args) {
+    auto input = readLine();
+    mut int floor = 0;
+    for (c in input) {
+        floor += delta(c);
+    }
+    print(ltoa(floor));
+
+    floor = 0;
+    for (i, c in input) {
+        floor += delta(c);
+        if (floor < 0) {
+            print(ltoa(i + 1));
+            break;
+        }
+    }
+}

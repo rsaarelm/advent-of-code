@@ -1,2 +1,0 @@
-run task:
-    @./a{{task}}.cx

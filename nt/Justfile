@@ -1,0 +1,3 @@
+run task:
+    @neat ./a{{task}}.nt -o /tmp/nt-{{task}} > /dev/null
+    @/tmp/nt-{{task}}
