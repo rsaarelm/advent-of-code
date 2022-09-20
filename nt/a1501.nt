@@ -4,20 +4,6 @@ macro import std.macro.listcomprehension;
 
 import std.stdio;
 
-// TODO 2022-09-19 Use native stdin reader when available
-extern(C) int getline(char** input, size_t* n, void* f);
-extern(C) void* stdin;
-
-char[] readLine() {
-    mut int len = 65536;  // XXX Arbitrary
-    mut char[] buf = new char[](len);
-    mut char* bufptr = buf.ptr;
-
-    getline(&bufptr, &len, stdin);
-
-    return buf;
-}
-
 int delta(char c) {
     // TODO 2022-09-19 Use proper char literals when available
     return    1 if c == "("[0]
@@ -26,7 +12,7 @@ int delta(char c) {
 }
 
 void main(string[] args) {
-    auto input = readLine;
+    auto input = stdin.byLine.front;
 
     // Part 1
     [sum delta(c) for c in input].(print("$that"));
