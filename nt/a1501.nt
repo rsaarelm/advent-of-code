@@ -29,7 +29,7 @@ void main(string[] args) {
     auto input = readLine;
 
     // Part 1
-    print("$([sum delta(c) for c in input])");
+    [sum delta(c) for c in input].(print("$that"));
 
     // Part 2
     mut int floor = 0;
