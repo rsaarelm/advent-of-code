@@ -8,10 +8,10 @@ edition = "2018"
 name = "aoc"
 
 [dependencies]
-glam = "0.20"
+glam = "0.22"
 itertools = "0.10"
 lazy_static = "1"
-memoize = "0.1"
+memoize = "0.3"
 nom = "7"
 rand = "0.8"
 rayon = "1"

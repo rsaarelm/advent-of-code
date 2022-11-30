@@ -1,4 +1,3 @@
-#![feature(let_else)]
 use aoc::prelude::*;
 use std::collections::HashMap;
 
@@ -84,10 +83,9 @@ impl State {
 }
 
 fn main() {
-    let [[_, player_1], [_, player_2]] = stdin_lines()
-        .map(fixed_numbers)
-        .collect::<Vec<[i64; 2]>>()
-        .as_slice()
+    let input = stdin_lines().map(fixed_numbers).collect::<Vec<[i64; 2]>>();
+
+    let [[_, player_1], [_, player_2]] = input.as_slice()
     else { panic!() };
 
     // 1

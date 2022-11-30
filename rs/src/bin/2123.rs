@@ -1,4 +1,3 @@
-#![feature(let_else)]
 use aoc::prelude::*;
 use std::{
     collections::{BTreeMap, BinaryHeap},
