@@ -8,7 +8,7 @@ fn increase_count(data: &[u32]) -> usize {
 }
 
 fn main() {
-    let data: Vec<u32> = stdin_lines().map(|x| x.parse().unwrap()).collect();
+    let data: Vec<u32> = stdin_lines_as::<u32>().collect();
 
     println!("{}", increase_count(&data));
 

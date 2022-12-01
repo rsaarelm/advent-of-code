@@ -4,6 +4,7 @@ use regex::Regex;
 use std::{
     collections::{BTreeSet, HashSet},
     convert::TryInto,
+    fmt::Debug,
     hash::Hash,
     str::FromStr,
 };
@@ -21,11 +22,26 @@ pub fn stdin_lines() -> impl Iterator<Item = String> + 'static {
     std::iter::from_fn(|| stdin().lock().lines().next().map(|a| a.unwrap()))
 }
 
+pub fn stdin_lines_as<T>() -> impl Iterator<Item = T> + 'static
+where
+    T: FromStr + Debug,
+    <T as FromStr>::Err: Debug,
+{
+    use std::io::{stdin, BufRead};
+    std::iter::from_fn(|| {
+        stdin()
+            .lock()
+            .lines()
+            .next()
+            .map(|a| a.unwrap().parse().unwrap())
+    })
+}
+
 pub fn stdin_grid() -> (usize, usize, Vec<Vec<char>>) {
     let mut grid: Vec<Vec<char>> = stdin_lines()
         .filter_map(|line| {
             let line = line.trim_end();
-            if line.len() != 0 {
+            if !line.is_empty() {
                 Some(line.chars().collect())
             } else {
                 None
