@@ -18,20 +18,6 @@ fn main() {
         })
         .collect();
 
-    let mut covers = 0;
-    for [a, b, x, y] in &pairs {
-        if (x >= a && y <= b) || (a >= x && b <= y) {
-            covers += 1;
-        }
-    }
-    println!("{}", covers);
-
-    let mut laps = 0;
-    for [a, b, x, y] in &pairs {
-        if b < x || y < a {
-            continue;
-        }
-        laps += 1;
-    }
-    println!("{}", laps);
+    println!("{}", pairs.iter().filter(|[a, b, x, y]| (x >= a && y <= b) || (a >= x && b <= y)).count());
+    println!("{}", pairs.iter().filter(|[a, b, x, y]| !(b < x || y < a)).count());
 }
