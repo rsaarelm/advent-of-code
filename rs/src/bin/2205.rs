@@ -1,18 +1,20 @@
 use aoc::prelude::*;
+use std::fmt;
 
-fn main() {
-    // 1st phase, build stacks.
-    // Example line: [A] [B]     [D]
-    // Skip 1st char, read every 4th char after that for values.
+#[derive(Clone, Debug)]
+struct Stacks(Vec<Vec<char>>);
 
-    let mut stack_rows: Vec<Vec<char>> = Vec::new();
-    let mut moves: Vec<[usize; 3]> = Vec::new();
+impl std::str::FromStr for Stacks {
+    type Err = ();
 
-    let mut stack_phase = true;
-    let mut stack_count = 0;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Example line: [A] [B]     [D]
+        // Skip 1st char, read every 4th char after that for values.
 
-    for line in stdin_lines() {
-        if stack_phase {
+        let mut stack_rows: Vec<Vec<char>> = Vec::new();
+        let mut stack_count = 0;
+
+        for line in s.lines() {
             if line.trim().is_empty() {
                 // We've hit the end of stack layout input.
 
@@ -20,66 +22,79 @@ fn main() {
                 // It's guaranteed to list all stacks, so use it to grab the
                 // count.
                 stack_count = stack_rows.pop().unwrap().len();
-                // Move to next phase.
-                stack_phase = false;
-                continue;
+                break;
             }
             stack_rows.push(line.chars().skip(1).step_by(4).collect());
-        } else {
-            // Collect moves for the remaining input.
-            moves.push(fixed_numbers(line));
         }
-    }
 
-    // Build proper stacks.
-    let mut stacks: Vec<Vec<char>> = vec![Vec::new(); stack_count];
-    for row in stack_rows {
-        for (i, c) in row.into_iter().enumerate() {
-            if c != ' ' {
-                stacks[i].push(c);
+        // Build the columnar stacks from the parsed rows.
+        let mut stacks: Vec<Vec<char>> = vec![Vec::new(); stack_count];
+        for row in stack_rows {
+            for (i, c) in row.into_iter().enumerate() {
+                if c != ' ' {
+                    stacks[i].push(c);
+                }
             }
         }
+
+        // The stacks were built upside down, reverse them.
+        for stack in stacks.iter_mut() {
+            stack.reverse();
+        }
+
+        Ok(Stacks(stacks))
     }
+}
 
-    // We've built them upside down going down the rows, make the stack tops
-    // be the upsides.
-    for stack in stacks.iter_mut() {
-        stack.reverse();
+impl fmt::Display for Stacks {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for stack in &self.0 {
+            write!(f, "{}", stack[stack.len() - 1])?;
+        }
+        Ok(())
     }
+}
 
-    // Make a copy of the initial state for part 2.
-    let stacks_2 = stacks.clone();
-
-    for [n, from, to] in &moves {
-        let from = *from - 1;
-        let to = *to - 1;
-        for _ in 0..*n {
-            let a = stacks[from].pop().unwrap();
-            stacks[to].push(a);
+impl Stacks {
+    fn move_1(&mut self, n: usize, from: usize, to: usize) {
+        for _ in 0..n {
+            let a = self.0[from - 1].pop().unwrap();
+            self.0[to - 1].push(a);
         }
     }
 
-    for stack in &stacks {
-        print!("{}", stack[stack.len() - 1]);
+    fn move_2(&mut self, n: usize, from: usize, to: usize) {
+        let from = from - 1;
+        let to = to - 1;
+
+        let new_len = self.0[from].len() - n;
+
+        for i in new_len..(self.0[from].len()) {
+            let a = self.0[from][i];
+            self.0[to].push(a);
+        }
+
+        self.0[from].truncate(new_len);
     }
-    println!();
+}
 
-    let mut stacks = stacks_2;
+fn main() {
+    let input = stdin_string();
 
-    for [n, from, to] in &moves {
-        let from = *from - 1;
-        let to = *to - 1;
+    let mut stacks_1: Stacks = input.as_str().parse().unwrap();
+    let mut stacks_2 = stacks_1.clone();
 
-        let mut batch: Vec<_> = std::iter::repeat(()).take(*n)
-            .map(|_| stacks[from].pop().unwrap())
-            .collect();
-        batch.reverse();
+    let move_parser = re_parser::<(usize, usize, usize)>(r"^move (\d+) from (\d+) to (\d+)$");
+    let moves: Vec<(usize, usize, usize)> = input
+        .lines()
+        .filter_map(|line| move_parser(line).ok())
+        .collect();
 
-        stacks[to].append(&mut batch);
+    for (n, from, to) in &moves {
+        stacks_1.move_1(*n, *from, *to);
+        stacks_2.move_2(*n, *from, *to);
     }
 
-    for stack in &stacks {
-        print!("{}", stack[stack.len() - 1]);
-    }
-    println!();
+    println!("{}", stacks_1);
+    println!("{}", stacks_2);
 }
