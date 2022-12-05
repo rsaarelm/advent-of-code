@@ -29,17 +29,12 @@ impl std::str::FromStr for Stacks {
 
         // Build the columnar stacks from the parsed rows.
         let mut stacks: Vec<Vec<char>> = vec![Vec::new(); stack_count];
-        for row in stack_rows {
+        for row in stack_rows.into_iter().rev() {
             for (i, c) in row.into_iter().enumerate() {
                 if c != ' ' {
                     stacks[i].push(c);
                 }
             }
-        }
-
-        // The stacks were built upside down, reverse them.
-        for stack in stacks.iter_mut() {
-            stack.reverse();
         }
 
         Ok(Stacks(stacks))
