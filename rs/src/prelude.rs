@@ -220,7 +220,50 @@ impl Grid for String {
                 }
             }
         }
-        return '\0';
+        '\0'
+    }
+}
+
+pub trait RegexParseable: Sized {
+    type Error;
+
+    fn parse(re: &Regex, input: &str) -> Result<Self, Self::Error>;
+}
+
+// Construct generic parseability for heterogeneous tuples up to however many
+// elements we expect to show up in the assignments.
+
+macro_rules! tuple_parseable {
+    ($($t:ident),+; $($n:expr),+) => {
+        impl<$($t),+> RegexParseable for ($($t,)+)
+        where
+            $($t: std::str::FromStr),+
+        {
+            type Error = ();
+
+            fn parse(re: &Regex, input: &str) -> Result<Self, Self::Error> {
+                let caps = re.captures(input).ok_or(())?;
+
+                Ok((
+                    $(caps.get($n).ok_or(())?.as_str().parse().map_err(|_| ())?,)+
+                ))
+            }
+        }
+    };
+}
+
+tuple_parseable!(T1; 1);
+tuple_parseable!(T1, T2; 1, 2);
+tuple_parseable!(T1, T2, T3; 1, 2, 3);
+tuple_parseable!(T1, T2, T3, T4; 1, 2, 3, 4);
+tuple_parseable!(T1, T2, T3, T4, T5; 1, 2, 3, 4, 5);
+
+pub fn re_parser<T: RegexParseable>(re: &str) -> impl Fn(&str) -> Result<T, <T as RegexParseable>::Error> {
+    // Build a closure so we can reuse the expensive-to-construct regex.
+    let re = Regex::new(re).expect("Failed to construct regular expression");
+
+    move |s: &str| {
+        T::parse(&re, s)
     }
 }
 
