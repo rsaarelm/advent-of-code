@@ -72,10 +72,10 @@ def parse_output(
 
 
 def run_input(
-    lang: str, day: str, input: IO
+    lang: str, prog: str, input: IO
 ) -> Tuple[Union[int, str], Optional[Union[int, str]]]:
     result = subprocess.run(
-        ["just", "run", day],
+        ["just", "run", prog],
         cwd="%s/" % lang,
         stdout=subprocess.PIPE,
         input=input.read(),
@@ -136,7 +136,8 @@ def usage():
 if __name__ == "__main__":
     try:
         param = sys.argv[1]
-        (lang, day) = param.split("/")
+        (lang, prog) = param.split("/")
+        day = prog[:4]
         _ = int(day)  # Fail if day has something that isn't numbers
 
         if not os.path.exists(lang):
@@ -150,7 +151,7 @@ if __name__ == "__main__":
     for [input, output] in input_files(day):
         eprint("Running %s with input %s" % (lang, input))
         with open(input) as f:
-            p1, p2 = run_input(lang, day, f)
+            p1, p2 = run_input(lang, prog, f)
         e1, e2 = expected_output(input)
 
         process_value(p1, e1)
