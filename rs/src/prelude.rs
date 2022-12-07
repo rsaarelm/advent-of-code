@@ -252,19 +252,41 @@ macro_rules! tuple_parseable {
     };
 }
 
+// XXX: Can't implement for generic T: FromStr since that would clash with the
+// tuple_parseable defs.
+
+macro_rules! primitive_parseable {
+    ($($t:ty),+) => {
+        $(impl RegexParseable for $t {
+            type Error = ();
+
+            fn parse(re: &Regex, input: &str) -> Result<Self, Self::Error> {
+                let caps = re.captures(input).ok_or(())?;
+                caps.get(1).ok_or(())?.as_str().parse().map_err(|_| ())
+            }
+        })+
+    }
+}
+
 tuple_parseable!(T1; 1);
 tuple_parseable!(T1, T2; 1, 2);
 tuple_parseable!(T1, T2, T3; 1, 2, 3);
 tuple_parseable!(T1, T2, T3, T4; 1, 2, 3, 4);
 tuple_parseable!(T1, T2, T3, T4, T5; 1, 2, 3, 4, 5);
 
-pub fn re_parser<T: RegexParseable>(re: &str) -> impl Fn(&str) -> Result<T, <T as RegexParseable>::Error> {
+primitive_parseable!(
+    String, char, //
+    u8, u16, u32, u64, u128, usize, //
+    i8, i16, i32, i64, i128, isize
+);
+
+pub fn re_parser<T: RegexParseable>(
+    re: &str,
+) -> impl Fn(&str) -> Result<T, <T as RegexParseable>::Error> {
     // Build a closure so we can reuse the expensive-to-construct regex.
     let re = Regex::new(re).expect("Failed to construct regular expression");
 
-    move |s: &str| {
-        T::parse(&re, s)
-    }
+    move |s: &str| T::parse(&re, s)
 }
 
 #[cfg(test)]

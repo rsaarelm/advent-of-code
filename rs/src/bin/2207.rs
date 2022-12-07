@@ -8,8 +8,8 @@ const DELETION_CANDIDATE: usize = 100_000;
 fn main() {
     // Look for lines that look like file size listings. ls commands can be
     // ignored.
-    let file_entry = re_parser::<(usize,)>(r"^(\d+) .+$");
-    let subdir_cd = re_parser::<(String,)>(r"^\$ cd (.+)$");
+    let file_entry = re_parser::<usize>(r"^(\d+) .+$");
+    let subdir_cd = re_parser::<String>(r"^\$ cd (.+)$");
 
     // Total size for the subdirectory given a Vec<String> path string.
     let mut subdir_sizes = HashMap::new();
@@ -30,7 +30,7 @@ fn main() {
             // Back to top, this doesn't occur other than at the top of the
             // input, so this part could've been skipped.
             path.clear();
-        } else if let Ok((size,)) = file_entry(&line) {
+        } else if let Ok(size) = file_entry(&line) {
             // Add file size to current path and to all paths above it.
             let seen_key = (path.clone(), size);
             if !seen.contains(&seen_key) {
@@ -44,7 +44,7 @@ fn main() {
                 }
             }
             seen.insert(seen_key);
-        } else if let Ok((subdir,)) = subdir_cd(&line) {
+        } else if let Ok(subdir) = subdir_cd(&line) {
             // Enter subdirectory.
             path.push(subdir.clone());
         }
