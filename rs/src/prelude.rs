@@ -280,6 +280,26 @@ primitive_parseable!(
     i8, i16, i32, i64, i128, isize
 );
 
+// Concrete regex parser that can be stored in lazy_static.
+pub struct ReParser<T> {
+    re: Regex,
+    marker: std::marker::PhantomData<T>,
+}
+
+impl<T: RegexParseable> ReParser<T> {
+    pub fn new(re: &str) -> Self {
+        ReParser {
+            re: Regex::new(re).expect("Failed to construct regular expression"),
+            marker: Default::default()
+        }
+    }
+
+    pub fn parse(&self, s: &str) -> Result<T, <T as RegexParseable>::Error> {
+        T::parse(&self.re, s)
+    }
+}
+
+// Closurized regex parser.
 pub fn re_parser<T: RegexParseable>(
     re: &str,
 ) -> impl Fn(&str) -> Result<T, <T as RegexParseable>::Error> {
