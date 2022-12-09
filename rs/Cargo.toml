@@ -8,6 +8,7 @@ edition = "2021"
 name = "aoc"
 
 [dependencies]
+derive_deref = "1"
 glam = "0.22"
 itertools = "0.10"
 lazy_static = "1"

@@ -290,7 +290,7 @@ impl<T: RegexParseable> ReParser<T> {
     pub fn new(re: &str) -> Self {
         ReParser {
             re: Regex::new(re).expect("Failed to construct regular expression"),
-            marker: Default::default()
+            marker: Default::default(),
         }
     }
 
@@ -307,6 +307,19 @@ pub fn re_parser<T: RegexParseable>(
     let re = Regex::new(re).expect("Failed to construct regular expression");
 
     move |s: &str| T::parse(&re, s)
+}
+
+/// Parse all stdin lines using the parsing regex.
+pub fn parsed_stdin_lines<T>(re: &str) -> impl Iterator<Item = T>
+where
+    T: RegexParseable + 'static,
+{
+    let parser = re_parser(re);
+    stdin_lines().map(move |line| {
+        parser(&line)
+            .map_err(|_| ())
+            .expect("Failed to parse input line")
+    })
 }
 
 #[cfg(test)]
