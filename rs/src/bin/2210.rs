@@ -1,4 +1,9 @@
+use std::collections::HashSet;
+
 use aoc::prelude::*;
+
+const DISPLAY_WIDTH: usize = 40;
+const DISPLAY_HEIGHT: usize = 6;
 
 struct Transformer<T> {
     current: i32,
@@ -48,19 +53,39 @@ fn main() {
     let input: Vec<Option<i32>> = stdin_lines().map(|line| parser(&line).ok()).collect();
     let signals: Vec<i32> = Transformer::new(input.into_iter()).collect();
 
+    // Part 1
+
     println!(
         "{}",
-        (0..6)
-            .map(|i| i * 40 + 20)
+        (0..DISPLAY_HEIGHT)
+            .map(|i| i * DISPLAY_WIDTH + DISPLAY_WIDTH / 2)
             // Cycle indexing starts from 1, cycle 20 = vec index 19.
             .map(|i| i as i32 * signals[i - 1])
             .sum::<i32>()
     );
 
-    for y in 0..6 {
-        for x in 0..40 {
-            let pos = signals[x + y * 40];
-            if (pos - x as i32).abs() <= 1 {
+    // Part 2
+
+    let pixels: HashSet<(i32, i32)> = signals
+        .iter()
+        .enumerate()
+        .filter_map(|(i, pos)| {
+            let (x, y) = ((i % DISPLAY_WIDTH) as i32, (i / DISPLAY_WIDTH) as i32);
+            ((pos - x).abs() <= 1).then_some((x, y))
+        })
+        .collect();
+
+    if let Some(s) = aoc::ocr(&pixels) {
+        println!("{}", s);
+    } else {
+        eprintln!("Did not resolve into string");
+    }
+
+    // Bonus round: Print test picture
+
+    for y in 0..DISPLAY_HEIGHT {
+        for x in 0..DISPLAY_WIDTH {
+            if pixels.contains(&(x as i32, y as i32)) {
                 eprint!("#");
             } else {
                 eprint!(".");
