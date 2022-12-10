@@ -1,71 +1,70 @@
 use aoc::prelude::*;
-use std::collections::HashMap;
 
-struct VM {
-    cycle: usize,
-    delay: usize,
-    register: i32,
-    pending_ops: HashMap<usize, i32>,
+struct Transformer<T> {
+    current: i32,
+    next: Option<i32>,
+    inner: T,
 }
 
-impl Default for VM {
-    fn default() -> Self {
-        VM {
-            cycle: 1,
-            delay: 0,
-            register: 1,
-            pending_ops: Default::default(),
+impl<T: Iterator<Item = Option<i32>>> Transformer<T> {
+    pub fn new(inner: T) -> Self {
+        Transformer {
+            current: 1,
+            next: None,
+            inner,
         }
     }
 }
 
-impl VM {
-    pub fn tick(&mut self, op: Option<i32>) {
-        if let Some(n) = op {
-            self.delay += 1;
-            self.pending_ops.insert(self.cycle + self.delay, n);
-        }
-        if let Some(n) = self.pending_ops.get(&self.cycle) {
-            self.register += n;
-        }
-        self.cycle += 1;
-    }
+impl<T: Iterator<Item = Option<i32>>> Iterator for Transformer<T> {
+    type Item = i32;
 
-    pub fn signal_strength(&self) -> i32 {
-        if self.cycle >= 20 && (self.cycle - 20) % 40 == 0 {
-            self.cycle as i32 * self.register
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(n) = self.next {
+            // Update register to next value but return old value during this
+            // round.
+            let ret = self.current;
+            self.next = None;
+            self.current = n;
+            Some(ret)
         } else {
-            0
+            match self.inner.next() {
+                // Out of input, shut down as well.
+                None => None,
+                // Noop, keep returning current value.
+                Some(None) => Some(self.current),
+                // Set up delayed add operation
+                Some(Some(add)) => {
+                    self.next = Some(self.current + add);
+                    Some(self.current)
+                }
+            }
         }
-    }
-
-    pub fn x(&self) -> i32 {
-        (self.cycle % 40) as i32
     }
 }
 
 fn main() {
     let parser = re_parser::<i32>(r"^addx (.+)$");
     let input: Vec<Option<i32>> = stdin_lines().map(|line| parser(&line).ok()).collect();
+    let signals: Vec<i32> = Transformer::new(input.into_iter()).collect();
 
-    let mut vm = VM::default();
-    let mut signals = 0;
-    for &op in input.iter().cycle().take(220) {
-        vm.tick(op);
-        signals += vm.signal_strength();
-    }
-    println!("{}", signals);
+    println!(
+        "{}",
+        (0..6)
+            .map(|i| i * 40 + 20)
+            // Cycle indexing starts from 1, cycle 20 = vec index 19.
+            .map(|i| i as i32 * signals[i - 1])
+            .sum::<i32>()
+    );
 
-    let mut vm = VM::default();
-    let mut ops = input.iter().cycle();
     for y in 0..6 {
         for x in 0..40 {
-            if (vm.x() - vm.register - 1).abs() <= 1 {
+            let pos = signals[x + y * 40];
+            if (pos - x as i32).abs() <= 1 {
                 eprint!("#");
             } else {
                 eprint!(".");
             }
-            vm.tick(*ops.next().unwrap());
         }
         eprintln!();
     }
