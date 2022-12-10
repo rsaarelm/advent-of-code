@@ -32,6 +32,9 @@ fn trace(input: &[(Dir, usize)], rope_len: usize) -> usize {
                 let delta = rope[i - 1] - rope[i];
                 if delta.abs().max_element() > 1 {
                     rope[i] += delta.signum();
+                } else {
+                    // Exit early if the rest of the rope isn't being pulled.
+                    break;
                 }
             }
 
