@@ -4,21 +4,19 @@ use aoc::prelude::*;
 
 #[derive(Copy, Clone)]
 enum Op {
-    Add(Option<u64>, Option<u64>),
-    Mul(Option<u64>, Option<u64>),
+    Add(Option<u64>),
+    Mul(Option<u64>),
 }
 
 impl Op {
     fn eval(self, x: u64) -> u64 {
         use Op::*;
 
-        let (a, b) = match self {
-            Add(a, b) | Mul(a, b) => (a.unwrap_or(x), b.unwrap_or(x)),
-        };
-
         match self {
-            Add(_, _) => a + b,
-            Mul(_, _) => a * b,
+            Add(None) => x + x,
+            Add(Some(a)) => x + a,
+            Mul(None) => x * x,
+            Mul(Some(a)) => x * a,
         }
     }
 }
@@ -36,7 +34,7 @@ impl Monkey {
     pub fn new<'a>(items: impl IntoIterator<Item = &'a u64>) -> Self {
         Monkey {
             items: items.into_iter().copied().collect(),
-            op: Op::Add(None, None),
+            op: Op::Add(None),
             divisor: 0,
             truth_monkey: 0,
             falsehood_monkey: 0,
@@ -98,20 +96,19 @@ fn main() {
     let mut monkeys = Vec::new();
     let mut monkey_idx = 0;
 
-    let op_parser = re_parser::<(String, char, String)>("^  Operation: new = (.+) (.) (.+)$");
+    let op_parser = re_parser::<(char, String)>("^  Operation: new = old (.) (.+)$");
 
     for line in stdin_lines() {
         if line.contains("Starting") {
             // Add a new monkey.
             monkeys.push(Monkey::new(&numbers(&line)));
             monkey_idx = monkeys.len() - 1;
-        } else if let Ok((a, op, b)) = op_parser(&line) {
+        } else if let Ok((op, a)) = op_parser(&line) {
             // Represent the variable with None.
             let a: Option<u64> = a.parse().ok();
-            let b: Option<u64> = b.parse().ok();
             let op = match op {
-                '+' => Op::Add(a, b),
-                '*' => Op::Mul(a, b),
+                '+' => Op::Add(a),
+                '*' => Op::Mul(a),
                 _ => panic!("Bad op"),
             };
             monkeys[monkey_idx].op = op;
