@@ -1,37 +1,24 @@
 use aoc::prelude::*;
 use glam::ivec2;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-enum Cell {
-    Start,
-    End,
-    Hill(u32),
+trait Terrain {
+    fn height(self) -> u32;
 }
 
-use Cell::*;
+impl Terrain for char {
+    fn height(self) -> u32 {
+        let c = match self {
+            'S' => 'a',
+            'E' => 'z',
+            c => c
+        };
 
-impl From<char> for Cell {
-    fn from(c: char) -> Self {
-        match c {
-            'S' => Start,
-            'E' => End,
-            c => Hill(c as u32 - 'a' as u32),
-        }
-    }
-}
-
-impl Cell {
-    pub fn height(self) -> u32 {
-        match self {
-            Start => 0,
-            End => 'z' as u32 - 'a' as u32,
-            Hill(x) => x,
-        }
+        c as u32 - 'a' as u32
     }
 }
 
 fn main() {
-    let map = stdin_grid_into::<Cell>().2;
+    let map = stdin_grid().2;
 
     let mut map_start = Default::default();
     let mut starts = Vec::new();
@@ -43,9 +30,9 @@ fn main() {
             if t.height() == 0 {
                 starts.push(ivec2(x as i32, y as i32));
             }
-            if *t == Start {
+            if *t == 'S' {
                 map_start = pos;
-            } else if *t == End {
+            } else if *t == 'E' {
                 end = pos;
             }
         }
