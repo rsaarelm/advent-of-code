@@ -1,6 +1,5 @@
-use std::collections::{HashMap, HashSet};
-
 use aoc::prelude::*;
+use glam::ivec2;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 enum Cell {
@@ -32,95 +31,48 @@ impl Cell {
 }
 
 fn main() {
-    let (w, h, grid) = stdin_grid_into::<Cell>();
+    let map = stdin_grid_into::<Cell>().2;
 
-    let neighbors = |(x, y): (usize, usize)| {
-        let mut ret = Vec::new();
-        let a = grid[y][x].height();
-        if x > 0 && grid[y][x - 1].height() <= a + 1 {
-            ret.push((x - 1, y));
-        }
-        if y > 0 && grid[y - 1][x].height() <= a + 1 {
-            ret.push((x, y - 1));
-        }
-        if x < w - 1 && grid[y][x + 1].height() <= a + 1 {
-            ret.push((x + 1, y));
-        }
-        if y < h - 1 && grid[y + 1][x].height() <= a + 1 {
-            ret.push((x, y + 1));
-        }
-
-        ret
-    };
-
-    let mut start = (0, 0);
-    let mut end = (0, 0);
-    for (y, line) in grid.iter().enumerate() {
-        for (x, t) in line.iter().enumerate() {
-            if *t == Start {
-                start = (x, y);
-            } else if *t == End {
-                end = (x, y);
-            }
-        }
-    }
-
-    // Part 1
-
-    let mut dist_to = HashMap::new();
-    let mut edge = HashSet::from([(0, start)]);
-
-    while let Some((len, node)) = edge.pop() {
-        dist_to.insert(node, len);
-
-        for n in neighbors(node) {
-            if dist_to.get(&n).copied().unwrap_or(u32::MAX) > len + 1 {
-                edge.insert((len + 1, n));
-            }
-        }
-    }
-
-    println!("{}", dist_to[&end]);
-
-    // Part 2
-
-    // Moving backwards, different formula.
-    let neighbors = |(x, y): (usize, usize)| {
-        let mut ret = Vec::new();
-        let a = grid[y][x].height();
-        if x > 0 && grid[y][x - 1].height() + 1 >= a {
-            ret.push((x - 1, y));
-        }
-        if y > 0 && grid[y - 1][x].height() + 1 >= a {
-            ret.push((x, y - 1));
-        }
-        if x < w - 1 && grid[y][x + 1].height() + 1 >= a {
-            ret.push((x + 1, y));
-        }
-        if y < h - 1 && grid[y + 1][x].height() + 1 >= a {
-            ret.push((x, y + 1));
-        }
-
-        ret
-    };
-
-    let mut dist_to = HashMap::new();
-    let mut edge = HashSet::from([(0, end)]);
+    let mut map_start = Default::default();
     let mut starts = Vec::new();
+    let mut end = Default::default();
 
-    while let Some((len, node)) = edge.pop() {
-        dist_to.insert(node, len);
-        if grid[node.1][node.0].height() == 0 {
-            starts.push(len);
-        }
-
-        for n in neighbors(node) {
-            if dist_to.get(&n).copied().unwrap_or(u32::MAX) > len + 1 {
-                edge.insert((len + 1, n));
+    for (y, line) in map.iter().enumerate() {
+        for (x, t) in line.iter().enumerate() {
+            let pos = ivec2(x as i32, y as i32);
+            if t.height() == 0 {
+                starts.push(ivec2(x as i32, y as i32));
+            }
+            if *t == Start {
+                map_start = pos;
+            } else if *t == End {
+                end = pos;
             }
         }
     }
 
-    starts.sort();
-    println!("{}", starts[0]);
+    // Generate path costs backwards from the end point.
+    let routes = dijkstra_map(
+        |a| {
+            let dest_height = map.get(a).height();
+            DIR_4
+                .iter()
+                .filter_map(|&d| {
+                    let b = a + d;
+                    (map.contains(b) && map.get(b).height() + 1 >= dest_height).then_some(b)
+                })
+                .collect()
+        },
+        end,
+    );
+
+    println!("{}", routes[&map_start]);
+    println!(
+        "{}",
+        starts
+            .into_iter()
+            .filter_map(|s| routes.get(&s))
+            .min()
+            .unwrap()
+    );
 }

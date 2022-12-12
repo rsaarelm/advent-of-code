@@ -1,6 +1,3 @@
-use lazy_static::lazy_static;
-pub use memoize::memoize;
-use regex::Regex;
 use std::{
     collections::{BTreeSet, HashSet},
     convert::TryInto,
@@ -8,6 +5,25 @@ use std::{
     hash::Hash,
     str::FromStr,
 };
+
+use glam::{ivec2, IVec2};
+use lazy_static::lazy_static;
+pub use memoize::memoize;
+use regex::Regex;
+use rustc_hash::FxHashMap;
+
+pub const DIR_4: [IVec2; 4] = [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
+
+pub const DIR_8: [IVec2; 8] = [
+    ivec2(1, 0),
+    ivec2(1, 1),
+    ivec2(0, 1),
+    ivec2(-1, 1),
+    ivec2(-1, 0),
+    ivec2(-1, -1),
+    ivec2(0, -1),
+    ivec2(1, -1),
+];
 
 pub fn stdin_string() -> String {
     use std::{io, io::prelude::*};
@@ -192,48 +208,76 @@ impl<N: Ord + Eq + Clone> SetUtil for BTreeSet<N> {
 
 pub trait Grid {
     type Item;
-    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item;
+    fn get(&self, pos: IVec2) -> Self::Item;
+    fn dim(&self) -> IVec2 {
+        // Default to infinite grid with no meaningful dim value.
+        ivec2(-1, -1)
+    }
+
+    fn contains(&self, pos: IVec2) -> bool {
+        let dim = self.dim();
+        // Magic value for infinite grid.
+        if dim == ivec2(-1, -1) {
+            true
+        } else {
+            pos.cmpge(IVec2::ZERO).all() && pos.cmplt(self.dim()).all()
+        }
+    }
 }
 
-impl<T: Default + Clone> Grid for Vec<Vec<T>> {
+impl<T: Clone> Grid for Vec<Vec<T>> {
     type Item = T;
 
-    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item {
-        let pos = pos.into();
-        if pos[1] < 0 || pos[1] >= self.len() as i32 {
-            return Default::default();
-        }
+    fn get(&self, pos: IVec2) -> Self::Item {
+        self[pos.y as usize][pos.x as usize].clone()
+    }
 
-        let row = &self[pos[1] as usize];
-        if pos[0] < 0 || pos[0] >= row.len() as i32 {
-            return Default::default();
+    fn dim(&self) -> IVec2 {
+        if self.is_empty() {
+            ivec2(0, 0)
+        } else {
+            ivec2(self[0].len() as i32, self.len() as i32)
         }
-
-        row[pos[0] as usize].clone()
     }
 }
 
-// Very inefficient access, for the lazy.
-impl Grid for String {
-    type Item = char;
+pub struct InfiniteGrid<G>(G);
 
-    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item {
-        let pos = pos.into();
+impl<T: Default + Clone, G: Grid<Item = T>> Grid for InfiniteGrid<G> {
+    type Item = T;
 
-        if pos[0] < 0 || pos[1] < 0 {
-            return '\0';
+    fn get(&self, pos: IVec2) -> Self::Item {
+        if self.0.contains(pos) {
+            self.0.get(pos)
+        } else {
+            T::default()
         }
-
-        for (y, line) in self.lines().enumerate() {
-            for (x, c) in line.chars().enumerate() {
-                let p = [x as i32, y as i32];
-                if p == pos {
-                    return c;
-                }
-            }
-        }
-        '\0'
     }
+}
+
+/// Generate a shortest paths map on a grid according to a neighbors function.
+pub fn dijkstra_map(
+    neighbors: impl Fn(IVec2) -> Vec<IVec2>,
+    start: IVec2,
+) -> FxHashMap<IVec2, i32> {
+    let mut ret = FxHashMap::default();
+    let mut edge = vec![(start, 0)];
+    while let Some((node, len)) = edge.pop() {
+        let old_len = ret.entry(node).or_insert(i32::MAX);
+        if *old_len <= len {
+            // Path already exists and we're not improving it, skip this
+            // candidate.
+            continue;
+        }
+
+        *old_len = len;
+
+        for n in neighbors(node) {
+            edge.push((n, len + 1));
+        }
+    }
+
+    ret
 }
 
 pub trait RegexParseable: Sized {
