@@ -61,6 +61,18 @@ pub fn stdin_grid() -> (usize, usize, Vec<Vec<char>>) {
     (w, h, grid)
 }
 
+pub fn stdin_grid_into<T: From<char>>() -> (usize, usize, Vec<Vec<T>>) {
+    let (w, h, grid) = stdin_grid();
+
+    (
+        w,
+        h,
+        grid.into_iter()
+            .map(|line| line.into_iter().map(T::from).collect())
+            .collect(),
+    )
+}
+
 lazy_static! {
     static ref SIGNED_INTEGER: Regex = Regex::new(r"-?\d+").unwrap();
 }
