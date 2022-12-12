@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use aoc::prelude::*;
-use glam::ivec2;
+use glam::{ivec2, IVec2};
 
 trait Terrain {
     fn height(self) -> u32;
@@ -10,7 +12,7 @@ impl Terrain for char {
         let c = match self {
             'S' => 'a',
             'E' => 'z',
-            c => c
+            c => c,
         };
 
         c as u32 - 'a' as u32
@@ -39,19 +41,20 @@ fn main() {
     }
 
     // Generate path costs backwards from the end point.
-    let routes = dijkstra_map(
-        |a| {
+    let routes: HashMap<IVec2, usize> = dijkstra_map(
+        |&a| {
             let dest_height = map.get(a).height();
-            DIR_4
-                .iter()
-                .filter_map(|&d| {
-                    let b = a + d;
-                    (map.contains(b) && map.get(b).height() + 1 >= dest_height).then_some(b)
-                })
-                .collect()
+            // Make a reference that can be moved to the closure below without
+            // consuming the main map.
+            let map = &map;
+            DIR_4.iter().filter_map(move |&d| {
+                let b = a + d;
+                (map.contains(b) && map.get(b).height() + 1 >= dest_height).then_some(b)
+            })
         },
         end,
-    );
+    )
+    .collect();
 
     println!("{}", routes[&map_start]);
     println!(

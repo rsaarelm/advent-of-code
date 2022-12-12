@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeSet, HashSet},
+    collections::{BTreeSet, HashSet, VecDeque},
     convert::TryInto,
     fmt::Debug,
     hash::Hash,
@@ -10,7 +10,7 @@ use glam::{ivec2, IVec2};
 use lazy_static::lazy_static;
 pub use memoize::memoize;
 use regex::Regex;
-use rustc_hash::FxHashMap;
+use rustc_hash::FxHashSet;
 
 pub const DIR_4: [IVec2; 4] = [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
 
@@ -256,28 +256,32 @@ impl<T: Default + Clone, G: Grid<Item = T>> Grid for InfiniteGrid<G> {
 }
 
 /// Generate a shortest paths map on a grid according to a neighbors function.
-pub fn dijkstra_map(
-    neighbors: impl Fn(IVec2) -> Vec<IVec2>,
-    start: IVec2,
-) -> FxHashMap<IVec2, i32> {
-    let mut ret = FxHashMap::default();
-    let mut edge = vec![(start, 0)];
-    while let Some((node, len)) = edge.pop() {
-        let old_len = ret.entry(node).or_insert(i32::MAX);
-        if *old_len <= len {
-            // Path already exists and we're not improving it, skip this
-            // candidate.
-            continue;
+pub fn dijkstra_map<'a, T, I>(
+    neighbors: impl Fn(&T) -> I + 'a,
+    start: T,
+) -> impl Iterator<Item = (T, usize)> + 'a
+where
+    T: Clone + Eq + Hash + 'a,
+    I: Iterator<Item = T>,
+{
+    let mut seen = FxHashSet::default();
+    let mut edge = VecDeque::from([(start, 0)]);
+    std::iter::from_fn(move || {
+        // Candidates are in a queue and consumed first-in, first-out. This
+        // should guarantee that the first time a node is popped from the queue
+        // it shows the shortest path length from start to that node.
+
+        while let Some((node, len)) = edge.pop_front() {
+            if !seen.contains(&node) {
+                seen.insert(node.clone());
+                for n in neighbors(&node) {
+                    edge.push_back((n, len + 1));
+                }
+                return Some((node, len));
+            }
         }
-
-        *old_len = len;
-
-        for n in neighbors(node) {
-            edge.push((n, len + 1));
-        }
-    }
-
-    ret
+        None
+    })
 }
 
 pub trait RegexParseable: Sized {
