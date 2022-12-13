@@ -1,8 +1,9 @@
-use std::{cmp::Ordering, str::FromStr};
+use std::{cmp::Ordering, fmt, str::FromStr};
 
 use aoc::prelude::*;
+use itertools::Itertools;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 enum Item {
     Atom(u32),
     List(Vec<Item>),
@@ -56,6 +57,20 @@ impl Ord for Item {
 impl PartialOrd for Item {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+// For completeness' sake
+impl fmt::Display for Item {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Atom(n) => write!(f, "{}", n),
+            List(a) => {
+                write!(f, "[")?;
+                write!(f, "{}", a.iter().format(","))?;
+                write!(f, "]")
+            }
+        }
     }
 }
 
