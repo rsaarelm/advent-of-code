@@ -122,6 +122,14 @@ where
     elts.as_slice().try_into().unwrap()
 }
 
+pub fn to_ivec2s(mut input: impl Iterator<Item = i32>) -> impl Iterator<Item = IVec2> {
+    std::iter::from_fn(move || {
+        let Some(x) = input.next() else { return None; };
+        let Some(y) = input.next() else { return None; };
+        Some(ivec2(x, y))
+    })
+}
+
 pub fn hex_to_bytes(hex: impl AsRef<str>) -> Vec<u8> {
     hex.as_ref()
         .as_bytes()
