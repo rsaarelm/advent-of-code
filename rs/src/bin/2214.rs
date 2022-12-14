@@ -1,103 +1,104 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, str::FromStr};
 
 use aoc::prelude::*;
 use glam::{ivec2, IVec2};
-use itertools::Itertools;
 
-fn main() {
-    let mut walls: HashSet<IVec2> = HashSet::new();
-    let mut max_y = 0;
+#[derive(Default)]
+struct Chasm {
+    walls: HashSet<IVec2>,
+    sand: HashSet<IVec2>,
+    max_y: i32,
+    has_floor: bool,
+}
 
-    for line in stdin_lines() {
-        let coords: Vec<IVec2> = numbers(&line)
-            .into_iter()
-            .chunks(2)
-            .into_iter()
-            .map(|c| {
-                let v = c.collect::<Vec<i32>>();
-                max_y = max_y.max(v[1]);
-                ivec2(v[0], v[1])
-            })
-            .collect();
+impl FromStr for Chasm {
+    type Err = ();
 
-        for (i, j) in coords.iter().zip(coords.iter().skip(1)) {
-            let mut p = *i;
-            let delta = (*j - *i).signum();
-            while p != *j {
-                walls.insert(p);
-                p += delta;
-            }
-            walls.insert(*j);
-        }
-    }
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut walls = HashSet::new();
+        let mut max_y = 0;
+        for line in s.lines() {
+            let coords: Vec<IVec2> = to_ivec2s(numbers(line).into_iter()).collect();
 
-    /*
-    for y in 0..50 {
-        for x in 460..540 {
-            if space.contains(&ivec2(x, y)) {
-            eprint!("#");
-            } else {
-                eprint!(".");
+            for (start, end) in coords.iter().zip(coords.iter().skip(1)) {
+                let span = *end - *start;
+                let dir = span.signum();
+                for c in 0..=span.abs().max_element() {
+                    let p = *start + c * dir;
+                    max_y = max_y.max(p.y);
+                    walls.insert(p);
+                }
             }
         }
-        eprintln!();
+
+        Ok(Chasm {
+            walls,
+            max_y,
+            ..Default::default()
+        })
     }
-    */
+}
 
-    // TODO: Separate walls and sand
-    let mut pile = walls.clone();
+impl Chasm {
+    pub fn is_blocked(&self, pos: IVec2) -> bool {
+        self.walls.contains(&pos) || self.sand.contains(&pos)
+    }
 
-    'sand: for sand in 0.. {
-        let mut pos = ivec2(500, 0);
+    pub fn add_floor(&mut self) {
+        self.has_floor = true;
+    }
+
+    pub fn clear_sand(&mut self) {
+        self.sand.clear();
+    }
+
+    pub fn drop(&mut self, mut pos: IVec2) -> Option<IVec2> {
         loop {
-            if pos.y > max_y {
-                println!("{}", sand);
-                break 'sand;
+            if self.has_floor && pos.y == self.max_y + 1 {
+                // Stopped by floor if it exists.
+                self.sand.insert(pos);
+                return Some(pos);
             }
 
-            if !pile.contains(&(pos + ivec2(0, 1))) {
+            if pos.y > (self.max_y + 2) {
+                // Not stopped by walls or floor.
+                return None;
+            }
+
+            if !self.is_blocked(pos + ivec2(0, 1)) {
                 pos += ivec2(0, 1);
                 continue;
             }
-            if !pile.contains(&(pos + ivec2(-1, 1))) {
+            if !self.is_blocked(pos + ivec2(-1, 1)) {
                 pos += ivec2(-1, 1);
                 continue;
             }
-            if !pile.contains(&(pos + ivec2(1, 1))) {
+            if !self.is_blocked(pos + ivec2(1, 1)) {
                 pos += ivec2(1, 1);
                 continue;
             }
-            pile.insert(pos);
+            self.sand.insert(pos);
+            return Some(pos);
+        }
+    }
+}
+
+fn main() {
+    let mut chasm: Chasm = stdin_string().parse().unwrap();
+
+    for sand in 0.. {
+        if chasm.drop(ivec2(500, 0)).is_none() {
+            println!("{}", sand);
             break;
         }
     }
 
-    for x in 0..1000 {
-        walls.insert(ivec2(x, max_y + 2));
-    }
+    chasm.clear_sand();
+    chasm.add_floor();
 
-    let mut pile = walls.clone();
-
-    'sand: for sand in 0.. {
-        let mut pos = ivec2(500, 0);
-        loop {
-            if !pile.contains(&(pos + ivec2(0, 1))) {
-                pos += ivec2(0, 1);
-                continue;
-            }
-            if !pile.contains(&(pos + ivec2(-1, 1))) {
-                pos += ivec2(-1, 1);
-                continue;
-            }
-            if !pile.contains(&(pos + ivec2(1, 1))) {
-                pos += ivec2(1, 1);
-                continue;
-            }
-            pile.insert(pos);
-            if pos == ivec2(500, 0) {
-                println!("{}", sand + 1);
-                break 'sand;
-            }
+    for sand in 1.. {
+        if chasm.drop(ivec2(500, 0)) == Some(ivec2(500, 0)) {
+            println!("{}", sand);
             break;
         }
     }
