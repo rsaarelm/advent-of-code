@@ -40,7 +40,9 @@ impl FromStr for Chasm {
 
 impl Chasm {
     pub fn is_blocked(&self, pos: Vec2) -> bool {
-        self.walls.contains(&pos) || self.sand.contains(&pos)
+        self.walls.contains(&pos)
+            || self.sand.contains(&pos)
+            || (self.has_floor && pos.y > self.max_y + 1)
     }
 
     pub fn add_floor(&mut self) {
@@ -95,10 +97,14 @@ fn main() {
     chasm.clear_sand();
     chasm.add_floor();
 
-    for sand in 1.. {
-        if chasm.drop(vec2(500, 0)) == Some(vec2(500, 0)) {
-            println!("{}", sand);
-            break;
-        }
-    }
+    println!(
+        "{}",
+        dijkstra_map(
+            |&p| [p + vec2(0, 1), p + vec2(-1, 1), p + vec2(1, 1)]
+                .into_iter()
+                .filter(|&p| !chasm.is_blocked(p)),
+            vec2(500, 0)
+        )
+        .count()
+    );
 }
