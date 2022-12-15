@@ -46,8 +46,7 @@ fn trace(input: &[(Dir, usize)], rope_len: usize) -> usize {
 }
 
 fn main() {
-    let input: Vec<(Dir, usize)> = parsed_stdin_lines(r"^(.) (\d+)$")
-        .collect();
+    let input: Vec<(Dir, usize)> = parsed_stdin_lines(r"^(.) (\d+)$").collect();
 
     println!("{}", trace(&input, 2));
     println!("{}", trace(&input, 10));

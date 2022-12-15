@@ -18,6 +18,18 @@ fn main() {
         })
         .collect();
 
-    println!("{}", pairs.iter().filter(|[a, b, x, y]| (x >= a && y <= b) || (a >= x && b <= y)).count());
-    println!("{}", pairs.iter().filter(|[a, b, x, y]| !(b < x || y < a)).count());
+    println!(
+        "{}",
+        pairs
+            .iter()
+            .filter(|[a, b, x, y]| (x >= a && y <= b) || (a >= x && b <= y))
+            .count()
+    );
+    println!(
+        "{}",
+        pairs
+            .iter()
+            .filter(|[a, b, x, y]| !(b < x || y < a))
+            .count()
+    );
 }

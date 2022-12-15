@@ -7,7 +7,10 @@ struct Machine {
 
 impl Default for Machine {
     fn default() -> Self {
-        Machine { counts: [0; 256], total: 0 }
+        Machine {
+            counts: [0; 256],
+            total: 0,
+        }
     }
 }
 
