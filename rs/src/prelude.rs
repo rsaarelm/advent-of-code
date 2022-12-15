@@ -6,23 +6,26 @@ use std::{
     str::FromStr,
 };
 
-use glam::{ivec2, IVec2};
 use lazy_static::lazy_static;
 pub use memoize::memoize;
 use regex::Regex;
 use rustc_hash::FxHashSet;
 
-pub const DIR_4: [IVec2; 4] = [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
+pub type Vec2 = euclid::default::Vector2D<i64>;
+pub type Rect = euclid::default::Rect<i64>;
+pub use euclid::vec2;
 
-pub const DIR_8: [IVec2; 8] = [
-    ivec2(1, 0),
-    ivec2(1, 1),
-    ivec2(0, 1),
-    ivec2(-1, 1),
-    ivec2(-1, 0),
-    ivec2(-1, -1),
-    ivec2(0, -1),
-    ivec2(1, -1),
+pub const DIR_4: [Vec2; 4] = [vec2(1, 0), vec2(0, 1), vec2(-1, 0), vec2(0, -1)];
+
+pub const DIR_8: [Vec2; 8] = [
+    vec2(1, 0),
+    vec2(1, 1),
+    vec2(0, 1),
+    vec2(-1, 1),
+    vec2(-1, 0),
+    vec2(-1, -1),
+    vec2(0, -1),
+    vec2(1, -1),
 ];
 
 pub fn stdin_string() -> String {
@@ -122,11 +125,11 @@ where
     elts.as_slice().try_into().unwrap()
 }
 
-pub fn to_ivec2s(mut input: impl Iterator<Item = i32>) -> impl Iterator<Item = IVec2> {
+pub fn to_vec2s(mut input: impl Iterator<Item = i64>) -> impl Iterator<Item = Vec2> {
     std::iter::from_fn(move || {
         let Some(x) = input.next() else { return None; };
         let Some(y) = input.next() else { return None; };
-        Some(ivec2(x, y))
+        Some(vec2(x, y))
     })
 }
 
@@ -216,19 +219,19 @@ impl<N: Ord + Eq + Clone> SetUtil for BTreeSet<N> {
 
 pub trait Grid {
     type Item;
-    fn get(&self, pos: IVec2) -> Self::Item;
-    fn dim(&self) -> IVec2 {
+    fn get(&self, pos: Vec2) -> Self::Item;
+    fn dim(&self) -> Vec2 {
         // Default to infinite grid with no meaningful dim value.
-        ivec2(-1, -1)
+        vec2(-1, -1)
     }
 
-    fn contains(&self, pos: IVec2) -> bool {
+    fn contains(&self, pos: Vec2) -> bool {
         let dim = self.dim();
         // Magic value for infinite grid.
-        if dim == ivec2(-1, -1) {
+        if dim == vec2(-1, -1) {
             true
         } else {
-            pos.cmpge(IVec2::ZERO).all() && pos.cmplt(self.dim()).all()
+            pos.x >= 0 && pos.x < dim.x && pos.y >= 0 && pos.y < dim.y
         }
     }
 }
@@ -236,15 +239,15 @@ pub trait Grid {
 impl<T: Clone> Grid for Vec<Vec<T>> {
     type Item = T;
 
-    fn get(&self, pos: IVec2) -> Self::Item {
+    fn get(&self, pos: Vec2) -> Self::Item {
         self[pos.y as usize][pos.x as usize].clone()
     }
 
-    fn dim(&self) -> IVec2 {
+    fn dim(&self) -> Vec2 {
         if self.is_empty() {
-            ivec2(0, 0)
+            vec2(0, 0)
         } else {
-            ivec2(self[0].len() as i32, self.len() as i32)
+            vec2(self[0].len() as i64, self.len() as i64)
         }
     }
 }
@@ -254,7 +257,7 @@ pub struct InfiniteGrid<G>(G);
 impl<T: Default + Clone, G: Grid<Item = T>> Grid for InfiniteGrid<G> {
     type Item = T;
 
-    fn get(&self, pos: IVec2) -> Self::Item {
+    fn get(&self, pos: Vec2) -> Self::Item {
         if self.0.contains(pos) {
             self.0.get(pos)
         } else {
@@ -388,6 +391,30 @@ where
             .map_err(|_| ())
             .expect("Failed to parse input line")
     })
+}
+
+pub trait VecExt {
+    type Element;
+
+    fn signum(self) -> Self;
+    fn max_element(self) -> Self::Element;
+    fn taxicab_len(self) -> Self::Element;
+}
+
+impl VecExt for Vec2 {
+    type Element = i64;
+
+    fn signum(self) -> Self {
+        vec2(self.x.signum(), self.y.signum())
+    }
+
+    fn max_element(self) -> Self::Element {
+        self.x.max(self.y)
+    }
+
+    fn taxicab_len(self) -> Self::Element {
+        self.x.abs() + self.y.abs()
+    }
 }
 
 #[cfg(test)]
