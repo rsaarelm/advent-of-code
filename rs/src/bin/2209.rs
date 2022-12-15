@@ -3,24 +3,24 @@ use derive_deref::Deref;
 use std::{collections::HashSet, str::FromStr};
 
 #[derive(Copy, Clone, Deref)]
-struct Dir(Vec2);
+struct Dir(IVec2);
 
 impl FromStr for Dir {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "R" => Ok(Dir(vec2(1, 0))),
-            "D" => Ok(Dir(vec2(0, 1))),
-            "L" => Ok(Dir(vec2(-1, 0))),
-            "U" => Ok(Dir(vec2(0, -1))),
+            "R" => Ok(Dir(ivec2(1, 0))),
+            "D" => Ok(Dir(ivec2(0, 1))),
+            "L" => Ok(Dir(ivec2(-1, 0))),
+            "U" => Ok(Dir(ivec2(0, -1))),
             _ => Err(()),
         }
     }
 }
 
 fn trace(input: &[(Dir, usize)], rope_len: usize) -> usize {
-    let mut rope = vec![vec2(0, 0); rope_len];
+    let mut rope = vec![ivec2(0, 0); rope_len];
     let mut tail_cover = HashSet::new();
 
     for &(dir, n) in input {

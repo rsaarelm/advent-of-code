@@ -1,4 +1,5 @@
 use aoc::prelude::*;
+use glam::IVec2;
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
@@ -7,10 +8,10 @@ use std::{
 
 const BOUNDARY: u32 = 9;
 
-fn neighbors(p: Vec2) -> impl Iterator<Item = Vec2> {
-    [[1i64, 0], [0, 1], [-1, 0], [0, -1]]
+fn neighbors(p: IVec2) -> impl Iterator<Item = IVec2> {
+    [[1i32, 0], [0, 1], [-1, 0], [0, -1]]
         .iter()
-        .map(move |&d| p + Vec2::from(d))
+        .map(move |&d| p + IVec2::from(d))
 }
 
 /// Generic graph fill.
@@ -40,15 +41,15 @@ fn fill<N: Clone + Eq + Hash>(
 // All points, neighbors_fn
 
 struct Map {
-    data: HashMap<Vec2, u32>,
+    data: HashMap<IVec2, u32>,
 }
 
 impl Map {
-    pub fn get(&self, pos: Vec2) -> u32 {
+    pub fn get(&self, pos: IVec2) -> u32 {
         *self.data.get(&pos).unwrap_or(&BOUNDARY)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (Vec2, u32)> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = (IVec2, u32)> + '_ {
         self.data
             .iter()
             .filter(|&(_, &n)| n < BOUNDARY)
@@ -56,7 +57,7 @@ impl Map {
     }
 
     /// Neighbors function that does not cross `BOUNDARY` cells.
-    pub fn neighbors_fn<'a>(&'a self) -> impl Fn(&Vec2) -> Vec<Vec2> + 'a {
+    pub fn neighbors_fn<'a>(&'a self) -> impl Fn(&IVec2) -> Vec<IVec2> + 'a {
         move |&p| neighbors(p).filter(|&n| self.get(n) != BOUNDARY).collect()
     }
 }
@@ -71,8 +72,8 @@ impl FromStr for Map {
             .map(|(y, line)| {
                 line.chars()
                     .enumerate()
-                    .map(|(x, c)| (vec2(x as i64, y as i64), c.to_digit(10).unwrap()))
-                    .collect::<Vec<(Vec2, u32)>>()
+                    .map(|(x, c)| (IVec2::new(x as i32, y as i32), c.to_digit(10).unwrap()))
+                    .collect::<Vec<(IVec2, u32)>>()
             })
             .flatten()
             .collect();
@@ -96,7 +97,7 @@ fn main() {
 
     // 2
     let mut basin_sizes = Vec::new();
-    let mut open_points: HashSet<Vec2> = map.iter().map(|(p, _)| p).collect();
+    let mut open_points: HashSet<IVec2> = map.iter().map(|(p, _)| p).collect();
 
     while !open_points.is_empty() {
         let basin: HashSet<_> = fill(open_points.pop().unwrap(), map.neighbors_fn()).collect();

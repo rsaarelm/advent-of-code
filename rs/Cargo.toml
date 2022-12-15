@@ -9,9 +9,7 @@ name = "aoc"
 
 [dependencies]
 derive_deref = "1"
-# TODO: Get rid of glam, 2119 is still using it.
 glam = "0.22"
-euclid = "0.22"
 itertools = "0.10"
 lazy_static = "1"
 memoize = "0.3"

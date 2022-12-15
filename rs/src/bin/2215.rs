@@ -2,8 +2,12 @@ use std::collections::HashSet;
 
 use aoc::prelude::*;
 
-fn bounds_at(s: Vec2, b: Vec2, y: i64) -> Option<std::ops::Range<i64>> {
-    let range = (s - b).taxicab_len();
+fn dist(a: IVec2, b: IVec2) -> i32 {
+    (a - b).abs().dot(IVec2::ONE)
+}
+
+fn bounds_at(s: IVec2, b: IVec2, y: i32) -> Option<std::ops::Range<i32>> {
+    let range = dist(s, b);
     let y_dist = (y - s.y).abs();
     if y_dist <= range {
         let d = range - y_dist;
@@ -14,15 +18,15 @@ fn bounds_at(s: Vec2, b: Vec2, y: i64) -> Option<std::ops::Range<i64>> {
 }
 
 fn main() {
-    let sensors: Vec<(Vec2, Vec2)> = stdin_lines()
+    let sensors: Vec<(IVec2, IVec2)> = stdin_lines()
         .map(|s| {
-            let [sx, sy, bx, by]: [i64; 4] = fixed_numbers(s);
-            (vec2(sx, sy), vec2(bx, by))
+            let [sx, sy, bx, by]: [i32; 4] = fixed_numbers(s);
+            (ivec2(sx, sy), ivec2(bx, by))
         })
         .collect();
 
     // Example uses different parameters than the actual input.
-    let is_example = sensors[0] == (vec2(2, 18), vec2(-2, 15));
+    let is_example = sensors[0] == (ivec2(2, 18), ivec2(-2, 15));
 
     // Part 1
 
@@ -32,7 +36,7 @@ fn main() {
 
     for &(s, b) in &sensors {
         for x in bounds_at(s, b, scan_y).unwrap_or(0..0) {
-            if b != vec2(x, scan_y) {
+            if b != ivec2(x, scan_y) {
                 x_cover.insert(x);
             }
         }
@@ -61,8 +65,8 @@ fn main() {
                 continue;
             }
             let x = end;
-            if x >= 0 && x < boundary && !beacons.contains(&vec2(x, y)) {
-                println!("{}", x * 4_000_000 + y);
+            if x >= 0 && x < boundary && !beacons.contains(&ivec2(x, y)) {
+                println!("{}", x as i64 * 4_000_000 + y as i64);
                 break 'scan;
             }
         }

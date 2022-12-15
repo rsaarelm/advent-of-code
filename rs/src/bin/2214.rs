@@ -4,9 +4,9 @@ use aoc::prelude::*;
 
 #[derive(Default)]
 struct Chasm {
-    walls: HashSet<Vec2>,
-    sand: HashSet<Vec2>,
-    max_y: i64,
+    walls: HashSet<IVec2>,
+    sand: HashSet<IVec2>,
+    max_y: i32,
     has_floor: bool,
 }
 
@@ -17,13 +17,13 @@ impl FromStr for Chasm {
         let mut walls = HashSet::new();
         let mut max_y = 0;
         for line in s.lines() {
-            let coords: Vec<Vec2> = to_vec2s(numbers(line).into_iter()).collect();
+            let coords: Vec<IVec2> = to_ivec2s(numbers(line).into_iter()).collect();
 
             for (start, end) in coords.iter().zip(coords.iter().skip(1)) {
                 let span = *end - *start;
                 let dir = span.signum();
                 for c in 0..=span.abs().max_element() {
-                    let p = *start + dir * c;
+                    let p = *start + c * dir;
                     max_y = max_y.max(p.y);
                     walls.insert(p);
                 }
@@ -39,7 +39,7 @@ impl FromStr for Chasm {
 }
 
 impl Chasm {
-    pub fn is_blocked(&self, pos: Vec2) -> bool {
+    pub fn is_blocked(&self, pos: IVec2) -> bool {
         self.walls.contains(&pos)
             || self.sand.contains(&pos)
             || (self.has_floor && pos.y > self.max_y + 1)
@@ -53,7 +53,7 @@ impl Chasm {
         self.sand.clear();
     }
 
-    pub fn drop(&mut self, mut pos: Vec2) -> Option<Vec2> {
+    pub fn drop(&mut self, mut pos: IVec2) -> Option<IVec2> {
         loop {
             if self.has_floor && pos.y == self.max_y + 1 {
                 // Stopped by floor if it exists.
@@ -66,16 +66,16 @@ impl Chasm {
                 return None;
             }
 
-            if !self.is_blocked(pos + vec2(0, 1)) {
-                pos += vec2(0, 1);
+            if !self.is_blocked(pos + ivec2(0, 1)) {
+                pos += ivec2(0, 1);
                 continue;
             }
-            if !self.is_blocked(pos + vec2(-1, 1)) {
-                pos += vec2(-1, 1);
+            if !self.is_blocked(pos + ivec2(-1, 1)) {
+                pos += ivec2(-1, 1);
                 continue;
             }
-            if !self.is_blocked(pos + vec2(1, 1)) {
-                pos += vec2(1, 1);
+            if !self.is_blocked(pos + ivec2(1, 1)) {
+                pos += ivec2(1, 1);
                 continue;
             }
             self.sand.insert(pos);
@@ -88,7 +88,7 @@ fn main() {
     let mut chasm: Chasm = stdin_string().parse().unwrap();
 
     for sand in 0.. {
-        if chasm.drop(vec2(500, 0)).is_none() {
+        if chasm.drop(ivec2(500, 0)).is_none() {
             println!("{}", sand);
             break;
         }
@@ -100,10 +100,10 @@ fn main() {
     println!(
         "{}",
         dijkstra_map(
-            |&p| [p + vec2(0, 1), p + vec2(-1, 1), p + vec2(1, 1)]
+            |&p| [p + ivec2(0, 1), p + ivec2(-1, 1), p + ivec2(1, 1)]
                 .into_iter()
                 .filter(|&p| !chasm.is_blocked(p)),
-            vec2(500, 0)
+            ivec2(500, 0)
         )
         .count()
     );
