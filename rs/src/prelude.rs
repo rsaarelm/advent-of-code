@@ -342,6 +342,14 @@ pub fn next_permutation(perm: &mut [impl Ord]) -> bool {
 /// let mut perm = vec![1u32, 4, 3, 2];
 /// next_prefix_permutation(&mut perm, 2);
 /// assert_eq!(perm, vec![2u32, 1, 3, 4]);
+///
+/// let mut perm = vec![1u32, 2, 3, 4, 5, 6, 7, 8, 9];
+/// next_prefix_permutation(&mut perm, 2);
+/// assert_eq!(perm, vec![1u32, 3, 2, 4, 5, 6, 7, 8, 9]);
+///
+/// let mut perm = vec![1u32, 9, 2, 3];
+/// next_prefix_permutation(&mut perm, 2);
+/// assert_eq!(perm, vec![2u32, 1, 3, 9]);
 /// ```
 pub fn next_prefix_permutation(perm: &mut [impl Ord], prefix_len: usize) -> bool {
     let prefix_len = prefix_len.min(perm.len());
@@ -350,13 +358,19 @@ pub fn next_prefix_permutation(perm: &mut [impl Ord], prefix_len: usize) -> bool
     }
     let i = prefix_len - 1;
 
-    if let Some((j, _)) = perm.iter().enumerate().rev().find(|(_, k)| **k > perm[i]) {
+    if let Some((j, _)) = perm
+        .iter()
+        .enumerate()
+        .filter(|&(j, n)| j > i && *n > perm[i])
+        .min()
+    {
         if j > i {
             perm.swap(i, j);
             perm[i + 1..].sort();
             return true;
         }
     }
+    perm[i + 1..].sort_by(|a, b| b.cmp(a));
     next_permutation(perm)
 }
 
@@ -471,5 +485,25 @@ mod test {
         let a: [i32; 4] = [1, 2, 3, 4];
         let s: [i32; 4] = fixed_numbers("1, 2, 3, 4");
         assert_eq!(a, s);
+    }
+
+    #[test]
+    fn test_permutations() {
+        let mut perm: Vec<u32> = (0..10).collect();
+
+        let mut n = 0;
+        loop {
+            n += 1;
+            let p1: Vec<u32> = (&perm[..6]).iter().copied().collect();
+
+            if !next_prefix_permutation(&mut perm, 6) {
+                break;
+            }
+
+            let p2: Vec<u32> = (&perm[..6]).iter().copied().collect();
+            assert_ne!(p1, p2);
+            assert!(p2 > p1);
+        }
+        assert_eq!(n, 151_200);
     }
 }
