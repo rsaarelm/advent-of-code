@@ -49,20 +49,20 @@
               cargo-outdated
 
               # Python
-              python3
-              python3Packages.numpy
-              python3Packages.python-lsp-server
-              # FIXME 2022-11-30 Broken package?
-              #python3Packages.pylsp-mypy
-              black
+              # python3
+              # python3Packages.numpy
+              # python3Packages.python-lsp-server
+              # # FIXME 2022-11-30 Broken package?
+              # #python3Packages.pylsp-mypy
+              # black
 
               # Clojure
-              clojure
-              jdk11_headless
-              clojure-lsp
+              # clojure
+              # jdk11_headless
+              # clojure-lsp
 
               # Zig
-              zig
+              # zig
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
             RUST_BACKTRACK = "1";
