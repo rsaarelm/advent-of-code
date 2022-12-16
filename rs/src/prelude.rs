@@ -295,6 +295,73 @@ where
     })
 }
 
+/// Try to advance slice to next lexical permutation.
+///
+/// Returns false if the slice is the last permutation.
+///
+/// ```
+/// use aoc::prelude::*;
+///
+/// let mut perm = vec![1u32, 2, 3];
+/// next_permutation(&mut perm);
+/// assert_eq!(perm, vec![1u32, 3, 2]);
+/// ```
+pub fn next_permutation(perm: &mut [impl Ord]) -> bool {
+    if perm.len() < 2 {
+        return false;
+    }
+
+    for i in (0..(perm.len() - 1)).rev() {
+        if perm[i] < perm[i + 1] {
+            let (j, _) = perm
+                .iter()
+                .enumerate()
+                .rev()
+                .find(|(_, k)| **k > perm[i])
+                .unwrap();
+            perm.swap(i, j);
+            perm[i + 1..].reverse();
+            return true;
+        }
+    }
+
+    false
+}
+
+/// Advance slice to the next lexical permutation where the value of
+/// `perm[0..prefix_len]` changes, skipping over any permutations past
+/// `prefix_len`.
+///
+/// Returns false if `perm[0..prefix_len]` is the last permutation.
+///
+/// ```
+/// use aoc::prelude::*;
+///
+/// let mut perm = vec![1u32, 4, 2, 8];
+/// next_prefix_permutation(&mut perm, 2);
+/// assert_eq!(perm, vec![1u32, 8, 2, 4]);
+///
+/// let mut perm = vec![1u32, 4, 3, 2];
+/// next_prefix_permutation(&mut perm, 2);
+/// assert_eq!(perm, vec![2u32, 1, 3, 4]);
+/// ```
+pub fn next_prefix_permutation(perm: &mut [impl Ord], prefix_len: usize) -> bool {
+    let prefix_len = prefix_len.min(perm.len());
+    if prefix_len < 1 || perm.len() < 2 {
+        return false;
+    }
+    let i = prefix_len - 1;
+
+    if let Some((j, _)) = perm.iter().enumerate().rev().find(|(_, k)| **k > perm[i]) {
+        if j > i {
+            perm.swap(i, j);
+            perm[i + 1..].sort();
+            return true;
+        }
+    }
+    next_permutation(perm)
+}
+
 pub trait RegexParseable: Sized {
     type Error;
 
