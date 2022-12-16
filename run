@@ -4,6 +4,7 @@ from itertools import takewhile
 import os
 import subprocess
 import sys
+import time
 from typing import IO, Iterable, Optional, Tuple, Union
 
 
@@ -148,13 +149,25 @@ if __name__ == "__main__":
     except ValueError:
         usage()
 
+    runtime = False
     for [input, output] in input_files(day):
         eprint("Running %s with input %s" % (lang, input))
         with open(input) as f:
+            start_time = time.time()
             p1, p2 = run_input(lang, prog, f)
+            runtime = time.time() - start_time
         e1, e2 = expected_output(input)
 
         process_value(p1, e1)
         # Work in progress tasks only print the first item.
         if p2 is not None:
             process_value(p2, e2)
+
+    if runtime:
+        # Print the running time of the last item, should be the main program.
+        if runtime > 59:
+            eprint("Running time: %sm %ss" % (int(runtime / 60), round(runtime) % 60))
+        elif runtime > 1:
+            eprint("Running time: %.2fs" % runtime);
+        else:
+            eprint("Running time: %sms" % (int(runtime * 1000)))
