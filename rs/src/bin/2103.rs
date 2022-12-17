@@ -1,4 +1,3 @@
-#![feature(drain_filter)]
 use aoc::prelude::*;
 
 fn avg(data: &[u32], mask: u32) -> u32 {
@@ -10,7 +9,11 @@ fn avg(data: &[u32], mask: u32) -> u32 {
 }
 
 fn prune(data: &mut Vec<u32>, mask: u32, avg: u32) -> Option<u32> {
-    data.drain_filter(|&mut x| x & mask != avg & mask);
+    for i in (0..data.len()).rev() {
+        if data[i] & mask != avg & mask {
+            data.swap_remove(i);
+        }
+    }
     if data.len() == 1 {
         return Some(data[0]);
     } else {
