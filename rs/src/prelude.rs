@@ -13,6 +13,8 @@ use rustc_hash::FxHashSet;
 
 pub use glam::{ivec2, IVec2};
 
+pub use crate::ocr::{PointCloud, points};
+
 pub const DIR_4: [IVec2; 4] = [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
 
 pub const DIR_8: [IVec2; 8] = [
