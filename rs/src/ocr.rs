@@ -369,7 +369,11 @@ pub fn ocr<'a>(input: impl IntoIterator<Item = &'a (i32, i32)>) -> Option<String
     Some(ret)
 }
 
-pub fn points(input: &str) -> PointCloud {
+pub fn points<T, I>(input: &str) -> T
+where
+    T: FromIterator<I>,
+    I: From<(i32, i32)>,
+{
     // NB. Does not check bounding box, make sure to snap input to x and y
     // axes.
     input
@@ -378,7 +382,7 @@ pub fn points(input: &str) -> PointCloud {
         .flat_map(|(y, line)| {
             line.chars().enumerate().filter_map(move |(x, c)| {
                 if c != '.' && !c.is_whitespace() {
-                    Some((x as i32, y as i32))
+                    Some(I::from((x as i32, y as i32)))
                 } else {
                     None
                 }
