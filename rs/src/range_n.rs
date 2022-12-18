@@ -1,4 +1,4 @@
-use std::ops::{Add, Range, Sub};
+use std::ops::{Add, Div, Range, Sub};
 
 use num::{One, Zero};
 
@@ -85,8 +85,8 @@ where
 
 impl<X, Y> Range2<X, Y>
 where
-    X: Copy + PartialOrd + Zero + One + Add<Output = X> + Sub<Output = X>,
-    Y: Copy + PartialOrd + Zero + One + Add<Output = Y> + Sub<Output = Y>,
+    X: Copy + One + Add<Output = X> + Sub<Output = X>,
+    Y: Copy + One + Add<Output = Y> + Sub<Output = Y>,
 {
     pub fn size<T: From<(X, Y)>>(&self) -> T {
         T::from((self.x2 - self.x1, self.y2 - self.y1))
@@ -124,6 +124,19 @@ where
             y1: self.y1 - y,
             y2: self.y2 + y + One::one(),
         }
+    }
+}
+
+impl<X, Y> Range2<X, Y>
+where
+    X: Copy + One + Add<Output = X> + Sub<Output = X> + Div<Output = X>,
+    Y: Copy + One + Add<Output = Y> + Sub<Output = Y> + Div<Output = Y>,
+{
+    pub fn center<T: From<(X, Y)>>(&self) -> T {
+        T::from((
+            self.x1 + self.width() / (X::one() + X::one()),
+            self.y1 + self.height() / (Y::one() + Y::one()),
+        ))
     }
 }
 
@@ -291,9 +304,9 @@ where
 
 impl<X, Y, Z> Range3<X, Y, Z>
 where
-    X: Copy + PartialOrd + Zero + One + Add<Output = X> + Sub<Output = X>,
-    Y: Copy + PartialOrd + Zero + One + Add<Output = Y> + Sub<Output = Y>,
-    Z: Copy + PartialOrd + Zero + One + Add<Output = Z> + Sub<Output = Z>,
+    X: Copy + One + Add<Output = X> + Sub<Output = X>,
+    Y: Copy + One + Add<Output = Y> + Sub<Output = Y>,
+    Z: Copy + One + Add<Output = Z> + Sub<Output = Z>,
 {
     pub fn size<T: From<(X, Y, Z)>>(&self) -> T {
         T::from((self.x2 - self.x1, self.y2 - self.y1, self.z2 - self.z1))
@@ -339,6 +352,21 @@ where
             z1: self.z1 - z,
             z2: self.z2 + z + One::one(),
         }
+    }
+}
+
+impl<X, Y, Z> Range3<X, Y, Z>
+where
+    X: Copy + One + Add<Output = X> + Sub<Output = X> + Div<Output = X>,
+    Y: Copy + One + Add<Output = Y> + Sub<Output = Y> + Div<Output = Y>,
+    Z: Copy + One + Add<Output = Z> + Sub<Output = Z> + Div<Output = Z>,
+{
+    pub fn center<T: From<(X, Y, Z)>>(&self) -> T {
+        T::from((
+            self.x1 + self.width() / (X::one() + X::one()),
+            self.y1 + self.height() / (Y::one() + Y::one()),
+            self.z1 + self.depth() / (Z::one() + Z::one()),
+        ))
     }
 }
 
