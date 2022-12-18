@@ -16,7 +16,7 @@ use num::{One, Zero};
 ///     vec![(-1, 0), (0, 0), (1, 0),
 ///          (-1, 1), (0, 1), (1, 1)]);
 /// ```
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct Range2<X, Y> {
     x1: X,
     x2: X,
@@ -38,7 +38,7 @@ where
     Y: Copy + PartialOrd + Zero,
 {
     let (w, h) = dim.into();
-    Range2::new(X::zero()..w, Y::zero()..h)
+    Range2::sized(w, h)
 }
 
 pub fn rect<X, Y>(p1: impl Into<(X, Y)>, p2: impl Into<(X, Y)>) -> Range2<X, Y>
@@ -222,7 +222,7 @@ where
 ///          (5, 0, 11), (6, 0, 11),
 ///          (5, 1, 11), (6, 1, 11)]);
 /// ```
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Default, Eq, PartialEq, Hash, Debug)]
 pub struct Range3<X, Y, Z> {
     x1: X,
     x2: X,
@@ -248,7 +248,7 @@ where
     Z: Copy + PartialOrd + Zero,
 {
     let (w, h, d) = dim.into();
-    Range3::new(X::zero()..w, Y::zero()..h, Z::zero()..d)
+    Range3::sized(w, h, d)
 }
 
 pub fn cube<X, Y, Z>(
