@@ -15,6 +15,10 @@ pub use glam::{ivec2, ivec3, IVec2, IVec3};
 
 pub use crate::ocr::{points, PointCloud};
 
+pub use crate::range_n::{
+    area, cube, range2, range3, rect, volume, Range2, Range3,
+};
+
 pub const DIR_4: [IVec2; 4] =
     [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
 

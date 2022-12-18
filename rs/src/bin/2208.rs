@@ -89,14 +89,12 @@ fn main() {
 
     let mut best: usize = 0;
     // Score sweeps towards the edges from each point.
-    for y in 0..height {
-        for x in 0..width {
-            let score = score_run(sweep(&grid, x, y, -1, 0))
-                * score_run(sweep(&grid, x, y, 1, 0))
-                * score_run(sweep(&grid, x, y, 0, -1))
-                * score_run(sweep(&grid, x, y, 0, 1));
-            best = score.max(best);
-        }
+    for (x, y) in range2(0..width, 0..height) {
+        let score = score_run(sweep(&grid, x, y, -1, 0))
+            * score_run(sweep(&grid, x, y, 1, 0))
+            * score_run(sweep(&grid, x, y, 0, -1))
+            * score_run(sweep(&grid, x, y, 0, 1));
+        best = score.max(best);
     }
 
     println!("{}", best);

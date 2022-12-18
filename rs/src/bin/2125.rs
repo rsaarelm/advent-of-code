@@ -20,14 +20,12 @@ fn main() {
         let mut grid2 = grid.clone();
 
         // Horizontals
-        for y in 0..h {
-            for x in 0..w {
-                let x2 = (x + 1) % w;
-                if grid[y][x] == '>' && grid[y][x2] == '.' {
-                    moves += 1;
-                    grid2[y][x] = '.';
-                    grid2[y][x2] = '>';
-                }
+        for (x, y) in Range2::sized(w, h) {
+            let x2 = (x + 1) % w;
+            if grid[y][x] == '>' && grid[y][x2] == '.' {
+                moves += 1;
+                grid2[y][x] = '.';
+                grid2[y][x2] = '>';
             }
         }
 
@@ -35,14 +33,12 @@ fn main() {
         grid2 = grid.clone();
 
         // Verticals
-        for y in 0..h {
-            for x in 0..w {
-                let y2 = (y + 1) % h;
-                if grid[y][x] == 'v' && grid[y2][x] == '.' {
-                    moves += 1;
-                    grid2[y][x] = '.';
-                    grid2[y2][x] = 'v';
-                }
+        for (x, y) in Range2::sized(w, h) {
+            let y2 = (y + 1) % h;
+            if grid[y][x] == 'v' && grid[y2][x] == '.' {
+                moves += 1;
+                grid2[y][x] = '.';
+                grid2[y2][x] = 'v';
             }
         }
 
