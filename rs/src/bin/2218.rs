@@ -21,15 +21,19 @@ fn main() {
 
     // Part 2
 
-    let volume_min = droplets.iter().copied().reduce(IVec3::min).unwrap() - IVec3::splat(1);
-    let volume_max = droplets.iter().copied().reduce(IVec3::max).unwrap() + IVec3::splat(2);
+    let volume_min =
+        droplets.iter().copied().reduce(IVec3::min).unwrap() - IVec3::splat(1);
+    let volume_max =
+        droplets.iter().copied().reduce(IVec3::max).unwrap() + IVec3::splat(2);
 
     let open: HashSet<IVec3> = dijkstra_map(
         |&p| {
             let droplets = &droplets; // safe to move.
             SPACE_6.iter().filter_map(move |&d| {
                 let n = d + p;
-                if !droplets.contains(&n) && p.cmpge(volume_min).all() && p.cmplt(volume_max).all()
+                if !droplets.contains(&n)
+                    && p.cmpge(volume_min).all()
+                    && p.cmplt(volume_max).all()
                 {
                     Some(n)
                 } else {

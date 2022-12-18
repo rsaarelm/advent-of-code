@@ -30,7 +30,9 @@ fn sweep(
 }
 
 // Line of sight updating closure generator.
-fn line_of_sight(view: &'_ mut Vec<Vec<usize>>) -> impl FnMut(((usize, usize), i32)) + '_ {
+fn line_of_sight(
+    view: &'_ mut Vec<Vec<usize>>,
+) -> impl FnMut(((usize, usize), i32)) + '_ {
     let mut current = -1;
     move |((x, y), h)| {
         if h > current {

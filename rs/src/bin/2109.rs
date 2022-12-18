@@ -72,7 +72,12 @@ impl FromStr for Map {
             .map(|(y, line)| {
                 line.chars()
                     .enumerate()
-                    .map(|(x, c)| (IVec2::new(x as i32, y as i32), c.to_digit(10).unwrap()))
+                    .map(|(x, c)| {
+                        (
+                            IVec2::new(x as i32, y as i32),
+                            c.to_digit(10).unwrap(),
+                        )
+                    })
                     .collect::<Vec<(IVec2, u32)>>()
             })
             .flatten()
@@ -100,7 +105,8 @@ fn main() {
     let mut open_points: HashSet<IVec2> = map.iter().map(|(p, _)| p).collect();
 
     while !open_points.is_empty() {
-        let basin: HashSet<_> = fill(open_points.pop().unwrap(), map.neighbors_fn()).collect();
+        let basin: HashSet<_> =
+            fill(open_points.pop().unwrap(), map.neighbors_fn()).collect();
         open_points = open_points.difference(&basin).cloned().collect();
         basin_sizes.push(basin.len());
     }

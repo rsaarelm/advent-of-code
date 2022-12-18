@@ -29,7 +29,9 @@ impl Packet {
                     ps.iter().map(|p| p.checksum()).sum()
                 }
                 Literal(_) => 0,
-                Greater(a, b) | Less(a, b) | Equal(a, b) => a.checksum() + b.checksum(),
+                Greater(a, b) | Less(a, b) | Equal(a, b) => {
+                    a.checksum() + b.checksum()
+                }
             }
     }
 
@@ -61,12 +63,15 @@ enum Op {
 }
 
 /// Parse packets given a buffer length in bits.
-fn length_packets(input: (&[u8], usize)) -> IResult<(&[u8], usize), Vec<Packet>> {
+fn length_packets(
+    input: (&[u8], usize),
+) -> IResult<(&[u8], usize), Vec<Packet>> {
     fn bits((array, offset): (&[u8], usize)) -> usize {
         array.len() * 8 - offset
     }
 
-    let (mut input, n_bits): (_, usize) = preceded(tag(0, 1usize), take(15usize))(input)?;
+    let (mut input, n_bits): (_, usize) =
+        preceded(tag(0, 1usize), take(15usize))(input)?;
     //                                                 ^ marker for bit count
     let target_bits = bits(input) - n_bits;
     let mut ret = Vec::new();
@@ -81,8 +86,11 @@ fn length_packets(input: (&[u8], usize)) -> IResult<(&[u8], usize), Vec<Packet>>
 }
 
 /// Parse packets given a packet count.
-fn count_packets(input: (&[u8], usize)) -> IResult<(&[u8], usize), Vec<Packet>> {
-    let (mut input, count): (_, usize) = preceded(tag(1, 1usize), take(11usize))(input)?;
+fn count_packets(
+    input: (&[u8], usize),
+) -> IResult<(&[u8], usize), Vec<Packet>> {
+    let (mut input, count): (_, usize) =
+        preceded(tag(1, 1usize), take(11usize))(input)?;
     //                                                ^ marker for packet count
     let mut ret = Vec::new();
 

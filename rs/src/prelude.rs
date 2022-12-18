@@ -11,11 +11,12 @@ pub use memoize::memoize;
 use regex::Regex;
 use rustc_hash::FxHashSet;
 
-pub use glam::{ivec2, IVec2, ivec3, IVec3};
+pub use glam::{ivec2, ivec3, IVec2, IVec3};
 
-pub use crate::ocr::{PointCloud, points};
+pub use crate::ocr::{points, PointCloud};
 
-pub const DIR_4: [IVec2; 4] = [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
+pub const DIR_4: [IVec2; 4] =
+    [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
 
 pub const DIR_8: [IVec2; 8] = [
     ivec2(1, 0),
@@ -134,7 +135,9 @@ where
     elts.as_slice().try_into().unwrap()
 }
 
-pub fn to_ivec2s(mut input: impl Iterator<Item = i32>) -> impl Iterator<Item = IVec2> {
+pub fn to_ivec2s(
+    mut input: impl Iterator<Item = i32>,
+) -> impl Iterator<Item = IVec2> {
     std::iter::from_fn(move || {
         let Some(x) = input.next() else { return None; };
         let Some(y) = input.next() else { return None; };
@@ -146,7 +149,9 @@ pub fn hex_to_bytes(hex: impl AsRef<str>) -> Vec<u8> {
     hex.as_ref()
         .as_bytes()
         .chunks(2)
-        .map(|c| u8::from_str_radix(std::str::from_utf8(c).unwrap(), 16).unwrap())
+        .map(|c| {
+            u8::from_str_radix(std::str::from_utf8(c).unwrap(), 16).unwrap()
+        })
         .collect()
 }
 
@@ -362,7 +367,10 @@ pub fn next_permutation(perm: &mut [impl Ord]) -> bool {
 /// next_prefix_permutation(&mut perm, 2);
 /// assert_eq!(perm, vec![2u32, 1, 3, 9]);
 /// ```
-pub fn next_prefix_permutation(perm: &mut [impl Ord], prefix_len: usize) -> bool {
+pub fn next_prefix_permutation(
+    perm: &mut [impl Ord],
+    prefix_len: usize,
+) -> bool {
     let prefix_len = prefix_len.min(perm.len());
     if prefix_len < 1 || perm.len() < 2 {
         return false;

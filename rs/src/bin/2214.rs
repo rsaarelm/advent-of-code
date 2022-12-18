@@ -17,7 +17,8 @@ impl FromStr for Chasm {
         let mut walls = HashSet::new();
         let mut max_y = 0;
         for line in s.lines() {
-            let coords: Vec<IVec2> = to_ivec2s(numbers(line).into_iter()).collect();
+            let coords: Vec<IVec2> =
+                to_ivec2s(numbers(line).into_iter()).collect();
 
             for (start, end) in coords.iter().zip(coords.iter().skip(1)) {
                 let span = *end - *start;

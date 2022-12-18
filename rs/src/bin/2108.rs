@@ -115,7 +115,10 @@ fn main() {
             .iter()
             .map(|d| d
                 .iter()
-                .filter(|a| a.len() == 2 || a.len() == 3 || a.len() == 4 || a.len() == 7)
+                .filter(|a| a.len() == 2
+                    || a.len() == 3
+                    || a.len() == 4
+                    || a.len() == 7)
                 .count())
             .sum::<usize>()
     );

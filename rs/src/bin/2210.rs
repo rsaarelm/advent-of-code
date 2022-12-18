@@ -50,7 +50,8 @@ impl<T: Iterator<Item = Option<i32>>> Iterator for Transformer<T> {
 
 fn main() {
     let parser = re_parser::<i32>(r"^addx (.+)$");
-    let input: Vec<Option<i32>> = stdin_lines().map(|line| parser(&line).ok()).collect();
+    let input: Vec<Option<i32>> =
+        stdin_lines().map(|line| parser(&line).ok()).collect();
     let signals: Vec<i32> = Transformer::new(input.into_iter()).collect();
 
     // Part 1
@@ -70,7 +71,8 @@ fn main() {
         .iter()
         .enumerate()
         .filter_map(|(i, pos)| {
-            let (x, y) = ((i % DISPLAY_WIDTH) as i32, (i / DISPLAY_WIDTH) as i32);
+            let (x, y) =
+                ((i % DISPLAY_WIDTH) as i32, (i / DISPLAY_WIDTH) as i32);
             ((pos - x).abs() <= 1).then_some((x, y))
         })
         .collect();

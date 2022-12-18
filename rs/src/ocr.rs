@@ -350,10 +350,13 @@ impl Shape {
     }
 }
 
-pub fn ocr<'a>(input: impl IntoIterator<Item = &'a (i32, i32)>) -> Option<String> {
+pub fn ocr<'a>(
+    input: impl IntoIterator<Item = &'a (i32, i32)>,
+) -> Option<String> {
     let mut cloud: PointCloud = input.into_iter().copied().collect();
 
-    let mut shapes: Vec<Shape> = std::iter::from_fn(|| Shape::extract(&mut cloud)).collect();
+    let mut shapes: Vec<Shape> =
+        std::iter::from_fn(|| Shape::extract(&mut cloud)).collect();
     // XXX: Only works if there is just one line of text.
     shapes.sort_by_key(|a| a.offset.0);
 

@@ -54,7 +54,10 @@ impl ChunkyGrid {
     }
 
     /// Enumerate chunk space points in an uniform space box.
-    pub fn cells(&self, realspace_cube: &[i32; 6]) -> impl Iterator<Item = [usize; 3]> {
+    pub fn cells(
+        &self,
+        realspace_cube: &[i32; 6],
+    ) -> impl Iterator<Item = [usize; 3]> {
         let [x0, x1, y0, y1, z0, z1] = *realspace_cube;
         // Map to gridspace, ranges to end-exclusive.
         let [cx0, cy0, cz0] = self.map([x0, y0, z0]);

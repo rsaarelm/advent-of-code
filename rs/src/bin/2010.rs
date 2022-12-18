@@ -15,7 +15,11 @@ fn part_1(seq: &BTreeSet<i32>) -> u32 {
 }
 
 fn part_2(seq: &BTreeSet<i32>) -> u64 {
-    fn paths_at(cache: &mut HashMap<i32, u64>, seq: &BTreeSet<i32>, n: i32) -> u64 {
+    fn paths_at(
+        cache: &mut HashMap<i32, u64>,
+        seq: &BTreeSet<i32>,
+        n: i32,
+    ) -> u64 {
         if let Some(&c) = cache.get(&n) {
             // Memoizing cache
             return c;

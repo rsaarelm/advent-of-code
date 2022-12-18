@@ -94,7 +94,8 @@ impl FromStr for Item {
 
                 Ok((Item::List(ret), s))
             } else if c.is_ascii_digit() {
-                let number: String = s.chars().take_while(|c| c.is_ascii_digit()).collect();
+                let number: String =
+                    s.chars().take_while(|c| c.is_ascii_digit()).collect();
                 Ok((Item::Atom(number.parse().unwrap()), &s[number.len()..]))
             } else {
                 Err(())

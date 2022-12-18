@@ -204,7 +204,9 @@ impl State {
                     // Are there mismatched amphipods trapped below this one?
                     let base = (i / 4) * 4;
                     for j in base..i {
-                        let b = self[j].expect("Corrupt state, empty space below amphipod");
+                        let b = self[j].expect(
+                            "Corrupt state, empty space below amphipod",
+                        );
                         if b != Rubble && b != a {
                             // Self must move to unblock, add an arbitrary
                             // helping of badness.
@@ -247,7 +249,9 @@ impl State {
             if self[p] == Some(bin) {
                 // Amphipod is in home bin, only allow moving it if it's
                 // blocking a mismatching amphipod below it.
-                if (base..p).all(|i| self[i] == Some(Rubble) || self[i] == Some(bin)) {
+                if (base..p)
+                    .all(|i| self[i] == Some(Rubble) || self[i] == Some(bin))
+                {
                     // Everything below is good, abort move.
                     return None;
                 }
@@ -303,7 +307,11 @@ impl State {
         let right_x = XY[p1][0].max(XY[p2][0]);
         for corr in 16..=22 {
             let cx = XY[corr][0];
-            if corr != p1 && cx >= left_x && cx <= right_x && self[corr].is_some() {
+            if corr != p1
+                && cx >= left_x
+                && cx <= right_x
+                && self[corr].is_some()
+            {
                 // Something on the way (that isn't us at p1), no go.
                 return None;
             }

@@ -48,7 +48,8 @@ fn main() {
             let map = &map;
             DIR_4.iter().filter_map(move |&d| {
                 let b = a + d;
-                (map.contains(b) && map.get(b).height() + 1 >= dest_height).then_some(b)
+                (map.contains(b) && map.get(b).height() + 1 >= dest_height)
+                    .then_some(b)
             })
         },
         end,

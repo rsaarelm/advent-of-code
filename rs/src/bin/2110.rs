@@ -118,7 +118,8 @@ impl Status {
 fn main() {
     let mut data: Vec<Status> = Vec::new();
     for line in stdin_lines() {
-        let status = Status::compute(line.chars().map(|c| Elt::try_from(c).unwrap()));
+        let status =
+            Status::compute(line.chars().map(|c| Elt::try_from(c).unwrap()));
         data.push(status);
     }
 
@@ -126,7 +127,8 @@ fn main() {
     println!("{}", data.iter().map(|a| a.score_1()).sum::<u64>());
 
     // 2
-    let mut scores: Vec<u64> = data.iter().filter_map(|a| a.score_2()).collect();
+    let mut scores: Vec<u64> =
+        data.iter().filter_map(|a| a.score_2()).collect();
     scores.sort();
     println!("{}", scores[scores.len() / 2]);
 }

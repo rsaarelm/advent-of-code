@@ -79,7 +79,8 @@ fn main() {
     let mut stacks_1: Stacks = input.as_str().parse().unwrap();
     let mut stacks_2 = stacks_1.clone();
 
-    let move_parser = re_parser::<(usize, usize, usize)>(r"^move (\d+) from (\d+) to (\d+)$");
+    let move_parser =
+        re_parser::<(usize, usize, usize)>(r"^move (\d+) from (\d+) to (\d+)$");
     let moves: Vec<(usize, usize, usize)> = input
         .lines()
         .filter_map(|line| move_parser(line).ok())

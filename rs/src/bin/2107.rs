@@ -2,7 +2,8 @@ use aoc::prelude::*;
 
 fn main() {
     let input: Vec<i32> = numbers(stdin_lines().next().unwrap());
-    let (min, max) = (*input.iter().min().unwrap(), *input.iter().max().unwrap());
+    let (min, max) =
+        (*input.iter().min().unwrap(), *input.iter().max().unwrap());
 
     println!(
         "{}",

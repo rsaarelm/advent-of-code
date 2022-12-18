@@ -96,7 +96,8 @@ fn main() {
     let mut monkeys = Vec::new();
     let mut monkey_idx = 0;
 
-    let op_parser = re_parser::<(char, String)>("^  Operation: new = old (.) (.+)$");
+    let op_parser =
+        re_parser::<(char, String)>("^  Operation: new = old (.) (.+)$");
 
     for line in stdin_lines() {
         if line.contains("Starting") {

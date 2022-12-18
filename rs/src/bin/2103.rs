@@ -1,7 +1,9 @@
 use aoc::prelude::*;
 
 fn avg(data: &[u32], mask: u32) -> u32 {
-    if data.iter().filter(|&x| x & mask != 0).count() as f32 >= data.len() as f32 / 2.0 {
+    if data.iter().filter(|&x| x & mask != 0).count() as f32
+        >= data.len() as f32 / 2.0
+    {
         mask
     } else {
         0

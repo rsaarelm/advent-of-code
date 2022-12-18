@@ -10,7 +10,10 @@ fn f1((x, y): (i32, i32), &(ref cmd, a): &(String, i32)) -> (i32, i32) {
     (x + dx, y + dy)
 }
 
-fn f2((x, y, z): (i32, i32, i32), &(ref cmd, a): &(String, i32)) -> (i32, i32, i32) {
+fn f2(
+    (x, y, z): (i32, i32, i32),
+    &(ref cmd, a): &(String, i32),
+) -> (i32, i32, i32) {
     let (dx, dy, dz) = match cmd.as_ref() {
         "forward" => (a, a * z, 0),
         "down" => (0, 0, a),

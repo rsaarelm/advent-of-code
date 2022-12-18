@@ -315,7 +315,8 @@ fn model_numbers(params: &Params) -> impl Iterator<Item = Vec<i64>> + '_ {
     fn is_live([_, b, _]: [i64; 3]) -> bool {
         b < 10
     }
-    let live_digits = params.iter().rev().filter(|p| is_live(**p)).count() as u32;
+    let live_digits =
+        params.iter().rev().filter(|p| is_live(**p)).count() as u32;
 
     (10i64.pow(live_digits)..10i64.pow(live_digits + 1))
         .rev()
@@ -373,7 +374,8 @@ mod tests {
         let params = params();
 
         for _ in 0..1000 {
-            let n: Vec<i64> = (0..N_DIGITS).map(|_| rng.gen::<i64>() % 9 + 1).collect();
+            let n: Vec<i64> =
+                (0..N_DIGITS).map(|_| rng.gen::<i64>() % 9 + 1).collect();
             assert_eq!(jet(&params, n.clone()), run(&prog, n.clone()));
         }
     }

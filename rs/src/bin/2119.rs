@@ -132,7 +132,8 @@ fn main() {
 
     let mut space = regions[0].clone();
     // Unmatched regions.
-    let mut open: Vec<[Region; 24]> = regions.iter().skip(1).map(|r| r.variants()).collect();
+    let mut open: Vec<[Region; 24]> =
+        regions.iter().skip(1).map(|r| r.variants()).collect();
 
     // Centers of matched regions. The first one is origin by definition.
     let mut posns = vec![IVec3::new(0, 0, 0)];

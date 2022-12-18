@@ -9,7 +9,8 @@ fn main() {
     let mut input = Vec::new();
     for line in stdin_lines() {
         let (valve, rate, outs) = parser(&line).unwrap();
-        let outs: Vec<String> = outs.split(", ").map(|a| a.to_owned()).collect();
+        let outs: Vec<String> =
+            outs.split(", ").map(|a| a.to_owned()).collect();
 
         input.push((valve, rate, outs));
     }
@@ -17,7 +18,9 @@ fn main() {
     // Rates of live valves.
     let raw_rates: BTreeMap<_, _> = input
         .iter()
-        .filter_map(|(valve, rate, _)| (*rate > 0).then_some((valve.clone(), *rate)))
+        .filter_map(|(valve, rate, _)| {
+            (*rate > 0).then_some((valve.clone(), *rate))
+        })
         .collect();
 
     // Links to other valves.
@@ -36,7 +39,9 @@ fn main() {
     let mut dist = vec![vec![0; indices.len()]; indices.len()];
     for node in raw_rates.keys().chain(Some(&"AA".to_string())) {
         let n_i = indices.iter().position(|a| a == node).unwrap();
-        for (p, d) in dijkstra_map(|node| raw_links[node].iter().cloned(), node.clone()) {
+        for (p, d) in
+            dijkstra_map(|node| raw_links[node].iter().cloned(), node.clone())
+        {
             if raw_rates.contains_key(&p) {
                 let p_i = indices.iter().position(|a| a == &p).unwrap();
                 dist[n_i][p_i] = d;
