@@ -11,7 +11,7 @@ pub use memoize::memoize;
 use regex::Regex;
 use rustc_hash::FxHashSet;
 
-pub use glam::{ivec2, IVec2};
+pub use glam::{ivec2, IVec2, ivec3, IVec3};
 
 pub use crate::ocr::{PointCloud, points};
 
@@ -26,6 +26,15 @@ pub const DIR_8: [IVec2; 8] = [
     ivec2(-1, -1),
     ivec2(0, -1),
     ivec2(1, -1),
+];
+
+pub const SPACE_6: [IVec3; 6] = [
+    ivec3(1, 0, 0),
+    ivec3(-1, 0, 0),
+    ivec3(0, 1, 0),
+    ivec3(0, -1, 0),
+    ivec3(0, 0, 1),
+    ivec3(0, 0, -1),
 ];
 
 pub fn stdin_string() -> String {
