@@ -473,27 +473,44 @@ where
     }
 }
 
-// Partial comparison functions for building ranges from point clouds.
-// Can't use n.min(m) for floats.
-//
-// These funcs prefer to keep the first argument so if the first is the fold
-// accumulator and the second is the run parameter, a NaN won't screw up the
-// accumulator.
-
-fn pmin<T: PartialOrd>(a: T, b: T) -> T {
-    // Prefer to keep 1st param.
-    if matches!(a.partial_cmp(&b), Some(std::cmp::Ordering::Greater)) {
+/// Return the larger of the two numbers. If the numbers can't be ordered, try
+/// to return the number that can be ordered with itself.
+pub fn pmin<T: PartialOrd>(a: T, b: T) -> T {
+    if a < b {
+        a
+    } else if b.partial_cmp(&b).is_some() {
         b
     } else {
         a
     }
 }
 
-fn pmax<T: PartialOrd>(a: T, b: T) -> T {
-    // Prefer to keep 1st param.
-    if matches!(a.partial_cmp(&b), Some(std::cmp::Ordering::Less)) {
+/// Return the smaller of the two numbers. If the numbers can't be ordered,
+/// try to return the number that can be ordered with itself.
+pub fn pmax<T: PartialOrd>(a: T, b: T) -> T {
+    if a > b {
+        a
+    } else if b.partial_cmp(&b).is_some() {
         b
     } else {
         a
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pmin_pmax() {
+        assert_eq!(pmax(1.0, 2.0), 2.0);
+        assert_eq!(pmax(f32::NAN, 2.0), 2.0);
+        assert_eq!(pmax(1.0, f32::NAN), 1.0);
+        assert!(pmax(f32::NAN, f32::NAN).is_nan());
+
+        assert_eq!(pmin(1.0, 2.0), 1.0);
+        assert_eq!(pmin(f32::NAN, 2.0), 2.0);
+        assert_eq!(pmin(1.0, f32::NAN), 1.0);
+        assert!(pmin(f32::NAN, f32::NAN).is_nan());
     }
 }
