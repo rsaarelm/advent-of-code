@@ -77,9 +77,9 @@ fn main() {
     }
 
     let mut seen = 0;
-    for y in 0..height {
-        for x in 0..width {
-            if view[y][x] != 0 {
+    for line in &view {
+        for &p in line {
+            if p != 0 {
                 seen += 1;
             }
         }
