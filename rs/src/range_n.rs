@@ -85,6 +85,49 @@ where
 
 impl<X, Y> Range2<X, Y>
 where
+    X: Copy + PartialOrd + Zero + One,
+    Y: Copy + PartialOrd + Zero + One,
+{
+    pub fn from_points(i: impl IntoIterator<Item = impl Into<(X, Y)>>) -> Self {
+        let mut i = i.into_iter();
+        if let Some((x, y)) = i.next().map(|e| e.into()) {
+            let (x1, x2, y1, y2) = i.map(|e| e.into()).fold(
+                (x, x, y, y),
+                |(x1, x2, y1, y2), (x, y)| {
+                    (pmin(x1, x), pmax(x2, x), pmin(y1, y), pmax(y2, y))
+                },
+            );
+            Range2::new(x1..x2, y1..y2)
+        } else {
+            Range2::sized(Zero::zero(), Zero::zero())
+        }
+    }
+
+    pub fn from_points_inclusive(
+        i: impl IntoIterator<Item = impl Into<(X, Y)>>,
+    ) -> Self {
+        let mut i = i.into_iter();
+        if let Some((x, y)) = i.next().map(|e| e.into()) {
+            let (x1, x2, y1, y2) = i.map(|e| e.into()).fold(
+                (x, x + One::one(), y, y + One::one()),
+                |(x1, x2, y1, y2), (x, y)| {
+                    (
+                        pmin(x1, x),
+                        pmax(x2, x + One::one()),
+                        pmin(y1, y),
+                        pmax(y2, y + One::one()),
+                    )
+                },
+            );
+            Range2::new(x1..x2, y1..y2)
+        } else {
+            Range2::sized(Zero::zero(), Zero::zero())
+        }
+    }
+}
+
+impl<X, Y> Range2<X, Y>
+where
     X: Copy + One + Add<Output = X> + Sub<Output = X>,
     Y: Copy + One + Add<Output = Y> + Sub<Output = Y>,
 {
@@ -110,21 +153,6 @@ where
             y2: self.y2 + y,
         }
     }
-
-    /// Inflate by given amount along each dimension in both directions, and
-    /// add one in each outer direction.
-    ///
-    /// Use `inflate_inclusive` after building the range from point cloud to
-    /// ensure outer edge of points is contained in the range.
-    pub fn inflate_inclusive(&self, amount: impl Into<(X, Y)>) -> Self {
-        let (x, y) = amount.into();
-        Range2 {
-            x1: self.x1 - x,
-            x2: self.x2 + x + One::one(),
-            y1: self.y1 - y,
-            y2: self.y2 + y + One::one(),
-        }
-    }
 }
 
 impl<X, Y> Range2<X, Y>
@@ -137,28 +165,6 @@ where
             self.x1 + self.width() / (X::one() + X::one()),
             self.y1 + self.height() / (Y::one() + Y::one()),
         ))
-    }
-}
-
-impl<E, X, Y> FromIterator<E> for Range2<X, Y>
-where
-    X: Copy + PartialOrd + Zero,
-    Y: Copy + PartialOrd + Zero,
-    E: Into<(X, Y)>,
-{
-    fn from_iter<T: IntoIterator<Item = E>>(iter: T) -> Self {
-        let mut iter = iter.into_iter();
-        if let Some((x, y)) = iter.next().map(|e| e.into()) {
-            let (x1, x2, y1, y2) = iter.map(|e| e.into()).fold(
-                (x, x, y, y),
-                |(x1, x2, y1, y2), (x, y)| {
-                    (pmin(x1, x), pmax(x2, x), pmin(y1, y), pmax(y2, y))
-                },
-            );
-            Range2::new(x1..x2, y1..y2)
-        } else {
-            Range2::sized(Zero::zero(), Zero::zero())
-        }
     }
 }
 
@@ -304,6 +310,61 @@ where
 
 impl<X, Y, Z> Range3<X, Y, Z>
 where
+    X: Copy + PartialOrd + Zero + One,
+    Y: Copy + PartialOrd + Zero + One,
+    Z: Copy + PartialOrd + Zero + One,
+{
+    pub fn from_points(
+        i: impl IntoIterator<Item = impl Into<(X, Y, Z)>>,
+    ) -> Self {
+        let mut i = i.into_iter();
+        if let Some((x, y, z)) = i.next().map(|e| e.into()) {
+            let (x1, x2, y1, y2, z1, z2) = i.map(|e| e.into()).fold(
+                (x, x, y, y, z, z),
+                |(x1, x2, y1, y2, z1, z2), (x, y, z)| {
+                    (
+                        pmin(x1, x),
+                        pmax(x2, x),
+                        pmin(y1, y),
+                        pmax(y2, y),
+                        pmin(z1, z),
+                        pmax(z2, z),
+                    )
+                },
+            );
+            Range3::new(x1..x2, y1..y2, z1..z2)
+        } else {
+            Range3::sized(Zero::zero(), Zero::zero(), Zero::zero())
+        }
+    }
+
+    pub fn from_points_inclusive(
+        i: impl IntoIterator<Item = impl Into<(X, Y, Z)>>,
+    ) -> Self {
+        let mut i = i.into_iter();
+        if let Some((x, y, z)) = i.next().map(|e| e.into()) {
+            let (x1, x2, y1, y2, z1, z2) = i.map(|e| e.into()).fold(
+                (x, x + One::one(), y, y + One::one(), z, z + One::one()),
+                |(x1, x2, y1, y2, z1, z2), (x, y, z)| {
+                    (
+                        pmin(x1, x),
+                        pmax(x2, x + One::one()),
+                        pmin(y1, y),
+                        pmax(y2, y + One::one()),
+                        pmin(z1, z),
+                        pmax(z2, z + One::one()),
+                    )
+                },
+            );
+            Range3::new(x1..x2, y1..y2, z1..z2)
+        } else {
+            Range3::sized(Zero::zero(), Zero::zero(), Zero::zero())
+        }
+    }
+}
+
+impl<X, Y, Z> Range3<X, Y, Z>
+where
     X: Copy + One + Add<Output = X> + Sub<Output = X>,
     Y: Copy + One + Add<Output = Y> + Sub<Output = Y>,
     Z: Copy + One + Add<Output = Z> + Sub<Output = Z>,
@@ -336,23 +397,6 @@ where
             z2: self.z2 + z,
         }
     }
-
-    /// Inflate by given amount along each dimension in both directions, and
-    /// add one in each outer direction.
-    ///
-    /// Use `inflate_inclusive` after building the range from point cloud to
-    /// ensure outer edge of points is contained in the range.
-    pub fn inflate_inclusive(&self, amount: impl Into<(X, Y, Z)>) -> Self {
-        let (x, y, z) = amount.into();
-        Range3 {
-            x1: self.x1 - x,
-            x2: self.x2 + x + One::one(),
-            y1: self.y1 - y,
-            y2: self.y2 + y + One::one(),
-            z1: self.z1 - z,
-            z2: self.z2 + z + One::one(),
-        }
-    }
 }
 
 impl<X, Y, Z> Range3<X, Y, Z>
@@ -367,36 +411,6 @@ where
             self.y1 + self.height() / (Y::one() + Y::one()),
             self.z1 + self.depth() / (Z::one() + Z::one()),
         ))
-    }
-}
-
-impl<E, X, Y, Z> FromIterator<E> for Range3<X, Y, Z>
-where
-    X: Copy + PartialOrd + Zero,
-    Y: Copy + PartialOrd + Zero,
-    Z: Copy + PartialOrd + Zero,
-    E: Into<(X, Y, Z)>,
-{
-    fn from_iter<T: IntoIterator<Item = E>>(iter: T) -> Self {
-        let mut iter = iter.into_iter();
-        if let Some((x, y, z)) = iter.next().map(|e| e.into()) {
-            let (x1, x2, y1, y2, z1, z2) = iter.map(|e| e.into()).fold(
-                (x, x, y, y, z, z),
-                |(x1, x2, y1, y2, z1, z2), (x, y, z)| {
-                    (
-                        pmin(x1, x),
-                        pmax(x2, x),
-                        pmin(y1, y),
-                        pmax(y2, y),
-                        pmin(z1, z),
-                        pmax(z2, z),
-                    )
-                },
-            );
-            Range3::new(x1..x2, y1..y2, z1..z2)
-        } else {
-            Range3::sized(Zero::zero(), Zero::zero(), Zero::zero())
-        }
     }
 }
 
