@@ -36,11 +36,7 @@ impl State {
 
     /// How many geodes this plan could build at best.
     fn max_geodes(&self) -> usize {
-        if self.time_left == 0 {
-            self.geodes
-        } else {
-            self.geodes + (self.time_left * (self.time_left + 1)) / 2
-        }
+        self.geodes + (self.time_left * (self.time_left + 1)) / 2
     }
 
     fn options(&self, blueprint: &Blueprint) -> Vec<State> {
