@@ -124,7 +124,7 @@ fn geodes_opened(time: usize, blueprint: &Blueprint) -> usize {
         for e in next.options(blueprint) {
             // Check max_geodes to see that you're adding a plan that has hope
             // of beating current high score.
-            if e.max_geodes() >= best_geodes && !seen.contains(&e) {
+            if e.max_geodes() > best_geodes && !seen.contains(&e) {
                 seen.insert(e);
                 search.push(e);
             }
