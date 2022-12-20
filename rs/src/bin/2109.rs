@@ -88,7 +88,7 @@ impl FromStr for Map {
 }
 
 fn main() {
-    let map: Map = stdin_string().parse().unwrap();
+    let map: Map = from_stdin();
 
     // 1
     let mut n = 0;

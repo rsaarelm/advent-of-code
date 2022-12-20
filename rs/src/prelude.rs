@@ -50,6 +50,14 @@ pub fn stdin_string() -> String {
     ret
 }
 
+pub fn from_stdin<T>() -> T
+where
+    T: FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    stdin_string().parse().unwrap()
+}
+
 pub fn stdin_lines() -> impl Iterator<Item = String> + 'static {
     use std::io::{stdin, BufRead};
     std::iter::from_fn(|| stdin().lock().lines().next().map(|a| a.unwrap()))

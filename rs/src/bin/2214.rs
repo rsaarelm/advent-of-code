@@ -86,7 +86,7 @@ impl Chasm {
 }
 
 fn main() {
-    let mut chasm: Chasm = stdin_string().parse().unwrap();
+    let mut chasm: Chasm = from_stdin();
 
     for sand in 0.. {
         if chasm.drop(ivec2(500, 0)).is_none() {

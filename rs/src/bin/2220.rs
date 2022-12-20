@@ -60,7 +60,7 @@ impl Permutation {
 }
 
 fn main() {
-    let code: Permutation = stdin_string().parse().unwrap();
+    let code: Permutation = from_stdin();
 
     let mut p1 = code.clone();
     p1.mix();
