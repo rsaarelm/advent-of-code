@@ -503,6 +503,31 @@ where
     })
 }
 
+/// Convenience wrapper for arithmetic interpreters.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct Operator(pub char);
+
+impl Operator {
+    pub fn apply<
+        T: std::ops::Add<Output = T>
+            + std::ops::Sub<Output = T>
+            + std::ops::Mul<Output = T>
+            + std::ops::Div<Output = T>,
+    >(
+        self,
+        a: T,
+        b: T,
+    ) -> T {
+        match self.0 {
+            '+' => a + b,
+            '-' => a - b,
+            '*' => a * b,
+            '/' => a / b,
+            _ => panic!("Unknown operator"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
