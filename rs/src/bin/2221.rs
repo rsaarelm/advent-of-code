@@ -31,6 +31,40 @@ impl<T> Eqn<T> {
     }
 }
 
+lazy_static! {
+    static ref EQN: Regex = Regex::new("^(.+) (.) (.+)$").unwrap();
+}
+
+impl<T: FromStr> FromStr for Eqn<T> {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(n) = s.parse::<i64>() {
+            Ok(N(n))
+        } else {
+            let (a, op, b) = <(T, char, T) as RegexParseable>::parse(&EQN, s)?;
+            Ok(Op(op, a, b))
+        }
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
+enum Term {
+    X,
+    E(Box<Eqn<Term>>),
+}
+
+use Term::*;
+
+impl Term {
+    fn eval(&self, x: impl Into<F>) -> F {
+        match self {
+            X => x.into(),
+            E(eqn) => eqn.eval(x),
+        }
+    }
+}
+
 impl Eqn<Term> {
     fn eval(&self, x: impl Into<F>) -> F {
         let x = x.into();
@@ -55,46 +89,12 @@ impl Eqn<Term> {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Debug)]
-enum Term {
-    X,
-    E(Box<Eqn<Term>>),
-}
-
-use Term::*;
-
-impl Term {
-    fn eval(&self, x: impl Into<F>) -> F {
-        match self {
-            X => x.into(),
-            E(eqn) => eqn.eval(x),
-        }
-    }
-}
-
-lazy_static! {
-    static ref EQN: Regex = Regex::new("^(.+) (.) (.+)$").unwrap();
-}
-
-impl<T: FromStr> FromStr for Eqn<T> {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(n) = s.parse::<i64>() {
-            Ok(N(n))
-        } else {
-            let (a, op, b) = <(T, char, T) as RegexParseable>::parse(&EQN, s)?;
-            Ok(Op(op, a, b))
-        }
-    }
-}
-
 fn resolve(raw: &HashMap<String, Eqn<String>>, var: &str) -> Eqn<Term> {
     raw[var].clone().map(|t| {
         if !raw.contains_key(&t) {
             X
         } else {
-            E(Box::new(resolve(raw, &t)))
+            E(Box::new(resolve(raw, &t).reduce()))
         }
     })
 }
@@ -108,7 +108,7 @@ fn main() {
     let p1_x: i64 = eqns["humn"].num().unwrap();
     eqns.remove("humn");
 
-    let Op(op, a, b) = resolve(&eqns, "root").reduce() else {
+    let Op(op, a, b) = resolve(&eqns, "root") else {
         panic!("Bad root")
     };
 
