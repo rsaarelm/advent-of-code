@@ -44,6 +44,16 @@ impl Eqn {
             _ => panic!("Not a number"),
         }
     }
+
+    fn eval(&self, x: f64) -> f64 {
+        use Eqn::*;
+        match self {
+            X => x,
+            N(n) => *n as f64,
+            Op(op, a, b) => Operator(*op).apply(a.eval(x), b.eval(x)),
+            _ => panic!("Can't eval"),
+        }
+    }
 }
 
 fn eval(ops: &HashMap<String, Eqn>, id: &str) -> Eqn {
@@ -90,10 +100,24 @@ fn main() {
 
     // Part 2
 
-    // Human value becomes the unknown.
+    // Human value becomes the unknown x.
     ops.insert("humn".to_string(), Eqn::X);
 
-    eprintln!("Copping out of actually solving p2. \
-        Pls feed following to a symbolic algebra program and ask it to solve for x:");
-    eprintln!("{} = {}", eval(&ops, &a), eval(&ops, &b));
+    // We get a linear equation, can just figure out the angle and offset to
+    // find the zero point.
+
+    let eq = Eqn::new_op('-', eval(&ops, &a), eval(&ops, &b));
+    let f = |x| eq.eval(x);
+
+    let dy = f(1.0) - f(0.0);
+    let mut x = -f(0.0) / dy;
+
+    // It's not going to be quite right for a big equation because of floating
+    // point imprecision, so do some hill climbing.
+    while f(x).abs() > 0.1 {
+        x -= f(x) / dy;
+    }
+
+    let x = x.round() as i64;
+    print!("{x}");
 }
