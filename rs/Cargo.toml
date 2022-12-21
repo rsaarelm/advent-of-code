@@ -9,6 +9,7 @@ name = "aoc"
 
 [dependencies]
 derive_deref = "1"
+fraction = "0.12"
 glam = "0.22"
 itertools = "0.10"
 lazy_static = "1"

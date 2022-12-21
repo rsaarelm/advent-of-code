@@ -2,6 +2,8 @@ use std::{collections::HashMap, fmt};
 
 use aoc::prelude::*;
 
+type F = fraction::Fraction;
+
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 enum Eqn {
     X,
@@ -45,11 +47,12 @@ impl Eqn {
         }
     }
 
-    fn eval(&self, x: f64) -> f64 {
+    fn eval(&self, x: impl Into<F>) -> F {
         use Eqn::*;
+        let x = x.into();
         match self {
             X => x,
-            N(n) => *n as f64,
+            N(n) => F::from(*n),
             Op(op, a, b) => Operator(*op).apply(a.eval(x), b.eval(x)),
             _ => panic!("Can't eval"),
         }
@@ -109,15 +112,9 @@ fn main() {
     let eq = Eqn::new_op('-', eval(&ops, &a), eval(&ops, &b));
     let f = |x| eq.eval(x);
 
-    let dy = f(1.0) - f(0.0);
-    let mut x = -f(0.0) / dy;
-
-    // It's not going to be quite right for a big equation because of floating
-    // point imprecision, so do some hill climbing.
-    while f(x).abs() > 0.1 {
-        x -= f(x) / dy;
-    }
-
-    let x = x.round() as i64;
-    print!("{x}");
+    // Solve ax + b = 0 for x
+    // a = f(1) - f(0)
+    // b = f(0)
+    // x = -b / a = -f(0) / (f(1) - f(0))
+    println!("{}", -f(0) / (f(1) - f(0)));
 }
