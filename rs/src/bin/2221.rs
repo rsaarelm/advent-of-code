@@ -1,115 +1,124 @@
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, str::FromStr};
 
 use aoc::prelude::*;
+use lazy_static::lazy_static;
+use regex::Regex;
 
 type F = fraction::Fraction;
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
-enum Eqn {
-    X,
+enum Eqn<T> {
     N(i64),
-    Op(char, Box<Eqn>, Box<Eqn>),
-    S(String),
+    Op(char, T, T),
 }
 
-impl fmt::Display for Eqn {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use Eqn::*;
+use Eqn::*;
+
+impl<T> Eqn<T> {
+    fn num(&self) -> Option<i64> {
+        if let &N(n) = self {
+            Some(n)
+        } else {
+            None
+        }
+    }
+
+    fn map<U>(self, f: impl Fn(T) -> U) -> Eqn<U> {
         match self {
-            X => write!(f, "x"),
-            N(n) => write!(f, "{n}"),
-            Op(c, a, b) => write!(f, "({a} {c} {b})"),
-            S(s) => write!(f, "{s}"),
+            N(n) => N(n),
+            Op(op, a, b) => Op(op, f(a), f(b)),
         }
     }
 }
 
-impl Eqn {
-    fn new_op(op: char, a: Eqn, b: Eqn) -> Eqn {
-        use Eqn::*;
-        match (a, b) {
-            (N(a), N(b)) => N(Operator(op).apply(a, b)),
-            (a, b) => Op(op, Box::new(a), Box::new(b)),
-        }
-    }
-
-    fn s(&self) -> String {
-        match self {
-            Eqn::S(s) => s.clone(),
-            _ => panic!("Not a string"),
-        }
-    }
-
-    fn num(&self) -> i64 {
-        match self {
-            Eqn::N(n) => *n,
-            _ => panic!("Not a number"),
-        }
-    }
-
+impl Eqn<Term> {
     fn eval(&self, x: impl Into<F>) -> F {
-        use Eqn::*;
         let x = x.into();
         match self {
-            X => x,
             N(n) => F::from(*n),
             Op(op, a, b) => Operator(*op).apply(a.eval(x), b.eval(x)),
-            _ => panic!("Can't eval"),
+        }
+    }
+
+    fn reduce(&self) -> Self {
+        match self {
+            Op(o, E(a), E(b)) => {
+                let (a, b) = (a.reduce(), b.reduce());
+
+                match (a, b) {
+                    (N(a), N(b)) => N(Operator(*o).apply(a, b)),
+                    (a, b) => Op(*o, E(Box::new(a)), E(Box::new(b))),
+                }
+            }
+            x => x.clone(),
         }
     }
 }
 
-fn eval(ops: &HashMap<String, Eqn>, id: &str) -> Eqn {
-    use Eqn::*;
-    if let Op(o, a, b) = &ops[id] {
-        if let (S(a), S(b)) = (&**a, &**b) {
-            return Eqn::new_op(*o, eval(ops, a), eval(ops, b));
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
+enum Term {
+    X,
+    E(Box<Eqn<Term>>),
+}
+
+use Term::*;
+
+impl Term {
+    fn eval(&self, x: impl Into<F>) -> F {
+        match self {
+            X => x.into(),
+            E(eqn) => eqn.eval(x),
         }
     }
-    ops[id].clone()
+}
+
+lazy_static! {
+    static ref EQN: Regex = Regex::new("^(.+) (.) (.+)$").unwrap();
+}
+
+impl<T: FromStr> FromStr for Eqn<T> {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(n) = s.parse::<i64>() {
+            Ok(N(n))
+        } else {
+            let (a, op, b) = <(T, char, T) as RegexParseable>::parse(&EQN, s)?;
+            Ok(Op(op, a, b))
+        }
+    }
+}
+
+fn resolve(raw: &HashMap<String, Eqn<String>>, var: &str) -> Eqn<Term> {
+    raw[var].clone().map(|t| {
+        if !raw.contains_key(&t) {
+            X
+        } else {
+            E(Box::new(resolve(raw, &t)))
+        }
+    })
 }
 
 fn main() {
-    let mut ops: HashMap<String, Eqn> = HashMap::new();
-    let num = re_parser::<(String, i64)>(r"^(.+): (\d+)$");
-    let eqn =
-        re_parser::<(String, String, char, String)>(r"^(.+): (.+) (.) (.+)$");
-
-    for line in stdin_lines() {
-        if let Ok((id, n)) = num(&line) {
-            ops.insert(id, Eqn::N(n));
-        } else if let Ok((id, a, op, b)) = eqn(&line) {
-            ops.insert(
-                id,
-                Eqn::Op(op, Box::new(Eqn::S(a)), Box::new(Eqn::S(b))),
-            );
-        } else {
-            panic!("bad line");
-        }
-    }
-
-    // Break root monkey's equation apart, anticipating part 2.
-    let Eqn::Op(op, a, b) = &ops["root"] else {
-        panic!("Bad root");
-    };
-    let (a, b) = (a.s(), b.s());
+    let mut eqns: HashMap<String, Eqn<String>> =
+        parsed_stdin_lines(r"^(.+): (.+)$").collect();
 
     // Part 1
 
-    println!(
-        "{}",
-        Operator(*op).apply(eval(&ops, &a).num(), eval(&ops, &b).num())
-    );
+    let p1_x: i64 = eqns["humn"].num().unwrap();
+    eqns.remove("humn");
+
+    let Op(op, a, b) = resolve(&eqns, "root").reduce() else {
+        panic!("Bad root")
+    };
+
+    println!("{}", Operator(op).apply(a.eval(p1_x), b.eval(p1_x)));
 
     // Part 2
 
-    // Human value becomes the unknown x.
-    ops.insert("humn".to_string(), Eqn::X);
-
-    // We get a linear equation, can just figure out the angle and offset to
-    // find the zero point.
-
-    let eq = Eqn::new_op('-', eval(&ops, &a), eval(&ops, &b));
+    // Result is a linear function, use fraction type for precision and solve
+    // x in closed form.
+    let eq = Op('-', a, b);
     let f = |x| eq.eval(x);
 
     // Solve ax + b = 0 for x
