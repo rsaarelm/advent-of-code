@@ -6,6 +6,7 @@ use std::{
     str::FromStr,
 };
 
+use glam::Mat3;
 use lazy_static::lazy_static;
 pub use memoize::memoize;
 use regex::Regex;
@@ -19,6 +20,50 @@ pub use crate::range_n::{
     area, cube, range2, range3, rect, volume, Range2, Range3,
 };
 
+pub const RIGHT: usize = 0;
+pub const DOWN: usize = 1;
+pub const LEFT: usize = 2;
+pub const UP: usize = 3;
+
+/// 3D Rotation matrices for the cube-spinning tasks.
+///
+/// Same order as DIR_4 contents, can be indexed with `LEFT`, `RIGHT`, `UP`
+/// and `DOWN`.
+#[rustfmt::skip]
+pub const ROT_XY: [Mat3; 4] = [
+    Mat3::from_cols_array(
+        &[ 0.0,  0.0,  1.0,
+           0.0,  1.0,  0.0,
+          -1.0,  0.0,  0.0]),
+    Mat3::from_cols_array(
+        &[ 1.0,  0.0,  0.0,
+           0.0,  0.0,  1.0,
+           0.0, -1.0,  0.0]),
+    Mat3::from_cols_array(
+        &[ 0.0,  0.0, -1.0,
+           0.0,  1.0,  0.0,
+           1.0,  0.0,  0.0]),
+    Mat3::from_cols_array(
+        &[ 1.0,  0.0,  0.0,
+           0.0,  0.0, -1.0,
+           0.0,  1.0,  0.0]),
+];
+
+#[rustfmt::skip]
+pub const ROT_CW: Mat3 =
+    Mat3::from_cols_array(
+        &[ 0.0,  1.0,  0.0,
+          -1.0,  0.0,  0.0,
+           0.0,  0.0,  1.0]);
+
+#[rustfmt::skip]
+pub const ROT_CCW: Mat3 =
+    Mat3::from_cols_array(
+        &[ 0.0, -1.0,  0.0,
+           1.0,  0.0,  0.0,
+           0.0,  0.0,  1.0]);
+
+/// Can be indexed with `LEFT`, `RIGHT`, `UP` and `DOWN`.
 pub const DIR_4: [IVec2; 4] =
     [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
 
@@ -278,7 +323,7 @@ impl<T: Clone> Grid for Vec<Vec<T>> {
     }
 }
 
-pub struct InfiniteGrid<G>(G);
+pub struct InfiniteGrid<G>(pub G);
 
 impl<T: Default + Clone, G: Grid<Item = T>> Grid for InfiniteGrid<G> {
     type Item = T;
@@ -561,5 +606,26 @@ mod test {
             assert!(p2 > p1);
         }
         assert_eq!(n, 151_200);
+    }
+
+    #[test]
+    fn test_rotations() {
+        use glam::vec3;
+        assert_eq!(ROT_XY[UP] * vec3(-1.0, -1.0, -1.0), vec3(-1.0, -1.0, 1.0));
+        assert_eq!(
+            ROT_XY[DOWN] * vec3(-1.0, -1.0, -1.0),
+            vec3(-1.0, 1.0, -1.0)
+        );
+        assert_eq!(
+            ROT_XY[LEFT] * vec3(-1.0, -1.0, -1.0),
+            vec3(-1.0, -1.0, 1.0)
+        );
+        assert_eq!(
+            ROT_XY[RIGHT] * vec3(-1.0, -1.0, -1.0),
+            vec3(1.0, -1.0, -1.0)
+        );
+
+        assert_eq!(ROT_CW * vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+        assert_eq!(ROT_CCW * vec3(1.0, 0.0, 0.0), vec3(0.0, -1.0, 0.0));
     }
 }
