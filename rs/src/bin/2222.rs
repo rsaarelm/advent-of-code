@@ -9,7 +9,10 @@ fn main() {
 
     let (w, h, mut grid) = stdin_grid();
     // Extract instructions, remove them from grid data.
-    let code: String = grid[grid.len() - 1].iter().copied().collect();
+    let code: String = grid[grid.len() - 1]
+        .iter()
+        .filter(|c| !c.is_whitespace())
+        .collect();
     let h = h - 1;
     grid.truncate(grid.len() - 1);
 
@@ -33,9 +36,6 @@ fn main() {
     let mut walk = Vec::new();
     let mut acc = 0;
     for c in code.chars() {
-        if c.is_whitespace() {
-            continue;
-        }
         if let Some(n) = c.to_digit(10) {
             acc = acc * 10 + (n as i32);
         } else {
@@ -91,18 +91,19 @@ fn main() {
     // Part 2
 
     // Assume cube faces are square, determine cube size.
-    let s = ((area((w as i32, h as i32))
-        .into_iter()
-        .filter(|p| grid.get(IVec2::from(*p)) != VOID)
-        .count()
-        / 6) as f64)
-        .sqrt() as i32;
+    let s = f64::sqrt(
+        (area((w as i32, h as i32))
+            .into_iter()
+            .filter(|p| grid.get(*p) != VOID)
+            .count()
+            / 6) as _
+    ) as i32;
 
     // Build cube topology.
     let mut skeleton: HashSet<IVec2> = area((w as i32 / s, h as i32 / s))
         .into_iter()
         .filter_map(|(x, y)| {
-            (grid.get(ivec2(x * s, y * s)) != VOID).then_some(ivec2(x, y))
+            (grid.get((x * s, y * s)) != VOID).then_some(ivec2(x, y))
         })
         .collect();
 
@@ -111,11 +112,10 @@ fn main() {
         ivec2((0..).find(|x| skeleton.contains(&ivec2(*x, 0))).unwrap(), 0);
     skeleton.remove(&face);
 
-    // Build a 3D planet surface.
-
+    // Start building a 3D planet surface.
     let mut planet = HashSet::new();
 
-    // Map surface positions back to 2D chart.
+    // Planet surface positions mapped back to 2D chart.
     let mut cube_chart = HashMap::new();
 
     let mut search = vec![(face, Mat3::IDENTITY)];
@@ -142,6 +142,8 @@ fn main() {
 
             let p3 = p3.round().as_ivec3();
 
+            // This part is tricky, floating point artifacts can mess up even
+            // cover.
             debug_assert!(!cube_chart.contains_key(&p3));
             cube_chart.insert(p3, chart_pos);
 
@@ -201,6 +203,7 @@ fn main() {
 
                 // Step along the new dir to get back on surface.
                 p2 += dir2;
+
                 // Sanity check.
                 debug_assert!(cube_chart.contains_key(&p2));
             }

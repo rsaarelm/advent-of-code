@@ -290,13 +290,16 @@ impl<N: Ord + Eq + Clone> SetUtil for BTreeSet<N> {
 
 pub trait Grid {
     type Item;
-    fn get(&self, pos: IVec2) -> Self::Item;
+    fn get(&self, pos: impl Into<(i32, i32)>) -> Self::Item;
     fn dim(&self) -> IVec2 {
         // Default to infinite grid with no meaningful dim value.
         ivec2(-1, -1)
     }
 
-    fn contains(&self, pos: IVec2) -> bool {
+    fn contains(&self, pos: impl Into<(i32, i32)>) -> bool {
+        let pos = pos.into();
+        let pos = IVec2::from(pos);
+
         let dim = self.dim();
         // Magic value for infinite grid.
         if dim == ivec2(-1, -1) {
@@ -310,8 +313,9 @@ pub trait Grid {
 impl<T: Clone> Grid for Vec<Vec<T>> {
     type Item = T;
 
-    fn get(&self, pos: IVec2) -> Self::Item {
-        self[pos.y as usize][pos.x as usize].clone()
+    fn get(&self, pos: impl Into<(i32, i32)>) -> Self::Item {
+        let (x, y) = pos.into();
+        self[y as usize][x as usize].clone()
     }
 
     fn dim(&self) -> IVec2 {
@@ -328,7 +332,8 @@ pub struct InfiniteGrid<G>(pub G);
 impl<T: Default + Clone, G: Grid<Item = T>> Grid for InfiniteGrid<G> {
     type Item = T;
 
-    fn get(&self, pos: IVec2) -> Self::Item {
+    fn get(&self, pos: impl Into<(i32, i32)>) -> Self::Item {
+        let pos = pos.into();
         if self.0.contains(pos) {
             self.0.get(pos)
         } else {
