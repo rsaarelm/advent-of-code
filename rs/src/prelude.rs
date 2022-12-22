@@ -595,13 +595,13 @@ mod test {
         let mut n = 0;
         loop {
             n += 1;
-            let p1: Vec<u32> = (&perm[..6]).iter().copied().collect();
+            let p1: Vec<u32> = perm[..6].to_vec();
 
             if !next_prefix_permutation(&mut perm, 6) {
                 break;
             }
 
-            let p2: Vec<u32> = (&perm[..6]).iter().copied().collect();
+            let p2: Vec<u32> = perm[..6].to_vec();
             assert_ne!(p1, p2);
             assert!(p2 > p1);
         }
