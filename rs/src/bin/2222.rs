@@ -28,11 +28,6 @@ fn main() {
     // Corner cases b gone
     let grid = InfiniteGrid(grid);
 
-    // Starting pos x coord.
-    let x0 = (0..w)
-        .find(|&x| grid.get(ivec2(x as i32, 0)) != VOID)
-        .unwrap() as i32;
-
     let mut walk = Vec::new();
     let mut acc = 0;
     for c in code.chars() {
@@ -41,12 +36,10 @@ fn main() {
         } else {
             walk.push(acc);
             acc = 0;
-            if c == 'R' {
-                walk.push(1);
-            } else if c == 'L' {
-                walk.push(-1);
-            } else {
-                panic!("Bad char {:?}", c);
+            match c {
+                'R' => walk.push(1),
+                'L' => walk.push(-1),
+                _ => panic!("Bad char {:?}", c),
             }
         }
     }
@@ -54,14 +47,17 @@ fn main() {
         walk.push(acc);
     }
 
+    // Starting pos x coord.
+    let x0 = (0..w)
+        .find(|&x| grid.get(ivec2(x as i32, 0)) != VOID)
+        .unwrap() as i32;
     let mut pos = ivec2(x0, 0);
+    let mut facing = 0; // Facings match DIR_4 exactly.
 
-    let mut facing: i32 = 0; // Facings match DIR_4 exactly.
     for (phase, &n) in walk.iter().enumerate() {
         if phase % 2 == 1 {
             // turn
-            facing += n;
-            facing = facing.rem_euclid(4);
+            facing = (facing + n).rem_euclid(4);
             continue;
         }
 
@@ -96,32 +92,28 @@ fn main() {
             .into_iter()
             .filter(|p| grid.get(*p) != VOID)
             .count()
-            / 6) as _
+            / 6) as _,
     ) as i32;
 
-    // Build cube topology.
-    let mut skeleton: HashSet<IVec2> = area((w as i32 / s, h as i32 / s))
-        .into_iter()
-        .filter_map(|(x, y)| {
-            (grid.get((x * s, y * s)) != VOID).then_some(ivec2(x, y))
-        })
-        .collect();
+    // Start building a 3D planet surface.
+
+    // 3D surface positions mapped back to 2D chart.
+    let mut cube_chart = HashMap::new();
 
     // Start from leftmost face on top row.
-    let face =
-        ivec2((0..).find(|x| skeleton.contains(&ivec2(*x, 0))).unwrap(), 0);
-    skeleton.remove(&face);
-
-    // Start building a 3D planet surface.
-    let mut planet = HashSet::new();
-
-    // Planet surface positions mapped back to 2D chart.
-    let mut cube_chart = HashMap::new();
+    let face = ivec2(
+        (0..)
+            .step_by(s as usize)
+            .find(|x| grid.get(ivec2(*x, 0)) != VOID)
+            .unwrap(),
+        0,
+    );
+    let mut charted = HashSet::from([face]);
 
     let mut search = vec![(face, Mat3::IDENTITY)];
     while let Some((face, m)) = search.pop() {
         for (x, y) in area((s, s)) {
-            let chart_pos = face * s + ivec2(x, y);
+            let chart_pos = face + ivec2(x, y);
 
             let c = grid.get(chart_pos);
             debug_assert!(c != VOID);
@@ -146,10 +138,6 @@ fn main() {
             // cover.
             debug_assert!(!cube_chart.contains_key(&p3));
             cube_chart.insert(p3, chart_pos);
-
-            if c == '#' {
-                planet.insert(p3);
-            }
         }
 
         // Continue building cube faces while there are unmapped sectors.
@@ -157,10 +145,10 @@ fn main() {
         // Multiplying the transformation matrix along chart traversal keeps
         // track of the 3D space frame.
         for dir in 0..4 {
-            let f = face + DIR_4[dir];
-            if skeleton.contains(&f) {
+            let f = face + DIR_4[dir] * s;
+            if grid.get(f) != VOID && !charted.contains(&f) {
+                charted.insert(f);
                 search.push((f, m * ROT_XY[dir]));
-                skeleton.remove(&f);
             }
         }
     }
@@ -178,13 +166,8 @@ fn main() {
         if phase % 2 == 1 {
             // Cross product with up vector creates correct turns on current
             // face.
-            if n == -1 {
-                dir = dir.cross(-up);
-            } else if n == 1 {
-                dir = dir.cross(up);
-            } else {
-                panic!("Bad turn");
-            }
+            debug_assert!(n == -1 || n == 1);
+            dir = dir.cross(n * up);
             continue;
         }
 
