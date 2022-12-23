@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Range, Sub};
+use std::ops::{Add, Div, Mul, Range, Sub};
 
 use num::{One, Zero};
 
@@ -128,8 +128,8 @@ where
 
 impl<X, Y> Range2<X, Y>
 where
-    X: Copy + One + Add<Output = X> + Sub<Output = X>,
-    Y: Copy + One + Add<Output = Y> + Sub<Output = Y>,
+    X: Copy + Add<Output = X> + Sub<Output = X>,
+    Y: Copy + Add<Output = Y> + Sub<Output = Y>,
 {
     pub fn size<T: From<(X, Y)>>(&self) -> T {
         T::from((self.x2 - self.x1, self.y2 - self.y1))
@@ -152,6 +152,15 @@ where
             y1: self.y1 - y,
             y2: self.y2 + y,
         }
+    }
+}
+
+impl<X> Range2<X, X>
+where
+    X: Copy + Add<Output = X> + Sub<Output = X> + Mul<Output = X>,
+{
+    pub fn area(&self) -> X {
+        self.width() * self.height()
     }
 }
 
@@ -365,9 +374,9 @@ where
 
 impl<X, Y, Z> Range3<X, Y, Z>
 where
-    X: Copy + One + Add<Output = X> + Sub<Output = X>,
-    Y: Copy + One + Add<Output = Y> + Sub<Output = Y>,
-    Z: Copy + One + Add<Output = Z> + Sub<Output = Z>,
+    X: Copy + Add<Output = X> + Sub<Output = X>,
+    Y: Copy + Add<Output = Y> + Sub<Output = Y>,
+    Z: Copy + Add<Output = Z> + Sub<Output = Z>,
 {
     pub fn size<T: From<(X, Y, Z)>>(&self) -> T {
         T::from((self.x2 - self.x1, self.y2 - self.y1, self.z2 - self.z1))
@@ -396,6 +405,15 @@ where
             z1: self.z1 - z,
             z2: self.z2 + z,
         }
+    }
+}
+
+impl<X> Range3<X, X, X>
+where
+    X: Copy + Add<Output = X> + Sub<Output = X> + Mul<Output = X>,
+{
+    pub fn volume(&self) -> X {
+        self.width() * self.height() * self.depth()
     }
 }
 
