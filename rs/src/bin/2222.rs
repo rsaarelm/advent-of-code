@@ -25,6 +25,24 @@ fn main() {
         }
     }
 
+    // Assume cube faces are square, determine cube size.
+    let s = f64::sqrt(
+        (area((w as i32, h as i32))
+            .into_iter()
+            .filter(|p| grid.get(*p) != VOID)
+            .count()
+            / 6) as _,
+    ) as i32;
+
+    // Start from leftmost face on top row.
+    let face = ivec2(
+        (0..)
+            .step_by(s as usize)
+            .find(|x| grid.get(ivec2(*x, 0)) != VOID)
+            .unwrap(),
+        0,
+    );
+
     // Corner cases b gone
     let grid = InfiniteGrid(grid);
 
@@ -48,10 +66,7 @@ fn main() {
     }
 
     // Starting pos x coord.
-    let x0 = (0..w)
-        .find(|&x| grid.get(ivec2(x as i32, 0)) != VOID)
-        .unwrap() as i32;
-    let mut pos = ivec2(x0, 0);
+    let mut pos = face;
     let mut facing = 0; // Facings match DIR_4 exactly.
 
     for (phase, &n) in walk.iter().enumerate() {
@@ -86,32 +101,15 @@ fn main() {
 
     // Part 2
 
-    // Assume cube faces are square, determine cube size.
-    let s = f64::sqrt(
-        (area((w as i32, h as i32))
-            .into_iter()
-            .filter(|p| grid.get(*p) != VOID)
-            .count()
-            / 6) as _,
-    ) as i32;
-
-    // Start building a 3D planet surface.
-
-    // 3D surface positions mapped back to 2D chart.
+    // Project the map into 3D space, `cube_chart` maps 3D points back to map.
     let mut cube_chart = HashMap::new();
 
-    // Start from leftmost face on top row.
-    let face = ivec2(
-        (0..)
-            .step_by(s as usize)
-            .find(|x| grid.get(ivec2(*x, 0)) != VOID)
-            .unwrap(),
-        0,
-    );
-    let mut charted = HashSet::from([face]);
+    // Set up a search that visits each cube face once and always proceeds to
+    // a connected next face.
+    let mut visited_faces = HashSet::from([face]);
+    let mut face_stack = vec![(face, Mat3::IDENTITY)];
 
-    let mut search = vec![(face, Mat3::IDENTITY)];
-    while let Some((face, m)) = search.pop() {
+    while let Some((face, m)) = face_stack.pop() {
         for (x, y) in area((s, s)) {
             let chart_pos = face + ivec2(x, y);
 
@@ -146,9 +144,9 @@ fn main() {
         // track of the 3D space frame.
         for dir in 0..4 {
             let f = face + DIR_4[dir] * s;
-            if grid.get(f) != VOID && !charted.contains(&f) {
-                charted.insert(f);
-                search.push((f, m * ROT_XY[dir]));
+            if grid.get(f) != VOID && !visited_faces.contains(&f) {
+                visited_faces.insert(f);
+                face_stack.push((f, m * ROT_XY[dir]));
             }
         }
     }
