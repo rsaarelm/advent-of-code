@@ -1,11 +1,12 @@
 use std::str::FromStr;
 
 use aoc::prelude::*;
-use rustc_hash::{FxHashMap, FxHashSet};
+use bitvec::prelude::*;
+use rustc_hash::FxHashMap;
 
 #[derive(Debug)]
 struct Valley {
-    blizzards: FxHashSet<IVec3>,
+    blizzards: BitVec,
     bounds: Range3<i32, i32, i32>,
 }
 
@@ -19,10 +20,14 @@ impl Valley {
     }
 
     pub fn is_open(&self, ts: IVec3) -> bool {
+        let p = self.bounds % ts;
         ts.xy() == self.start()
             || ts.xy() == self.end()
             || self.bounds.contains(ts * ivec3(1, 1, 0))
-                && !self.blizzards.contains(&(self.bounds % ts))
+                && !self.blizzards[(p.x
+                    + p.y * self.bounds.width()
+                    + p.z * self.bounds.width() * self.bounds.height())
+                    as usize]
     }
 
     /// Search using 3D space-time coordinates.
@@ -78,11 +83,17 @@ impl FromStr for Valley {
         }
 
         let bounds = volume((x2, y2, x2 * y2));
-        let mut blizzards = FxHashSet::default();
+        let mut blizzards = bitvec![0; bounds.volume() as usize];
 
         for z in 0..bounds.depth() {
             for (p, v) in &seeds {
-                blizzards.insert(bounds % (*p + *v * z).extend(z));
+                let p = bounds % (*p + *v * z).extend(z);
+                blizzards.set(
+                    (p.x + p.y * bounds.width()
+                        + p.z * bounds.width() * bounds.height())
+                        as usize,
+                    true,
+                );
             }
         }
 
