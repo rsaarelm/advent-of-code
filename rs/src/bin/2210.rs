@@ -77,7 +77,7 @@ fn main() {
         })
         .collect();
 
-    if let Some(s) = aoc::ocr(&pixels) {
+    if let Some(s) = ocr(&pixels) {
         println!("{}", s);
     } else {
         eprintln!("Did not resolve into string");

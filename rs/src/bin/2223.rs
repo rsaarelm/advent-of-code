@@ -51,8 +51,8 @@ fn main() {
 
         // Part 1
         if round == 11 {
-            let zone = Range2::from_points_inclusive(elves.iter().copied());
-            println!("{}", zone.area() as usize - elves.len());
+            let zone = NRange::from_points_inclusive(elves.iter().copied());
+            println!("{}", zone.volume() as usize - elves.len());
         }
 
         if elves == prev_elves {

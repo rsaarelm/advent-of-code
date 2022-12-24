@@ -20,7 +20,7 @@ fn main() {
         let mut grid2 = grid.clone();
 
         // Horizontals
-        for (x, y) in Range2::sized(w, h) {
+        for [x, y] in area(w, h) {
             let x2 = (x + 1) % w;
             if grid[y][x] == '>' && grid[y][x2] == '.' {
                 moves += 1;
@@ -33,7 +33,7 @@ fn main() {
         grid2 = grid.clone();
 
         // Verticals
-        for (x, y) in Range2::sized(w, h) {
+        for [x, y] in area(w, h) {
             let y2 = (y + 1) % h;
             if grid[y][x] == 'v' && grid[y2][x] == '.' {
                 moves += 1;

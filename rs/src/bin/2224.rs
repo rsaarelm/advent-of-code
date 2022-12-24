@@ -7,7 +7,7 @@ use rustc_hash::FxHashMap;
 #[derive(Debug)]
 struct Valley {
     blizzards: BitVec,
-    bounds: Range3<i32, i32, i32>,
+    bounds: NRange<i32, 3>,
 }
 
 impl Valley {
@@ -20,11 +20,11 @@ impl Valley {
     }
 
     pub fn is_open(&self, ts: IVec3) -> bool {
-        let p = self.bounds % ts;
+        let p = self.bounds.mod_proj(ts);
         ts.xy() == self.start()
             || ts.xy() == self.end()
             || self.bounds.contains(ts * ivec3(1, 1, 0))
-                && !self.blizzards[self.bounds.indexof(p)]
+                && !self.blizzards[self.bounds.index_of(p)]
     }
 
     /// Search using 3D space-time coordinates.
@@ -79,12 +79,12 @@ impl FromStr for Valley {
             }
         }
 
-        let bounds = volume((x2, y2, x2 * y2));
+        let bounds = volume([x2, y2, x2 * y2]);
         let mut blizzards = bitvec![0; bounds.volume() as usize];
 
         for z in 0..bounds.depth() {
             for (p, v) in &seeds {
-                let p = bounds % (*p + *v * z).extend(z);
+                let p = bounds.mod_proj((*p + *v * z).extend(z));
                 blizzards.set(
                     (p.x + p.y * bounds.width()
                         + p.z * bounds.width() * bounds.height())

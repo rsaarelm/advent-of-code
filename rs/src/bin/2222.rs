@@ -27,7 +27,7 @@ fn main() {
 
     // Assume cube faces are square, determine cube size.
     let s = f64::sqrt(
-        (area((w as i32, h as i32))
+        (area(w as i32, h as i32)
             .into_iter()
             .filter(|p| grid.get(*p) != VOID)
             .count()
@@ -110,7 +110,7 @@ fn main() {
     let mut face_stack = vec![(face, Mat3::IDENTITY)];
 
     while let Some((face, m)) = face_stack.pop() {
-        for (x, y) in area((s, s)) {
+        for [x, y] in area(s, s) {
             let chart_pos = face + ivec2(x, y);
 
             let c = grid.get(chart_pos);
