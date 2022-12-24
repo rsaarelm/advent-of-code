@@ -79,7 +79,7 @@ impl FromStr for Valley {
             }
         }
 
-        let bounds = volume([x2, y2, x2 * y2]);
+        let bounds = volume([x2, y2, x2 * y2 / num::integer::gcd(x2, y2)]);
         let mut blizzards = bitvec![0; bounds.volume() as usize];
 
         for z in 0..bounds.depth() {
