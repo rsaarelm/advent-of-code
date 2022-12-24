@@ -107,19 +107,16 @@ fn main() {
 
     t +=
         dijkstra_map(|&p| valley.neighbors(p), valley.start().extend(t as i32))
-            .find(|(p, _)| p.xy() == valley.end())
-            .unwrap()
-            .1;
+            .find_map(|(p, t)| (p.xy() == valley.end()).then_some(t))
+            .unwrap();
     println!("{t}");
 
     t += dijkstra_map(|&p| valley.neighbors(p), valley.end().extend(t as i32))
-        .find(|(p, _)| p.xy() == valley.start())
-        .unwrap()
-        .1;
+        .find_map(|(p, t)| (p.xy() == valley.start()).then_some(t))
+        .unwrap();
     t +=
         dijkstra_map(|&p| valley.neighbors(p), valley.start().extend(t as i32))
-            .find(|(p, _)| p.xy() == valley.end())
-            .unwrap()
-            .1;
+            .find_map(|(p, t)| (p.xy() == valley.end()).then_some(t))
+            .unwrap();
     println!("{t}");
 }
