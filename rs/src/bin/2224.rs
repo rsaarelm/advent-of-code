@@ -85,12 +85,7 @@ impl FromStr for Valley {
         for z in 0..bounds.depth() {
             for (p, v) in &seeds {
                 let p = bounds.mod_proj((*p + *v * z).extend(z));
-                blizzards.set(
-                    (p.x + p.y * bounds.width()
-                        + p.z * bounds.width() * bounds.height())
-                        as usize,
-                    true,
-                );
+                blizzards.set(bounds.index_of(p), true);
             }
         }
 
