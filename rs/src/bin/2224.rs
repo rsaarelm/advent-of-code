@@ -24,10 +24,7 @@ impl Valley {
         ts.xy() == self.start()
             || ts.xy() == self.end()
             || self.bounds.contains(ts * ivec3(1, 1, 0))
-                && !self.blizzards[(p.x
-                    + p.y * self.bounds.width()
-                    + p.z * self.bounds.width() * self.bounds.height())
-                    as usize]
+                && !self.blizzards[self.bounds.indexof(p)]
     }
 
     /// Search using 3D space-time coordinates.

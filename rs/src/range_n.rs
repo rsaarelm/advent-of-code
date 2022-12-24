@@ -1,4 +1,7 @@
-use std::ops::{Add, Div, Mul, Range, Sub};
+use std::{
+    fmt::Debug,
+    ops::{Add, Div, Mul, Range, Sub},
+};
 
 use num::{traits::Euclid, One, Zero};
 
@@ -174,6 +177,44 @@ where
             self.x1 + self.width() / (X::one() + X::one()),
             self.y1 + self.height() / (Y::one() + Y::one()),
         ))
+    }
+}
+
+impl<X, Y> Range2<X, Y>
+where
+    X: Copy
+        + Add<Output = X>
+        + Sub<Output = X>
+        + Mul<Output = X>
+        + Euclid
+        + TryInto<usize>
+        + TryFrom<usize>,
+    <X as TryInto<usize>>::Error: Debug,
+    <X as TryFrom<usize>>::Error: Debug,
+    Y: Copy
+        + Add<Output = Y>
+        + Sub<Output = Y>
+        + Mul<Output = Y>
+        + Euclid
+        + TryInto<usize>
+        + TryFrom<usize>,
+    <Y as TryInto<usize>>::Error: Debug,
+    <Y as TryFrom<usize>>::Error: Debug,
+{
+    pub fn indexof(&self, p: impl Into<(X, Y)>) -> usize {
+        let (x, y) = p.into();
+        let w = self.width();
+        let x = (x - self.x1).rem_euclid(&w).try_into().unwrap();
+        let y: usize = (y - self.y1).rem_euclid(&self.height()).try_into().unwrap();
+        let w = w.try_into().unwrap();
+        x + y * w
+    }
+
+    pub fn get<T: From<(X, Y)>>(&self, i: usize) -> T {
+        let w = self.width().try_into().unwrap();
+        let x = X::try_from(i % w).unwrap();
+        let y = Y::try_from(i / w).unwrap();
+        T::from((x, y))
     }
 }
 
@@ -447,6 +488,59 @@ where
             self.y1 + self.height() / (Y::one() + Y::one()),
             self.z1 + self.depth() / (Z::one() + Z::one()),
         ))
+    }
+}
+
+impl<X, Y, Z> Range3<X, Y, Z>
+where
+    X: Copy
+        + Add<Output = X>
+        + Sub<Output = X>
+        + Mul<Output = X>
+        + Euclid
+        + TryInto<usize>
+        + TryFrom<usize>,
+    <X as TryInto<usize>>::Error: Debug,
+    <X as TryFrom<usize>>::Error: Debug,
+    Y: Copy
+        + Add<Output = Y>
+        + Sub<Output = Y>
+        + Mul<Output = Y>
+        + Euclid
+        + TryInto<usize>
+        + TryFrom<usize>,
+    <Y as TryInto<usize>>::Error: Debug,
+    <Y as TryFrom<usize>>::Error: Debug,
+    Z: Copy
+        + Add<Output = Z>
+        + Sub<Output = Z>
+        + Mul<Output = Z>
+        + Euclid
+        + TryInto<usize>
+        + TryFrom<usize>,
+    <Z as TryInto<usize>>::Error: Debug,
+    <Z as TryFrom<usize>>::Error: Debug,
+{
+    pub fn indexof(&self, p: impl Into<(X, Y, Z)>) -> usize {
+        let (x, y, z) = p.into();
+        let (w, h) = (self.width(), self.height());
+        let x = (x - self.x1).rem_euclid(&w).try_into().unwrap();
+        let y = (y - self.y1).rem_euclid(&h).try_into().unwrap();
+        let z = (z - self.z1).rem_euclid(&self.depth()).try_into().unwrap();
+        let (w, h) = (
+            w.try_into().unwrap(),
+            h.try_into().unwrap(),
+        );
+        x + y * w + z * w * h
+    }
+
+    pub fn get<T: From<(X, Y, Z)>>(&self, i: usize) -> T {
+        let w = self.width().try_into().unwrap();
+        let h = self.height().try_into().unwrap();
+        let x = X::try_from(i % (w * h)).unwrap();
+        let y = Y::try_from((i / w) % h).unwrap();
+        let z = Z::try_from(i / (w * h)).unwrap();
+        T::from((x, y, z))
     }
 }
 
