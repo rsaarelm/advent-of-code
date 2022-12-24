@@ -1,9 +1,35 @@
 use std::{
     fmt::Debug,
-    ops::{Add, Mul, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 
 use num::{traits::Euclid, One, Zero};
+
+pub trait Element:
+    Copy
+    + Default
+    + PartialOrd
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
+    + Zero
+    + One
+{
+}
+
+impl<T> Element for T where
+    T: Copy
+        + Default
+        + PartialOrd
+        + Add<Output = Self>
+        + Sub<Output = Self>
+        + Mul<Output = Self>
+        + Div<Output = Self>
+        + Zero
+        + One
+{
+}
 
 /// Cartesian product of several ranges.
 ///
@@ -14,18 +40,12 @@ pub struct NRange<X, const N: usize> {
     p1: [X; N],
 }
 
-pub fn area<T>(w: T, h: T) -> NRange<T, 2>
-where
-    T: Copy + PartialOrd + Zero,
-{
+pub fn area<T: Element>(w: T, h: T) -> NRange<T, 2> {
     NRange::sized([w, h])
 }
 
-pub fn volume<T, const N: usize>(p: impl Into<[T; N]>) -> NRange<T, N>
-where
-    T: Copy + PartialOrd + Zero,
-{
-    NRange::sized(p)
+pub fn volume<T: Element, const N: usize>(p: impl Into<[T; N]>) -> NRange<T, N> {
+    NRange::sized(p.into())
 }
 
 impl<T, const N: usize> NRange<T, N> {
@@ -46,10 +66,7 @@ impl<T, const N: usize> NRange<T, N> {
     }
 }
 
-impl<T, const N: usize> Default for NRange<T, N>
-where
-    T: Copy + Default,
-{
+impl<T: Element, const N: usize> Default for NRange<T, N> {
     fn default() -> Self {
         NRange {
             p0: [T::default(); N],
@@ -58,41 +75,22 @@ where
     }
 }
 
-impl<T, const N: usize> NRange<T, N>
-where
-    T: Copy + PartialOrd + Zero,
-{
+impl<T: Element, const N: usize> NRange<T, N> {
     /// Create a new n-range. If p1 has components that are smaller than p0's,
-    /// the components are swapped with those of p0 before going in the range.
+    /// the range is clamped to zero.
     pub fn new(p0: impl Into<[T; N]>, p1: impl Into<[T; N]>) -> NRange<T, N> {
-        let (mut p0, mut p1) = (p0.into(), p1.into());
+        let (p0, p1) = (p0.into(), p1.into());
 
-        // Make sure the points are ordered.
-        for i in 0..N {
-            let (a, b) = (pmin(p0[i], p1[i]), pmax(p0[i], p1[i]));
-            p0[i] = a;
-            p1[i] = b;
+        NRange {
+            p0,
+            p1: std::array::from_fn(|i| pmax(p0[i], p1[i])),
         }
-
-        NRange { p0, p1 }
     }
 
     pub fn sized(p: impl Into<[T; N]>) -> NRange<T, N> {
         NRange::new([T::zero(); N], p)
     }
-}
 
-impl<T, const N: usize> NRange<T, N>
-where
-    T: Copy
-        + Default
-        + PartialOrd
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + Zero
-        + One,
-{
     /// Builds a n-range from the elementwise minimum and maximum of the
     /// points in the input point cloud.
     ///
@@ -155,20 +153,20 @@ where
     }
 
     /// Return vector with dimensions of the range.
-    pub fn dim<E: From<[T; N]>>(&self) -> E {
+    pub fn dim(&self) -> [T; N] {
         let mut ret = self.p1;
         for i in 0..N {
             ret[i] = ret[i] - self.p0[i];
         }
-        E::from(ret)
+        ret
     }
 
-    pub fn min<E: From<[T; N]>>(&self) -> E {
-        E::from(self.p0)
+    pub fn min(&self) -> [T; N] {
+        self.p0
     }
 
-    pub fn max<E: From<[T; N]>>(&self) -> E {
-        E::from(self.p1)
+    pub fn max(&self) -> [T; N] {
+        self.p1
     }
 
     pub fn width(&self) -> T {
@@ -195,11 +193,28 @@ where
 
         NRange::new(p0, p1)
     }
+
+    pub fn center(&self) -> [T; N] {
+        let two = T::one() + T::one();
+        let dim = self.dim();
+        let mut ret = self.p0;
+        for i in 0..N {
+            ret[i] = ret[i] + dim[i] / two;
+        }
+        ret
+    }
+
+    pub fn intersection(&self, rhs: &Self) -> Self {
+        NRange::new(
+            std::array::from_fn(|i| pmax(self.p0[i], rhs.p0[i])),
+            std::array::from_fn(|i| pmin(self.p1[i], rhs.p1[i])),
+        )
+    }
 }
 
 impl<T, const N: usize> NRange<T, N>
 where
-    T: Copy + Euclid + Sub<Output = T> + Add<Output = T>,
+    T: Element + Euclid,
 {
     /// Projects a point into the inside of the range using modular arithmetic
     /// on each axis. A point leaving across one end will return on the other
@@ -220,17 +235,7 @@ where
 
 impl<T, const N: usize> NRange<T, N>
 where
-    T: Copy
-        + Default
-        + PartialOrd
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + Zero
-        + One
-        + Euclid
-        + TryInto<usize>
-        + TryFrom<usize>,
+    T: Element + Euclid + TryInto<usize> + TryFrom<usize>,
 {
     pub fn index_of(&self, p: impl Into<[T; N]>) -> usize {
         let p = p.into();
@@ -285,10 +290,43 @@ where
     }
 }
 
-impl<T, const N: usize> IntoIterator for NRange<T, N>
+impl<E, T, const N: usize> Add<E> for NRange<T, N>
 where
-    T: Copy + PartialOrd + One + Add<Output = T>,
+    E: Into<[T; N]>,
+    T: Element,
 {
+    type Output = NRange<T, N>;
+
+    fn add(self, rhs: E) -> Self::Output {
+        let rhs = rhs.into();
+        let mut ret = self;
+        for i in 0..N {
+            ret.p0[i] = ret.p0[i] + rhs[i];
+            ret.p1[i] = ret.p1[i] + rhs[i];
+        }
+        ret
+    }
+}
+
+impl<E, T, const N: usize> Sub<E> for NRange<T, N>
+where
+    E: Into<[T; N]>,
+    T: Element,
+{
+    type Output = NRange<T, N>;
+
+    fn sub(self, rhs: E) -> Self::Output {
+        let rhs = rhs.into();
+        let mut ret = self;
+        for i in 0..N {
+            ret.p0[i] = ret.p0[i] - rhs[i];
+            ret.p1[i] = ret.p1[i] - rhs[i];
+        }
+        ret
+    }
+}
+
+impl<T: Element, const N: usize> IntoIterator for NRange<T, N> {
     type Item = [T; N];
 
     type IntoIter = RangeIter<T, N>;
@@ -306,10 +344,7 @@ pub struct RangeIter<T, const N: usize> {
     x: [T; N],
 }
 
-impl<T, const N: usize> Iterator for RangeIter<T, N>
-where
-    T: Copy + PartialOrd + One + Add<Output = T>,
-{
+impl<T: Element, const N: usize> Iterator for RangeIter<T, N> {
     type Item = [T; N];
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -358,7 +393,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_indexes() {
+    fn indexing() {
         let bounds: NRange<i32, 3> = NRange::new([1, 2, 3], [4, 5, 6]);
 
         for (i, p) in bounds.into_iter().enumerate() {
@@ -382,5 +417,13 @@ mod tests {
         assert_eq!(pmin(f32::NAN, 2.0), 2.0);
         assert_eq!(pmin(1.0, f32::NAN), 1.0);
         assert!(pmin(f32::NAN, f32::NAN).is_nan());
+    }
+
+    #[test]
+    fn custom_numeric_type() {
+        type F = fraction::Fraction;
+        let bounds = area(F::from(10), F::from(20));
+
+        assert_eq!(bounds.center(), [F::from(5), F::from(10)]);
     }
 }

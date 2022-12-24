@@ -16,7 +16,7 @@ impl Valley {
     }
 
     fn end(&self) -> IVec2 {
-        self.bounds.max::<IVec3>().xy() - ivec2(1, 0)
+        IVec3::from(self.bounds.max()).xy() - ivec2(1, 0)
     }
 
     pub fn is_open(&self, ts: IVec3) -> bool {
