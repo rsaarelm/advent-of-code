@@ -12,7 +12,7 @@ pub use memoize::memoize;
 use regex::Regex;
 use rustc_hash::FxHashSet;
 
-pub use glam::{ivec2, ivec3, IVec2, IVec3};
+pub use glam::{ivec2, ivec3, IVec2, IVec3, Vec3Swizzles};
 
 pub use crate::ocr::{points, PointCloud};
 

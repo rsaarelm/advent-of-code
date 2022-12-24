@@ -1,6 +1,6 @@
 use std::ops::{Add, Div, Mul, Range, Sub};
 
-use num::{One, Zero};
+use num::{traits::Euclid, One, Zero};
 
 /// Cartesian product of two ranges.
 ///
@@ -173,6 +173,24 @@ where
         T::from((
             self.x1 + self.width() / (X::one() + X::one()),
             self.y1 + self.height() / (Y::one() + Y::one()),
+        ))
+    }
+}
+
+impl<T, X, Y> std::ops::Rem<T> for Range2<X, Y>
+where
+    X: Copy + Add<Output = X> + Sub<Output = X> + Euclid,
+    Y: Copy + Add<Output = Y> + Sub<Output = Y> + Euclid,
+    T: Into<(X, Y)> + From<(X, Y)>,
+{
+    type Output = T;
+
+    /// Snap a vector into this area using modular arithmetic.
+    fn rem(self, rhs: T) -> Self::Output {
+        let (x, y): (X, Y) = rhs.into();
+        T::from((
+            self.x1 + (x - self.x1).rem_euclid(&self.width()),
+            self.y1 + (y - self.y1).rem_euclid(&self.height()),
         ))
     }
 }
@@ -428,6 +446,26 @@ where
             self.x1 + self.width() / (X::one() + X::one()),
             self.y1 + self.height() / (Y::one() + Y::one()),
             self.z1 + self.depth() / (Z::one() + Z::one()),
+        ))
+    }
+}
+
+impl<T, X, Y, Z> std::ops::Rem<T> for Range3<X, Y, Z>
+where
+    X: Copy + Add<Output = X> + Sub<Output = X> + Euclid,
+    Y: Copy + Add<Output = Y> + Sub<Output = Y> + Euclid,
+    Z: Copy + Add<Output = Z> + Sub<Output = Z> + Euclid,
+    T: Into<(X, Y, Z)> + From<(X, Y, Z)>,
+{
+    type Output = T;
+
+    /// Snap a vector into this area using modular arithmetic.
+    fn rem(self, rhs: T) -> Self::Output {
+        let (x, y, z): (X, Y, Z) = rhs.into();
+        T::from((
+            self.x1 + (x - self.x1).rem_euclid(&self.width()),
+            self.y1 + (y - self.y1).rem_euclid(&self.height()),
+            self.z1 + (z - self.z1).rem_euclid(&self.depth()),
         ))
     }
 }
