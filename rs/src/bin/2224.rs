@@ -5,9 +5,8 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 #[derive(Debug)]
 struct Valley {
-    blizzards: FxHashMap<IVec2, IVec2>,
-    frames: Vec<FxHashSet<IVec2>>,
-    bounds: Range2<i32, i32>,
+    blizzards: FxHashSet<IVec3>,
+    bounds: Range3<i32, i32, i32>,
 }
 
 impl Valley {
@@ -16,25 +15,14 @@ impl Valley {
     }
 
     fn end(&self) -> IVec2 {
-        self.bounds.max::<IVec2>() - ivec2(1, 0)
+        self.bounds.max::<IVec3>().xy() - ivec2(1, 0)
     }
 
-    fn grow(&mut self) {
-        let t = self.frames.len() as i32;
-        self.frames.push(
-            self.blizzards
-                .iter()
-                .map(|(pos, dir)| self.bounds % (*pos + *dir * t))
-                .collect(),
-        )
-    }
-
-    pub fn get(&self, ts: IVec3) -> bool {
-        let t = ts.z as usize;
-        // Pattern repeats after w * h.
-        let t = t % self.bounds.area() as usize;
-
-        self.frames[t].contains(&ts.xy())
+    pub fn is_open(&self, ts: IVec3) -> bool {
+        ts.xy() == self.start()
+            || ts.xy() == self.end()
+            || self.bounds.contains(ts * ivec3(1, 1, 0))
+                && !self.blizzards.contains(&(self.bounds % ts))
     }
 
     /// Search using 3D space-time coordinates.
@@ -45,11 +33,7 @@ impl Valley {
             .map(|d| d.extend(1))
             .chain(Some(ivec3(0, 0, 1)))
             .map(move |d| ts + d)
-            .filter(|&p| {
-                (self.bounds.contains(p.xy()) && !self.get(p))
-                    || p.xy() == self.end()
-                    || p.xy() == self.start()
-            })
+            .filter(|&p| self.is_open(p))
     }
 }
 
@@ -59,7 +43,7 @@ impl FromStr for Valley {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (mut x2, mut y2) = (0, 0);
 
-        let mut blizzards = FxHashMap::default();
+        let mut seeds = FxHashMap::default();
 
         for (y, line) in s.lines().enumerate() {
             // Make starting point zero for modular arithmetic of moving
@@ -81,41 +65,28 @@ impl FromStr for Valley {
                     continue;
                 }
                 if c == '#' {
+                    // Right wall.
                     debug_assert!(x2 == 0 || x2 == x);
                     x2 = x;
-                    // Right wall.
                     break;
                 }
 
-                let p = ivec2(x, y);
-                match c {
-                    '>' => {
-                        blizzards.insert(p, DIR_4[RIGHT]);
-                    }
-                    'v' => {
-                        blizzards.insert(p, DIR_4[DOWN]);
-                    }
-                    '<' => {
-                        blizzards.insert(p, DIR_4[LEFT]);
-                    }
-                    '^' => {
-                        blizzards.insert(p, DIR_4[UP]);
-                    }
-                    _ => {}
+                if let Some(i) = ">v<^".find(c) {
+                    seeds.insert(ivec2(x, y), DIR_4[i]);
                 }
             }
         }
 
-        let mut ret = Valley {
-            blizzards,
-            frames: Default::default(),
-            bounds: area((x2, y2)),
-        };
-        for _ in 0..ret.bounds.area() {
-            ret.grow();
+        let bounds = volume((x2, y2, x2 * y2));
+        let mut blizzards = FxHashSet::default();
+
+        for z in 0..bounds.depth() {
+            for (p, v) in &seeds {
+                blizzards.insert(bounds % (*p + *v * z).extend(z));
+            }
         }
 
-        Ok(ret)
+        Ok(Valley { blizzards, bounds })
     }
 }
 
