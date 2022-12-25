@@ -12,16 +12,9 @@ impl FromStr for Snafu {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut acc = 0;
         for (n, c) in s.chars().rev().enumerate() {
-            let n = n as u32;
-            let a = match c {
-                '0' => 0,
-                '1' => 1,
-                '2' => 2,
-                '-' => -1,
-                '=' => -2,
-                _ => return Err(()),
-            };
-            acc += 5_i64.pow(n) * a;
+            let n = 5_i64.pow(n as u32);
+            let c = "=-012".find(c).ok_or(())? as i64 - 2;
+            acc += n * c;
         }
         Ok(Snafu(acc))
     }
@@ -32,18 +25,8 @@ impl fmt::Display for Snafu {
         let mut acc = String::new();
         let mut x = self.0;
         for _ in 0.. {
-            let c = match x.rem_euclid(5) {
-                0 => '0',
-                1 => '1',
-                2 => '2',
-                3 => '=',
-                4 => '-',
-                _ => unreachable!(),
-            };
-            acc.push(c);
-
-            x += 2;
-            x /= 5;
+            acc.push("012=-".as_bytes()[x.rem_euclid(5) as usize] as char);
+            x = (x + 2) / 5;
             if x == 0 {
                 break;
             }
