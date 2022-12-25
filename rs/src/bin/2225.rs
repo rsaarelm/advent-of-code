@@ -4,9 +4,9 @@ use std::str::FromStr;
 use aoc::prelude::*;
 
 #[derive(Copy, Clone, Default, Eq, PartialEq, Debug)]
-struct Snafu(pub i64);
+struct S(pub i64);
 
-impl FromStr for Snafu {
+impl FromStr for S {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -16,11 +16,11 @@ impl FromStr for Snafu {
             let c = "=-012".find(c).ok_or(())? as i64 - 2;
             acc += n * c;
         }
-        Ok(Snafu(acc))
+        Ok(S(acc))
     }
 }
 
-impl fmt::Display for Snafu {
+impl fmt::Display for S {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut acc = String::new();
         let mut x = self.0;
@@ -37,10 +37,7 @@ impl fmt::Display for Snafu {
 }
 
 fn main() {
-    println!(
-        "{}",
-        stdin_lines_as::<Snafu>().fold(Snafu(0), |a, b| Snafu(a.0 + b.0))
-    );
+    println!("{}", stdin_lines_as::<S>().fold(S(0), |a, b| S(a.0 + b.0)));
 }
 
 #[cfg(test)]
@@ -66,8 +63,8 @@ mod tests {
             (12345, "1-0---0"),
             (314159265, "1121-1110-1=0"),
         ] {
-            assert_eq!(Snafu(n).to_string(), s);
-            assert_eq!(s.parse::<Snafu>().unwrap().0, n);
+            assert_eq!(S(n).to_string(), s);
+            assert_eq!(s.parse::<S>().unwrap().0, n);
         }
     }
 }
