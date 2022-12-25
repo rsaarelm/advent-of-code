@@ -1,8 +1,8 @@
 run task:
     #!/usr/bin/env sh
-    if [[ -z "${TURBO}" ]]; then
-        cargo run --bin {{task}}
-    else
+    if [[ -z "${DEBUG}" ]]; then
         cargo run --release --bin {{task}}
+    else
+        cargo run --bin {{task}}
     fi
 
