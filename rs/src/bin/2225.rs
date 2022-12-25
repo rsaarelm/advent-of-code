@@ -56,7 +56,7 @@ impl fmt::Display for Snafu {
 fn main() {
     println!(
         "{}",
-        Snafu(stdin_lines_as::<Snafu>().map(|x| x.0).sum::<i64>())
+        stdin_lines_as::<Snafu>().fold(Snafu(0), |a, b| Snafu(a.0 + b.0))
     );
 }
 
