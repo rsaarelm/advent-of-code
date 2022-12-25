@@ -24,12 +24,9 @@ impl fmt::Display for S {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut acc = String::new();
         let mut x = self.0;
-        for _ in 0.. {
+        while x != 0 {
             acc.push("012=-".as_bytes()[x.rem_euclid(5) as usize] as char);
             x = (x + 2) / 5;
-            if x == 0 {
-                break;
-            }
         }
         acc = acc.chars().rev().collect();
         write!(f, "{acc}")
