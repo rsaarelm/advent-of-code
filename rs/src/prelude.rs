@@ -576,6 +576,23 @@ impl Operator {
     }
 }
 
+pub trait VecExt {
+    /// Vector length in Manhattan metric.
+    fn taxi_len(self) -> i32;
+}
+
+impl VecExt for IVec2 {
+    fn taxi_len(self) -> i32 {
+        self.x.abs() + self.y.abs()
+    }
+}
+
+impl VecExt for IVec3 {
+    fn taxi_len(self) -> i32 {
+        self.x.abs() + self.y.abs() + self.z.abs()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
