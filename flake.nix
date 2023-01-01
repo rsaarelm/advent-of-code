@@ -40,6 +40,10 @@
               clippy
               cargo-outdated
 
+              # Needed for rust-Z3
+              clang.cc.lib
+              z3.dev
+
               # Python
               # python3
               # python3Packages.numpy
@@ -58,6 +62,10 @@
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
             RUST_BACKTRACE = "1";
+            LD_LIBRARY_PATH = with pkgs;
+              pkgs.lib.makeLibraryPath [
+                libclang
+              ];
           };
       });
 }
