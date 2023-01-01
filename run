@@ -142,7 +142,7 @@ if __name__ == "__main__":
         _ = int(day)  # Fail if day has something that isn't numbers
 
         if not os.path.exists(lang):
-            eprint("No subdirectory for langauge '%s'" % lang)
+            eprint("No subdirectory for language '%s'" % lang)
             sys.exit(1)
     except IndexError:
         usage()
@@ -171,3 +171,6 @@ if __name__ == "__main__":
             eprint("Running time: %.2fs" % runtime);
         else:
             eprint("Running time: %sms" % (int(runtime * 1000)))
+    else:
+        eprint("No input files for day %s" % day)
+        sys.exit(1)
