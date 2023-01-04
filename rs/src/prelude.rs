@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
     convert::TryInto,
-    fmt::Debug,
+    fmt::{Debug, Write},
     hash::Hash,
     str::FromStr,
 };
@@ -14,9 +14,9 @@ use rustc_hash::FxHashSet;
 
 pub use glam::{ivec2, ivec3, IVec2, IVec3, Vec3Swizzles};
 
-pub use crate::ocr::{ocr, points, PointCloud};
-
+pub use crate::md5::md5sum;
 pub use crate::n_range::{area, volume, NRange};
+pub use crate::ocr::{ocr, points, PointCloud};
 
 pub const RIGHT: usize = 0;
 pub const DOWN: usize = 1;
@@ -208,6 +208,14 @@ pub fn hex_to_bytes(hex: impl AsRef<str>) -> Vec<u8> {
             u8::from_str_radix(std::str::from_utf8(c).unwrap(), 16).unwrap()
         })
         .collect()
+}
+
+pub fn bytes_to_hex(digest: &[u8]) -> String {
+    let mut ret = String::new();
+    for b in digest {
+        write!(&mut ret, "{b:02X}").unwrap();
+    }
+    ret
 }
 
 pub trait Row: Sized {
