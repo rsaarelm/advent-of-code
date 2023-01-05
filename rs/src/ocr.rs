@@ -1,6 +1,7 @@
-use std::collections::{BTreeSet, HashMap};
+use std::collections::BTreeSet;
 
 use lazy_static::lazy_static;
+use rustc_hash::FxHashMap as HashMap;
 
 pub type PointCloud = BTreeSet<(i32, i32)>;
 

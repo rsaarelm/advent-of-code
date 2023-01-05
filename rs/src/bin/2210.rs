@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use aoc::prelude::*;
 
 const DISPLAY_WIDTH: usize = 40;

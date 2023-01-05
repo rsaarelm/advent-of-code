@@ -1,6 +1,6 @@
 use aoc::prelude::*;
 use derive_deref::Deref;
-use std::{collections::HashSet, str::FromStr};
+use std::str::FromStr;
 
 #[derive(Copy, Clone, Deref)]
 struct Dir(IVec2);
@@ -21,7 +21,7 @@ impl FromStr for Dir {
 
 fn trace(input: &[(Dir, usize)], rope_len: usize) -> usize {
     let mut rope = vec![ivec2(0, 0); rope_len];
-    let mut tail_cover = HashSet::new();
+    let mut tail_cover = HashSet::default();
 
     for &(dir, n) in input {
         for _ in 0..n {

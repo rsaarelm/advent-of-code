@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeSet, HashSet, VecDeque},
+    collections::{BTreeSet, VecDeque},
     convert::TryInto,
     fmt::{Debug, Write},
     hash::Hash,
@@ -10,7 +10,10 @@ use glam::Mat3;
 use lazy_static::lazy_static;
 pub use memoize::memoize;
 use regex::Regex;
-use rustc_hash::FxHashSet;
+
+// Faster hashmap and hashset implementations, no reason not to use these
+// everywhere when you don't care about DDOS.
+pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 
 pub use glam::{ivec2, ivec3, IVec2, IVec3, Vec3Swizzles};
 
@@ -357,7 +360,7 @@ where
     T: Clone + Eq + Hash + 'a,
     I: Iterator<Item = T>,
 {
-    let mut seen = FxHashSet::default();
+    let mut seen = HashSet::default();
     let mut edge = VecDeque::from([(start, 0)]);
     std::iter::from_fn(move || {
         // Candidates are in a queue and consumed first-in, first-out. This

@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use aoc::prelude::*;
 use bitvec::prelude::*;
-use rustc_hash::FxHashMap;
 
 #[derive(Debug)]
 struct Valley {
@@ -45,7 +44,7 @@ impl FromStr for Valley {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (mut x2, mut y2) = (0, 0);
 
-        let mut seeds = FxHashMap::default();
+        let mut seeds = HashMap::default();
 
         for (y, line) in s.lines().enumerate() {
             // Make starting point zero for modular arithmetic of moving

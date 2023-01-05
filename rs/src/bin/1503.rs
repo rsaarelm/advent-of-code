@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use aoc::prelude::*;
 
 fn footprint<'a>(
@@ -22,7 +20,7 @@ fn main() {
     println!("{}", footprint(input.iter()).collect::<HashSet<_>>().len());
 
     // Part 2
-    let mut total: HashSet<IVec2> = HashSet::new();
+    let mut total: HashSet<IVec2> = HashSet::default();
     total.extend(footprint(input.iter().step_by(2)));
     total.extend(footprint(input.iter().skip(1).step_by(2)));
     println!("{}", total.len());

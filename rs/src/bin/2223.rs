@@ -1,8 +1,7 @@
 use aoc::prelude::*;
-use rustc_hash::{FxHashMap, FxHashSet};
 
 fn main() {
-    let mut elves = FxHashSet::default();
+    let mut elves = HashSet::default();
     for (y, line) in stdin_lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
             if !c.is_whitespace() && c != '.' {
@@ -13,7 +12,7 @@ fn main() {
 
     let mut dirs = vec![UP, DOWN, LEFT, RIGHT];
     for round in 1.. {
-        let mut come_from: FxHashMap<IVec2, Vec<IVec2>> = Default::default();
+        let mut come_from: HashMap<IVec2, Vec<IVec2>> = Default::default();
         let prev_elves = elves.clone();
 
         'elfscan: for &elf in &elves {

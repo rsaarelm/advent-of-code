@@ -1,5 +1,4 @@
 use aoc::prelude::*;
-use std::collections::HashMap;
 
 type Line = [i32; 4];
 
@@ -18,7 +17,7 @@ fn points(line: &Line) -> impl Iterator<Item = (i32, i32)> {
 }
 
 fn intersections<'a>(lines: impl Iterator<Item = &'a Line>) -> usize {
-    let mut hist = HashMap::new();
+    let mut hist = HashMap::default();
     for line in lines {
         for point in points(line) {
             let p = hist.entry(point).or_insert(0);

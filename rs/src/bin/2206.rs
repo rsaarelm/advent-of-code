@@ -1,5 +1,4 @@
 use aoc::prelude::*;
-use std::collections::HashSet;
 
 fn main() {
     let input = stdin_string();

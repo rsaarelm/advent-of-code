@@ -1,5 +1,4 @@
 use aoc::prelude::*;
-use rustc_hash::{FxHashMap, FxHashSet};
 
 // Y-axis is upside down so that the well grows towards positive numbers.
 
@@ -22,7 +21,7 @@ const ROCKS: &str = "\
 ##
 ##";
 
-fn in_well(rock: &FxHashSet<IVec2>) -> bool {
+fn in_well(rock: &HashSet<IVec2>) -> bool {
     rock.iter().all(|p| p.x >= 0 && p.x < 7 && p.y >= 0)
 }
 
@@ -37,17 +36,16 @@ fn main() {
         })
         .collect();
 
-    let rocks: Vec<FxHashSet<IVec2>> =
-        ROCKS.split("\n\n").map(points).collect();
+    let rocks: Vec<HashSet<IVec2>> = ROCKS.split("\n\n").map(points).collect();
 
-    let mut ground = FxHashSet::default();
+    let mut ground = HashSet::default();
     let mut top = 0;
     let mut wind_idx = 0;
 
     // Keep track of what things look like so we can find the point where the
     // cycle repeats.
     let mut deltas: Vec<u64> = Default::default();
-    let mut states: FxHashMap<(Vec<i32>, usize, usize), usize> =
+    let mut states: HashMap<(Vec<i32>, usize, usize), usize> =
         Default::default();
     let mut loop_start: usize = 0;
     let mut loop_end: usize = 0;
@@ -56,7 +54,7 @@ fn main() {
         let mut rock = rocks[n % rocks.len()]
             .iter()
             .map(|&p| p + ivec2(2, top + 3))
-            .collect::<FxHashSet<_>>();
+            .collect::<HashSet<_>>();
 
         loop {
             // Push

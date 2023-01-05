@@ -4,7 +4,6 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use rayon::prelude::*;
 use std::{
-    collections::HashSet,
     convert::TryInto,
     f32,
     ops::{Deref, DerefMut},
@@ -176,7 +175,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashSet;
+    use rustc_hash::FxHashSet as HashSet;
 
     #[test]
     fn test_rotations() {

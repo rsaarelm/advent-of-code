@@ -1,5 +1,5 @@
 use aoc::prelude::*;
-use std::collections::{HashSet, VecDeque};
+use std::collections::VecDeque;
 use std::str::FromStr;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -27,7 +27,7 @@ impl FromStr for GameState {
         Ok(GameState {
             decks,
             mode: Mode::REGULAR,
-            seen: HashSet::new(),
+            seen: HashSet::default(),
         })
     }
 }
@@ -56,7 +56,7 @@ impl GameState {
         let mut ret = GameState {
             decks: self.decks.clone(),
             mode: self.mode,
-            seen: HashSet::new(),
+            seen: HashSet::default(),
         };
         ret.decks[0].truncate(drawn_0 as usize);
         ret.decks[1].truncate(drawn_1 as usize);

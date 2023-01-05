@@ -1,5 +1,4 @@
 use aoc::prelude::*;
-use std::collections::HashMap;
 
 #[derive(Debug)]
 struct Player {
@@ -96,15 +95,15 @@ fn main() {
     // 2
 
     // Game states and their universe counts.
-    let mut games_in_progress = HashMap::new();
+    let mut games_in_progress = HashMap::default();
     games_in_progress.insert(State::new(*player_1, *player_2), 1);
 
     // States of won games with universe counts.
-    let mut won_games = HashMap::new();
+    let mut won_games = HashMap::default();
 
     // Propagate the wave function until all branches are finished.
     while !games_in_progress.is_empty() {
-        let mut state = HashMap::new();
+        let mut state = HashMap::default();
         for (s, m) in games_in_progress.into_iter() {
             if s.winner().is_some() {
                 // Move won game aside.

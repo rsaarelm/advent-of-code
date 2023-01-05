@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use aoc::prelude::*;
 
 fn main() {

@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use aoc::prelude::*;
 
 fn dist(a: IVec2, b: IVec2) -> i32 {
@@ -32,7 +30,7 @@ fn main() {
 
     let scan_y = if is_example { 10 } else { 2_000_000 };
 
-    let mut x_cover = HashSet::new();
+    let mut x_cover = HashSet::default();
 
     for &(s, b) in &sensors {
         for x in bounds_at(s, b, scan_y).unwrap_or(0..0) {

@@ -1,4 +1,4 @@
-use std::{collections::HashSet, str::FromStr};
+use std::str::FromStr;
 
 use aoc::prelude::*;
 
@@ -14,7 +14,7 @@ impl FromStr for Chasm {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut walls = HashSet::new();
+        let mut walls = HashSet::default();
         let mut max_y = 0;
         for line in s.lines() {
             let coords: Vec<IVec2> =

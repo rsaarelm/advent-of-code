@@ -1,5 +1,3 @@
-use std::{collections::HashMap, collections::HashSet};
-
 use aoc::prelude::*;
 use glam::{vec3, Mat3};
 
@@ -102,11 +100,11 @@ fn main() {
     // Part 2
 
     // Project the map into 3D space, `cube_chart` maps 3D points back to map.
-    let mut cube_chart = HashMap::new();
+    let mut cube_chart = HashMap::default();
 
     // Set up a search that visits each cube face once and always proceeds to
     // a connected next face.
-    let mut visited_faces = HashSet::from([face]);
+    let mut visited_faces = HashSet::from_iter([face]);
     let mut face_stack = vec![(face, Mat3::IDENTITY)];
 
     while let Some((face, m)) = face_stack.pop() {

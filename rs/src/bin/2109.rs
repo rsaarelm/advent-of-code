@@ -1,10 +1,6 @@
 use aoc::prelude::*;
 use glam::IVec2;
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-    str::FromStr,
-};
+use std::{hash::Hash, str::FromStr};
 
 const BOUNDARY: u32 = 9;
 
@@ -20,7 +16,7 @@ fn fill<N: Clone + Eq + Hash>(
     neighbors: impl Fn(&N) -> Vec<N>,
 ) -> impl Iterator<Item = N> {
     let mut open: HashSet<_> = Some(seed).into_iter().collect();
-    let mut seen = HashSet::new();
+    let mut seen = HashSet::default();
     std::iter::from_fn(move || {
         if let Some(elt) = open.pop() {
             seen.insert(elt.clone());

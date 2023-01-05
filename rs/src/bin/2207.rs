@@ -1,5 +1,4 @@
 use aoc::prelude::*;
-use std::collections::{HashMap, HashSet};
 
 const TOTAL_SPACE: usize = 70_000_000;
 const NEEDED_SPACE: usize = 30_000_000;
@@ -12,12 +11,12 @@ fn main() {
     let subdir_cd = re_parser::<String>(r"^\$ cd (.+)$");
 
     // Total size for the subdirectory given a Vec<String> path string.
-    let mut subdir_sizes = HashMap::new();
+    let mut subdir_sizes = HashMap::default();
 
     // Check if a directory is being viewed twice, don't tally up sizes after
     // the first time. The input doesn't seem to have any repeat views so this
     // part didn't end up being necessary.
-    let mut seen = HashSet::new();
+    let mut seen = HashSet::default();
 
     // Current path, works like a stack.
     let mut path = Vec::new();
