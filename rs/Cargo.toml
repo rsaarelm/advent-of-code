@@ -10,7 +10,7 @@ name = "aoc"
 [dependencies]
 bitvec = "1"
 derive_deref = "1"
-fraction = "0.12"
+fraction = "0.13"
 glam = "0.22"
 itertools = "0.10"
 lazy_static = "1"
