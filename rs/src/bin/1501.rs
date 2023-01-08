@@ -3,7 +3,7 @@ use aoc::prelude::*;
 fn main() {
     let input: Vec<i32> = stdin_string()
         .chars()
-        .map(|c| ")X(".find(c).unwrap() as i32 - 1)
+        .map(|c| ") (".find(c).unwrap() as i32 - 1)
         .collect();
 
     println!("{}", input.iter().sum::<i32>());
