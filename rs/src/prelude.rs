@@ -513,6 +513,8 @@ tuple_parseable!(T1, T2; 1, 2);
 tuple_parseable!(T1, T2, T3; 1, 2, 3);
 tuple_parseable!(T1, T2, T3, T4; 1, 2, 3, 4);
 tuple_parseable!(T1, T2, T3, T4, T5; 1, 2, 3, 4, 5);
+tuple_parseable!(T1, T2, T3, T4, T5, T6; 1, 2, 3, 4, 5, 6);
+tuple_parseable!(T1, T2, T3, T4, T5, T6, T7; 1, 2, 3, 4, 5, 6, 7);
 
 primitive_parseable!(
     String, char, //
