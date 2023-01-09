@@ -3,6 +3,7 @@ use std::{
     convert::TryInto,
     fmt::{Debug, Write},
     hash::Hash,
+    io::{stdin, BufRead},
     str::FromStr,
 };
 
@@ -79,6 +80,18 @@ pub const DIR_8: [IVec2; 8] = [
     ivec2(1, -1),
 ];
 
+pub fn neighbors_4<T: Clone + Into<IVec2> + From<IVec2>>(
+    p: T,
+) -> impl Iterator<Item = T> {
+    DIR_4.iter().map(move |&d| (d + p.clone().into()).into())
+}
+
+pub fn neighbors_8<T: Clone + Into<IVec2> + From<IVec2>>(
+    p: T,
+) -> impl Iterator<Item = T> {
+    DIR_8.iter().map(move |&d| (d + p.clone().into()).into())
+}
+
 pub const SPACE_6: [IVec3; 6] = [
     ivec3(1, 0, 0),
     ivec3(-1, 0, 0),
@@ -105,8 +118,19 @@ where
 }
 
 pub fn stdin_lines() -> impl Iterator<Item = String> + 'static {
-    use std::io::{stdin, BufRead};
     std::iter::from_fn(|| stdin().lock().lines().next().map(|a| a.unwrap()))
+}
+
+pub fn stdin_chars() -> impl Iterator<Item = char> + 'static {
+    let s = stdin_string();
+    let mut p = 0;
+    std::iter::from_fn(move || match &s[p..].chars().next() {
+        Some(c) => {
+            p += c.len_utf8();
+            Some(*c)
+        }
+        None => None,
+    })
 }
 
 pub fn stdin_lines_as<T>() -> impl Iterator<Item = T> + 'static
@@ -114,7 +138,6 @@ where
     T: FromStr + Debug,
     <T as FromStr>::Err: Debug,
 {
-    use std::io::{stdin, BufRead};
     std::iter::from_fn(|| {
         stdin()
             .lock()
@@ -158,6 +181,26 @@ pub fn stdin_grid_into<T: From<char>>() -> (usize, usize, Vec<Vec<T>>) {
             .map(|line| line.into_iter().map(T::from).collect())
             .collect(),
     )
+}
+
+pub fn stdin_grid_iter() -> impl Iterator<Item = ([i32; 2], char)> {
+    let mut x = 0;
+    let mut y = 0;
+    stdin_chars().filter_map(move |c| match c {
+        '\n' => {
+            x = 0;
+            y += 1;
+            None
+        }
+        c if c.is_whitespace() => {
+            x += 1;
+            None
+        }
+        c => {
+            x += 1;
+            Some(([x - 1, y], c))
+        }
+    })
 }
 
 lazy_static! {
