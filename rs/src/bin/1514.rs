@@ -19,7 +19,8 @@ fn main() {
 
     let mut score = vec![0; input.len()];
     for t in 1..2504 {
-        let ps: Vec<i32> = input.iter().map(|[s, b, r]| pos(*s, *b, *r, t)).collect();
+        let ps: Vec<i32> =
+            input.iter().map(|[s, b, r]| pos(*s, *b, *r, t)).collect();
         let lead = *ps.iter().max().unwrap();
         for (i, s) in score.iter_mut().enumerate() {
             if ps[i] == lead {
