@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeSet, VecDeque},
+    collections::{BTreeSet, BinaryHeap, VecDeque},
     convert::TryInto,
     fmt::{Debug, Write},
     hash::Hash,
@@ -421,6 +421,106 @@ where
         }
         None
     })
+}
+
+/// A* search, tries to efficiently find path from `start` to `end` by
+/// constantly exploring towards shrinking `heuristic` values.
+///
+/// For searches through space, heuristic is the euclidean distance between
+/// points.
+pub fn astar_search<'a, T, I>(
+    neighbors: impl Fn(&T) -> I + 'a,
+    heuristic: impl Fn(&T, &T) -> f32,
+    start: T,
+    end: &T,
+) -> Option<Vec<T>>
+where
+    T: Clone + Eq + Hash + 'a,
+    I: Iterator<Item = T>,
+{
+    #[derive(Eq, PartialEq)]
+    struct Node<T> {
+        value: u32,
+        item: T,
+        come_from: Option<T>,
+    }
+    impl<N: Eq> Ord for Node<N> {
+        fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+            self.value.cmp(&other.value)
+        }
+    }
+    impl<N: Eq> PartialOrd for Node<N> {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            Some(self.cmp(other))
+        }
+    }
+
+    fn node<N: Eq>(item: N, dist: f32, come_from: Option<N>) -> Node<N> {
+        debug_assert!(dist >= 0.0);
+        // Convert dist to integers so we can push MetricNodes into BinaryHeap
+        // that expects Ord. The trick here is that non-negative IEEE 754
+        // floats have the same ordering as their binary representations
+        // interpreted as integers.
+        //
+        // Also flip the sign on the value, shorter distance means bigger
+        // value, since BinaryHeap returns the largest item first.
+        let value = ::std::u32::MAX - dist.to_bits();
+        Node {
+            item,
+            value,
+            come_from,
+        }
+    }
+
+    let mut come_from = HashMap::default();
+
+    let mut open = BinaryHeap::new();
+    open.push(node(start.clone(), ::std::f32::MAX, None));
+
+    // Find shortest path.
+    let mut goal = loop {
+        if let Some(closest) = open.pop() {
+            if come_from.contains_key(&closest.item) {
+                // Already saw it through a presumably shorter path...
+                continue;
+            }
+
+            if let Some(from) = closest.come_from {
+                come_from.insert(closest.item.clone(), from);
+            }
+
+            if &closest.item == end {
+                break Some(closest.item);
+            }
+
+            for item in neighbors(&closest.item) {
+                let already_seen =
+                    come_from.contains_key(&item) || item == start;
+                if already_seen {
+                    continue;
+                }
+                let dist = heuristic(&item, end);
+                open.push(node(item, dist, Some(closest.item.clone())));
+            }
+        } else {
+            break None;
+        }
+    };
+
+    // Extract path from the graph structure.
+    let mut path = Vec::new();
+    while let Some(x) = goal {
+        goal = come_from.remove(&x);
+        path.push(x);
+    }
+    // Remove starting point.
+    path.pop();
+
+    if path.is_empty() {
+        None
+    } else {
+        Some(path)
+    }
 }
 
 /// Try to advance slice to next lexical permutation.
