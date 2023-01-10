@@ -3,7 +3,7 @@ use std::{
     ops::{Add, Div, Mul, Sub},
 };
 
-use num::{traits::Euclid, One, Zero};
+use num_traits::{Euclid, One, Zero};
 
 pub trait Element:
     Copy
