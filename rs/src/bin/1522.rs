@@ -145,11 +145,11 @@ impl World {
             .collect()
     }
 
-    fn heuristic(&self) -> f32 {
+    fn heuristic(&self) -> i32 {
         if self.won() {
-            0.0
+            0
         } else {
-            (self.spent_mana + 1) as f32
+            self.spent_mana + 1
         }
     }
 }

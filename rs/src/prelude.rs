@@ -10,6 +10,7 @@ use std::{
 use glam::Mat3;
 use lazy_static::lazy_static;
 pub use memoize::memoize;
+use num_traits::Zero;
 use regex::Regex;
 
 // Faster hashmap and hashset implementations, no reason not to use these
@@ -432,40 +433,39 @@ where
 /// You can bake arbitrary stopping or not-stopping conditions in the
 /// heuristic function. Make it go to exactly 0.0 when you are happy with the
 /// input value and add 1.0 to the result if you're not.
-pub fn astar_search<'a, T, I>(
+pub fn astar_search<'a, T, N, I>(
     neighbors: impl Fn(&T) -> I + 'a,
-    heuristic: impl Fn(&T) -> f32,
+    heuristic: impl Fn(&T) -> N,
     start: T,
 ) -> Option<Vec<T>>
 where
     T: Clone + Eq + Hash + 'a,
+    N: Ord + Copy + Zero,
     I: Iterator<Item = T>,
 {
     #[derive(Eq, PartialEq)]
-    struct Node<T> {
-        value: u32,
+    struct Node<N, T> {
+        value: N,
         item: T,
         come_from: Option<T>,
     }
-    impl<N: Eq> Ord for Node<N> {
+    impl<N: Ord, T: Eq> Ord for Node<N, T> {
         fn cmp(&self, other: &Self) -> std::cmp::Ordering {
             // Flip the sign so we move towards smaller values in the heap.
             other.value.cmp(&self.value)
         }
     }
-    impl<N: Eq> PartialOrd for Node<N> {
+    impl<N: Ord, T: Eq> PartialOrd for Node<N, T> {
         fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
             Some(self.cmp(other))
         }
     }
 
-    fn node<N: Eq>(item: N, dist: f32, come_from: Option<N>) -> Node<N> {
-        debug_assert!(dist >= 0.0);
-        // Convert dist to integers so we can push MetricNodes into BinaryHeap
-        // that expects Ord. The trick here is that non-negative IEEE 754
-        // floats have the same ordering as their binary representations
-        // interpreted as integers.
-        let value = dist.to_bits();
+    fn node<N: Ord, T: Eq>(
+        item: T,
+        value: N,
+        come_from: Option<T>,
+    ) -> Node<N, T> {
         Node {
             item,
             value,
@@ -476,7 +476,8 @@ where
     let mut come_from = HashMap::default();
 
     let mut open = BinaryHeap::new();
-    open.push(node(start.clone(), ::std::f32::MAX, None));
+    let cost0 = heuristic(&start);
+    open.push(node(start.clone(), cost0, None));
 
     // Find shortest path.
     let mut goal = loop {
@@ -490,7 +491,7 @@ where
                 come_from.insert(closest.item.clone(), from);
             }
 
-            if closest.value == 0 {
+            if closest.value == N::zero() {
                 break Some(closest.item);
             }
 

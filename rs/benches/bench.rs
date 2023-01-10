@@ -26,11 +26,12 @@ fn bench_astar(b: &mut Bencher) {
     };
 
     b.iter(|| {
-        astar_search(
+        let path = astar_search(
             neighbors,
-            |pos| (*pos - ivec2(999, 999)).taxi_len() as f32,
+            |pos| (*pos - ivec2(999, 999)).taxi_len(),
             ivec2(0, 0),
         )
-        .unwrap()
+        .unwrap();
+        assert_eq!(path.len(), 2210);
     });
 }

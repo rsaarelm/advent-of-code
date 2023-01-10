@@ -38,10 +38,7 @@ fn main() {
     let end = "e".to_string();
     let path = astar_search(
         |s| neighbors(&contractions, s).into_iter(),
-        |a| {
-            (a.len() as f32 - end.len() as f32).abs()
-                + if *a != end { 1.0 } else { 0.0 }
-        },
+        |a| a.len() - end.len() + usize::from(*a != end),
         input,
     )
     .unwrap();

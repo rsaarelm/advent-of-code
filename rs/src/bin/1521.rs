@@ -82,7 +82,8 @@ fn main() {
                         continue;
                     }
 
-                    let kitted_player = player + ITEMS[w] + ITEMS[a] + ITEMS[r1] + ITEMS[r2];
+                    let kitted_player =
+                        player + ITEMS[w] + ITEMS[a] + ITEMS[r1] + ITEMS[r2];
                     if kitted_player.beats(&boss) {
                         winning_loadouts.push(kitted_player.cost());
                     } else {
