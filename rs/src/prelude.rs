@@ -423,16 +423,19 @@ where
     })
 }
 
-/// A* search, tries to efficiently find path from `start` to `end` by
-/// constantly exploring towards shrinking `heuristic` values.
+/// A* search, tries to efficiently find a path by following shrinking
+/// `heuristic` values. Stops and returns path when heuristic reaches 0.0.
 ///
-/// For searches through space, heuristic is the euclidean distance between
-/// points.
+/// For searches through space, heuristic is the euclidean distance from the
+/// target point.
+///
+/// You can bake arbitrary stopping or not-stopping conditions in the
+/// heuristic function. Make it go to exactly 0.0 when you are happy with the
+/// input value and add 1.0 to the result if you're not.
 pub fn astar_search<'a, T, I>(
     neighbors: impl Fn(&T) -> I + 'a,
-    heuristic: impl Fn(&T, &T) -> f32,
+    heuristic: impl Fn(&T) -> f32,
     start: T,
-    end: &T,
 ) -> Option<Vec<T>>
 where
     T: Clone + Eq + Hash + 'a,
@@ -446,7 +449,8 @@ where
     }
     impl<N: Eq> Ord for Node<N> {
         fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-            self.value.cmp(&other.value)
+            // Flip the sign so we move towards smaller values in the heap.
+            other.value.cmp(&self.value)
         }
     }
     impl<N: Eq> PartialOrd for Node<N> {
@@ -461,10 +465,7 @@ where
         // that expects Ord. The trick here is that non-negative IEEE 754
         // floats have the same ordering as their binary representations
         // interpreted as integers.
-        //
-        // Also flip the sign on the value, shorter distance means bigger
-        // value, since BinaryHeap returns the largest item first.
-        let value = ::std::u32::MAX - dist.to_bits();
+        let value = dist.to_bits();
         Node {
             item,
             value,
@@ -489,7 +490,7 @@ where
                 come_from.insert(closest.item.clone(), from);
             }
 
-            if &closest.item == end {
+            if closest.value == 0 {
                 break Some(closest.item);
             }
 
@@ -499,7 +500,7 @@ where
                 if already_seen {
                     continue;
                 }
-                let dist = heuristic(&item, end);
+                let dist = heuristic(&item);
                 open.push(node(item, dist, Some(closest.item.clone())));
             }
         } else {

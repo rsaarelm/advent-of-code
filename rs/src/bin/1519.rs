@@ -38,9 +38,11 @@ fn main() {
     let end = "e".to_string();
     let path = astar_search(
         |s| neighbors(&contractions, s).into_iter(),
-        |a, b| (a.len() as f32 - b.len() as f32).abs(),
+        |a| {
+            (a.len() as f32 - end.len() as f32).abs()
+                + if *a != end { 1.0 } else { 0.0 }
+        },
         input,
-        &end,
     )
     .unwrap();
     println!("{}", path.len());
