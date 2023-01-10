@@ -1,6 +1,6 @@
 use std::{
     fmt::Debug,
-    ops::{Add, Div, Mul, Sub},
+    ops::{Add, Div, Sub},
 };
 
 use num_traits::{Euclid, One, Zero};
@@ -9,9 +9,7 @@ pub trait Element:
     Copy
     + Default
     + PartialOrd
-    + Add<Output = Self>
     + Sub<Output = Self>
-    + Mul<Output = Self>
     + Div<Output = Self>
     + Zero
     + One
@@ -22,9 +20,7 @@ impl<T> Element for T where
     T: Copy
         + Default
         + PartialOrd
-        + Add<Output = Self>
         + Sub<Output = Self>
-        + Mul<Output = Self>
         + Div<Output = Self>
         + Zero
         + One
