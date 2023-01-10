@@ -18,7 +18,7 @@ memoize = "0.3"
 nalgebra = "0.31"
 nom = "7"
 num = "0.4"
-rand = "0.8"
+rand = { version = "0.8", features = ["small_rng"] }
 rayon = "1"
 regex = "1"
 rustc-hash = "1"

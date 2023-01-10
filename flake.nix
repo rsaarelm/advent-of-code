@@ -3,14 +3,21 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    rust-overlay.url = "github:oxalica/rust-overlay";
     naersk.url = "github:nmattia/naersk/master";
   };
 
-  outputs = { self, nixpkgs, utils, pre-commit-hooks, naersk, ... }:
+  outputs = { self, nixpkgs, utils, pre-commit-hooks, rust-overlay, naersk, ... }:
     utils.lib.eachDefaultSystem (system:
       let
         pname = "advent-of-code";
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ rust-overlay.overlays.default ];
+        };
+        rust = ((pkgs.rustChannelOf { channel = "nightly"; }).default.override {
+          extensions = [ "rust-src" ];
+        });
         naersk-lib = pkgs.callPackage naersk { };
       in rec {
         checks = {
@@ -33,9 +40,7 @@
               pre-commit
 
               # Rust
-              cargo
-              rustc
-              rustfmt
+              rust
               rust-analyzer
               clippy
               cargo-outdated
