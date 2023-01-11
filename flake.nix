@@ -44,6 +44,7 @@
               rust-analyzer
               clippy
               cargo-outdated
+              cargo-udeps
 
               # Needed for rust-Z3
               clang.cc.lib

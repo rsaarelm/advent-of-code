@@ -146,11 +146,7 @@ impl World {
     }
 
     fn heuristic(&self) -> i32 {
-        if self.won() {
-            0
-        } else {
-            self.spent_mana + 1
-        }
+        self.spent_mana
     }
 }
 
@@ -158,18 +154,20 @@ fn main() {
     let [boss_hp, boss_dmg] = fixed_numbers::<i32, 2>(stdin_string());
 
     let path = astar_search(
+        &World::new(boss_hp, boss_dmg),
         |w| w.neighbors().into_iter(),
         World::heuristic,
-        World::new(boss_hp, boss_dmg),
+        World::won,
     )
     .unwrap();
-    println!("{}", path[0].spent_mana);
+    println!("{}", path[path.len() - 1].spent_mana);
 
     let path = astar_search(
+        &World::new(boss_hp, boss_dmg).hard_mode(),
         |w| w.neighbors().into_iter(),
         World::heuristic,
-        World::new(boss_hp, boss_dmg).hard_mode(),
+        World::won,
     )
     .unwrap();
-    println!("{}", path[0].spent_mana);
+    println!("{}", path[path.len() - 1].spent_mana);
 }

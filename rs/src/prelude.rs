@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeSet, BinaryHeap, VecDeque},
+    collections::{BTreeSet, VecDeque},
     convert::TryInto,
     fmt::{Debug, Write},
     hash::Hash,
@@ -10,7 +10,7 @@ use std::{
 use glam::Mat3;
 use lazy_static::lazy_static;
 pub use memoize::memoize;
-use num_traits::Zero;
+use num_traits::{One, Zero};
 use regex::Regex;
 
 // Faster hashmap and hashset implementations, no reason not to use these
@@ -424,105 +424,27 @@ where
     })
 }
 
-/// A* search, tries to efficiently find a path by following shrinking
-/// `heuristic` values. Stops and returns path when heuristic reaches 0.0.
-///
-/// For searches through space, heuristic is the euclidean distance from the
-/// target point.
-///
-/// You can bake arbitrary stopping or not-stopping conditions in the
-/// heuristic function. Make it go to exactly 0.0 when you are happy with the
-/// input value and add 1.0 to the result if you're not.
-pub fn astar_search<'a, T, N, I>(
-    neighbors: impl Fn(&T) -> I + 'a,
+/// Steer towards target using `heuristic` from `start`. Returns path
+/// including both start and end positions. If heuristic never overestimates
+/// the steps to reach goal, will return an optimal path.
+pub fn astar_search<T, I, N>(
+    start: &T,
+    neighbors: impl Fn(&T) -> I,
     heuristic: impl Fn(&T) -> N,
-    start: T,
+    completed: impl Fn(&T) -> bool,
 ) -> Option<Vec<T>>
 where
-    T: Clone + Eq + Hash + 'a,
-    N: Ord + Copy + Zero,
-    I: Iterator<Item = T>,
+    T: Clone + Eq + Hash,
+    N: Zero + One + Ord + Copy,
+    I: IntoIterator<Item = T>,
 {
-    #[derive(Eq, PartialEq)]
-    struct Node<N, T> {
-        value: N,
-        item: T,
-        come_from: Option<T>,
-    }
-    impl<N: Ord, T: Eq> Ord for Node<N, T> {
-        fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-            // Flip the sign so we move towards smaller values in the heap.
-            other.value.cmp(&self.value)
-        }
-    }
-    impl<N: Ord, T: Eq> PartialOrd for Node<N, T> {
-        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-            Some(self.cmp(other))
-        }
-    }
-
-    fn node<N: Ord, T: Eq>(
-        item: T,
-        value: N,
-        come_from: Option<T>,
-    ) -> Node<N, T> {
-        Node {
-            item,
-            value,
-            come_from,
-        }
-    }
-
-    let mut come_from = HashMap::default();
-
-    let mut open = BinaryHeap::new();
-    let cost0 = heuristic(&start);
-    open.push(node(start.clone(), cost0, None));
-
-    // Find shortest path.
-    let mut goal = loop {
-        if let Some(closest) = open.pop() {
-            if come_from.contains_key(&closest.item) {
-                // Already saw it through a presumably shorter path...
-                continue;
-            }
-
-            if let Some(from) = closest.come_from {
-                come_from.insert(closest.item.clone(), from);
-            }
-
-            if closest.value == N::zero() {
-                break Some(closest.item);
-            }
-
-            for item in neighbors(&closest.item) {
-                let already_seen =
-                    come_from.contains_key(&item) || item == start;
-                if already_seen {
-                    continue;
-                }
-                let dist = heuristic(&item);
-                open.push(node(item, dist, Some(closest.item.clone())));
-            }
-        } else {
-            break None;
-        }
-    };
-
-    // Extract path from the graph structure.
-    let mut path = Vec::new();
-    while let Some(x) = goal {
-        goal = come_from.remove(&x);
-        path.push(x);
-    }
-    // Remove starting point.
-    path.pop();
-
-    if path.is_empty() {
-        None
-    } else {
-        Some(path)
-    }
+    pathfinding::prelude::astar(
+        start,
+        |a| neighbors(a).into_iter().map(|c| (c, N::one())),
+        heuristic,
+        completed,
+    )
+    .map(|(path, _)| path)
 }
 
 /// Try to advance slice to next lexical permutation.

@@ -37,10 +37,11 @@ fn main() {
 
     let end = "e".to_string();
     let path = astar_search(
+        &input,
         |s| neighbors(&contractions, s).into_iter(),
-        |a| a.len() - end.len() + usize::from(*a != end),
-        input,
+        |a| a.len() - end.len(),
+        |a| *a == end,
     )
     .unwrap();
-    println!("{}", path.len());
+    println!("{}", path.len() - 1);
 }
