@@ -4,7 +4,7 @@ use std::fmt;
 #[derive(Clone, Debug)]
 struct Stacks(Vec<Vec<char>>);
 
-impl std::str::FromStr for Stacks {
+impl FromStr for Stacks {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {

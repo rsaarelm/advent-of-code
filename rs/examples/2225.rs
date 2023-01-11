@@ -1,5 +1,4 @@
-use core::fmt;
-use std::str::FromStr;
+use std::fmt;
 
 use aoc::prelude::*;
 

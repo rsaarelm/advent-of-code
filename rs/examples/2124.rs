@@ -1,5 +1,5 @@
 use aoc::prelude::*;
-use std::{fmt, str::FromStr};
+use std::fmt;
 
 // Length of digit-handling chunk in code.
 const CHUNK_LEN: usize = 18;

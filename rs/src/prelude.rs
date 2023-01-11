@@ -4,7 +4,6 @@ use std::{
     fmt::{Debug, Write},
     hash::Hash,
     io::{stdin, BufRead},
-    str::FromStr,
 };
 
 use glam::Mat3;
@@ -12,6 +11,7 @@ use lazy_static::lazy_static;
 pub use memoize::memoize;
 use num_traits::{One, Zero};
 use regex::Regex;
+pub use std::str::FromStr;
 
 // Faster hashmap and hashset implementations, no reason not to use these
 // everywhere when you don't care about DDOS.

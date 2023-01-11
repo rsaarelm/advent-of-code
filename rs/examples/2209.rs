@@ -1,6 +1,5 @@
 use aoc::prelude::*;
 use derive_deref::Deref;
-use std::str::FromStr;
 
 #[derive(Copy, Clone, Deref)]
 struct Dir(IVec2);

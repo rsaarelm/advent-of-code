@@ -1,6 +1,6 @@
 use aoc::prelude::*;
 use glam::IVec2;
-use std::{hash::Hash, str::FromStr};
+use std::hash::Hash;
 
 const BOUNDARY: u32 = 9;
 

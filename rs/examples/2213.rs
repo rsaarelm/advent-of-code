@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fmt, str::FromStr};
+use std::{cmp::Ordering, fmt};
 
 use aoc::prelude::*;
 use itertools::Itertools;

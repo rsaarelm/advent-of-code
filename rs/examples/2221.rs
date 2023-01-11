@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use aoc::prelude::*;
 use lazy_static::lazy_static;
 use regex::Regex;

@@ -1,6 +1,5 @@
 use aoc::prelude::*;
 use std::collections::VecDeque;
-use std::str::FromStr;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 struct GameState {

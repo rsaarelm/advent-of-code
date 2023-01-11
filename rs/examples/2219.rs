@@ -1,4 +1,4 @@
-use std::{collections::BinaryHeap, str::FromStr};
+use std::collections::BinaryHeap;
 
 use aoc::prelude::*;
 use rustc_hash::FxHashSet;
