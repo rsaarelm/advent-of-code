@@ -1,8 +1,7 @@
 run task:
     #!/usr/bin/env sh
     if [[ -z "${DEBUG}" ]]; then
-        cargo run --release --bin {{task}}
+        cargo run --release --example {{task}}
     else
-        cargo run --bin {{task}}
+        cargo run --example {{task}}
     fi
-
