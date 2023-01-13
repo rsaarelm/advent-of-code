@@ -1,38 +1,48 @@
 use aoc::prelude::*;
 
+fn press(
+    (bounds, grid): &(NRange<i32, 2>, Vec<char>),
+    prev: char,
+    code: &str,
+) -> char {
+    let prev_pos = grid.iter().position(|&p| p == prev).unwrap();
+    let mut pos: IVec2 = bounds.get(prev_pos).into();
+
+    for d in code.chars().map(|c| DIR_4["RDLU".find(c).unwrap()]) {
+        let p = bounds.clamp(pos + d);
+        if !grid[bounds.idx(p)].is_whitespace() {
+            pos = p;
+        }
+    }
+
+    grid[bounds.idx(pos)]
+}
+
 fn main() {
-    let input: Vec<Vec<IVec2>> = stdin_lines()
-        .map(|line| {
-            line.chars()
-                .map(|c| DIR_4["RDLU".find(c).unwrap()])
-                .collect()
-        })
-        .collect();
+    let input: Vec<String> = stdin_lines().collect();
 
-    // Part 1
-    let bounds = area(3, 3);
-    let mut pos = ivec2(1, 1);
+    let p1 = flatgrid(
+        "
+123
+456
+789",
+    );
 
-    for seq in &input {
-        for &step in seq {
-            pos = bounds.clamp(pos + step);
+    let p2 = flatgrid(
+        "
+  1
+ 234
+56789
+ ABC
+  D",
+    );
+
+    for pad in [p1, p2] {
+        let mut k = '5';
+        for line in &input {
+            k = press(&pad, k, line);
+            print!("{k}");
         }
-        print!("{}", bounds.index_of(pos) + 1);
+        println!();
     }
-    println!();
-
-    // Part 2
-    let mut pos = ivec2(-2, 0);
-    let bounds = area(5, 5) - ivec2(2, 2);
-    let pad = "  1   234 56789 ABC   D  ".as_bytes();
-
-    for seq in &input {
-        for &step in seq {
-            if (pos + step).taxi_len() <= 2 {
-                pos += step;
-            }
-        }
-        print!("{}", pad[bounds.index_of(pos)] as char);
-    }
-    println!();
 }

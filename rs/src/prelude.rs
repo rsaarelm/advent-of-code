@@ -395,6 +395,51 @@ impl<T: Default + Clone, G: Grid<Item = T>> Grid for InfiniteGrid<G> {
     }
 }
 
+/// Convert a string into a flattened rectangular array, return that and the
+/// computed bounding box.
+///
+/// Will skip initial blank lines so that you can write multiline string
+/// literals with indentation on the first line without having the double
+/// quotes breaking up the first line. Trailing whitespace is omitted from
+/// individual lines and from the input as a whole. Area beyond the lines is
+/// filled with ASCII spaces `'\u{0020}'`.
+///
+/// ```
+/// # use aoc::prelude::*;
+///
+/// let (range, grid) = flatgrid("
+///  a
+/// bcd
+///  e");
+/// assert_eq!(range, area(3, 3));
+/// ```
+pub fn flatgrid(s: impl AsRef<str>) -> (NRange<i32, 2>, Vec<char>) {
+    let s = s.as_ref().trim_end();
+    let mut w = 0;
+    let mut h = 0;
+    let mut seen_content = false;
+    let mut initial_blank_lines = 0;
+    for line in s.lines() {
+        if !seen_content && line.trim().is_empty() {
+            initial_blank_lines += 1;
+        } else {
+            seen_content = true;
+        }
+
+        w = w.max(line.trim_end().len());
+        h += 1;
+    }
+    let h = h - initial_blank_lines;
+    let mut ret = vec![' '; w * h];
+    let bounds = area(w as i32, h as i32);
+    for (y, line) in s.lines().skip(initial_blank_lines).enumerate() {
+        for (x, c) in line.trim_end().chars().enumerate() {
+            ret[bounds.idx(ivec2(x as i32, y as i32))] = c;
+        }
+    }
+    (bounds, ret)
+}
+
 /// Generate a shortest paths map on a grid according to a neighbors function.
 pub fn dijkstra_map<'a, T, I>(
     neighbors: impl Fn(&T) -> I + 'a,
