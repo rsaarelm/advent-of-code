@@ -214,6 +214,19 @@ impl<T: Element, const N: usize> NRange<T, N> {
         ret
     }
 
+    /// Clamp each coordinate of input point to be within the bounds.
+    pub fn clamp<E: Into<[T; N]> + From<[T; N]>>(&self, e: E) -> E {
+        let mut p = e.into();
+        for i in 0..N {
+            if p[i] < self.p0[i] {
+                p[i] = self.p0[i];
+            } else if p[i] >= self.p1[i] {
+                p[i] = self.p1[i] - T::one();
+            }
+        }
+        E::from(p)
+    }
+
     /// Return the n-range of the intersection of `self` and `rhs`.
     pub fn intersection(&self, rhs: &Self) -> Self {
         NRange::new(
