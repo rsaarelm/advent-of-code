@@ -33,7 +33,7 @@ impl Default for Maze {
 impl Maze {
     fn neighbors<'a>(&'a self, p: &IVec2) -> impl Iterator<Item = IVec2> + 'a {
         neighbors_4(*p).filter(|&p| {
-            self.bounds.contains(p) && !self.cells[self.bounds.index_of(p)]
+            self.bounds.contains(p) && !self.cells[self.bounds.idx(p)]
         })
     }
 
@@ -50,7 +50,7 @@ impl Maze {
         for y in 0..self.bounds.height() {
             for x in 0..self.bounds.width() {
                 let pos = ivec2(x, y);
-                let c = self.cells[self.bounds.index_of(pos)];
+                let c = self.cells[self.bounds.idx(pos)];
                 let pathed = path.contains(&pos);
                 assert!(!(c && pathed));
                 if pathed {

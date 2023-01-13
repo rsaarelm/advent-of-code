@@ -21,7 +21,7 @@ impl Valley {
         ts.xy() == self.start()
             || ts.xy() == self.end()
             || self.bounds.contains(ts * ivec3(1, 1, 0))
-                && !self.blizzards[self.bounds.index_of(p)]
+                && !self.blizzards[self.bounds.idx(p)]
     }
 
     /// Search using 3D space-time coordinates.
@@ -82,7 +82,7 @@ impl FromStr for Valley {
         for z in 0..bounds.depth() {
             for (p, v) in &seeds {
                 let p = bounds.mod_proj((*p + *v * z).extend(z));
-                blizzards.set(bounds.index_of(p), true);
+                blizzards.set(bounds.idx(p), true);
             }
         }
 

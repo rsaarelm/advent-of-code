@@ -63,7 +63,7 @@ fn main() {
 
     for (op, range) in &ops {
         for p in *range {
-            let i = bounds.index_of(p);
+            let i = bounds.idx(p);
             grid_1[i] = op.p1(grid_1[i]);
             grid_2[i] = op.p2(grid_2[i]);
         }

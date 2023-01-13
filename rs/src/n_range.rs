@@ -299,7 +299,7 @@ impl<T, const N: usize> NRange<T, N>
 where
     T: Element + Euclid + TryInto<usize> + TryFrom<usize>,
 {
-    pub fn index_of(&self, p: impl Into<[T; N]>) -> usize {
+    pub fn idx(&self, p: impl Into<[T; N]>) -> usize {
         let p = p.into();
 
         let size: [T; N] = self.dim();
@@ -492,11 +492,11 @@ mod tests {
         let bounds: NRange<i32, 3> = NRange::new([1, 2, 3], [4, 5, 6]);
 
         for (i, p) in bounds.into_iter().enumerate() {
-            eprintln!("{i} {p:?}, {}", bounds.index_of(p));
+            eprintln!("{i} {p:?}, {}", bounds.idx(p));
             if i == 0 {
                 assert_eq!(p, [1, 2, 3]);
             }
-            assert_eq!(i, bounds.index_of(p));
+            assert_eq!(i, bounds.idx(p));
             assert_eq!(bounds.get(i), p);
         }
     }
