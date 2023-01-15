@@ -492,7 +492,6 @@ mod tests {
         let bounds: NRange<i32, 3> = NRange::new([1, 2, 3], [4, 5, 6]);
 
         for (i, p) in bounds.into_iter().enumerate() {
-            eprintln!("{i} {p:?}, {}", bounds.idx(p));
             if i == 0 {
                 assert_eq!(p, [1, 2, 3]);
             }
