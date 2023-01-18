@@ -576,6 +576,22 @@ pub fn next_prefix_permutation(
     next_permutation(perm)
 }
 
+/// Produce a histogram of repeated occurrences in input, sorted by most
+/// common element first and by element value on ties.
+pub fn histogram<T: Clone + Eq + Hash + Ord>(
+    input: impl IntoIterator<Item = T>,
+) -> impl Iterator<Item = (T, usize)> {
+    let mut hist: HashMap<T, usize> = HashMap::default();
+
+    for i in input.into_iter() {
+        *hist.entry(i).or_default() += 1;
+    }
+
+    let mut hist: Vec<(T, usize)> = hist.into_iter().collect();
+    hist.sort_by_key(|(t, n)| (usize::MAX - *n, t.clone()));
+    hist.into_iter()
+}
+
 pub trait RegexParseable: Sized {
     type Error;
 
