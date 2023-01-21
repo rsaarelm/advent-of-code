@@ -148,6 +148,7 @@ where
     })
 }
 
+// Soft-deprecated by stdin_flatgrid.
 pub fn stdin_grid() -> (usize, usize, Vec<Vec<char>>) {
     let mut grid: Vec<Vec<char>> = stdin_lines()
         .filter_map(|line| {
@@ -438,6 +439,10 @@ pub fn flatgrid(s: impl AsRef<str>) -> (NRange<i32, 2>, Vec<char>) {
         }
     }
     (bounds, ret)
+}
+
+pub fn stdin_flatgrid() -> (NRange<i32, 2>, Vec<char>) {
+    flatgrid(stdin_string())
 }
 
 /// Generate a shortest paths map on a grid according to a neighbors function.
