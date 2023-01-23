@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use lazy_static::lazy_static;
 use rustc_hash::FxHashMap as HashMap;
 
-pub type PointCloud = BTreeSet<(i32, i32)>;
+pub type PointCloud = BTreeSet<[i32; 2]>;
 
 lazy_static! {
     static ref LETTERS: HashMap<PointCloud, char> = {
@@ -317,12 +317,12 @@ impl Shape {
         let mut edge = vec![seed];
         let mut points = PointCloud::new();
 
-        let mut min_x = seed.0;
-        let mut min_y = seed.1;
+        let mut min_x = seed[0];
+        let mut min_y = seed[1];
 
-        while let Some((x, y)) = edge.pop() {
-            points.insert((x, y));
-            cloud.remove(&(x, y));
+        while let Some([x, y]) = edge.pop() {
+            points.insert([x, y]);
+            cloud.remove(&[x, y]);
 
             min_x = min_x.min(x);
             min_y = min_y.min(y);
@@ -333,7 +333,7 @@ impl Shape {
                         continue;
                     }
 
-                    let p = (x + u, y + v);
+                    let p = [x + u, y + v];
                     if cloud.contains(&p) && !points.contains(&p) {
                         edge.push(p);
                     }
@@ -344,7 +344,7 @@ impl Shape {
         let offset = (min_x, min_y);
         points = points
             .into_iter()
-            .map(|(x, y)| (x - min_x, y - min_y))
+            .map(|[x, y]| [x - min_x, y - min_y])
             .collect();
 
         Some(Shape { offset, points })
@@ -352,7 +352,7 @@ impl Shape {
 }
 
 pub fn ocr<'a>(
-    input: impl IntoIterator<Item = &'a (i32, i32)>,
+    input: impl IntoIterator<Item = &'a [i32; 2]>,
 ) -> Option<String> {
     let mut cloud: PointCloud = input.into_iter().copied().collect();
 
@@ -376,7 +376,7 @@ pub fn ocr<'a>(
 pub fn points<T, I>(input: &str) -> T
 where
     T: FromIterator<I>,
-    I: From<(i32, i32)>,
+    I: From<[i32; 2]>,
 {
     // NB. Does not check bounding box, make sure to snap input to x and y
     // axes.
@@ -386,7 +386,7 @@ where
         .flat_map(|(y, line)| {
             line.chars().enumerate().filter_map(move |(x, c)| {
                 if c != '.' && !c.is_whitespace() {
-                    Some(I::from((x as i32, y as i32)))
+                    Some(I::from([x as i32, y as i32]))
                 } else {
                     None
                 }

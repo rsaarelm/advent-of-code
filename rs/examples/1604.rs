@@ -14,11 +14,10 @@ fn main() {
 
     let mut sum = 0;
     for (room, sector, checksum) in &input {
-        let mut commons: String =
-            histogram(room.iter().flat_map(|c| c.chars()))
-                .take(5)
-                .map(|(c, _)| c)
-                .collect();
+        let commons: String = histogram(room.iter().flat_map(|c| c.chars()))
+            .take(5)
+            .map(|(c, _)| c)
+            .collect();
         if checksum == &commons {
             sum += sector;
         }
@@ -27,11 +26,10 @@ fn main() {
     println!("{sum}");
 
     for (room, sector, checksum) in &input {
-        let mut commons: String =
-            histogram(room.iter().flat_map(|c| c.chars()))
-                .take(5)
-                .map(|(c, _)| c)
-                .collect();
+        let commons: String = histogram(room.iter().flat_map(|c| c.chars()))
+            .take(5)
+            .map(|(c, _)| c)
+            .collect();
         if checksum == &commons {
             for word in room {
                 let word: String = word

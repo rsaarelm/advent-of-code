@@ -65,13 +65,13 @@ fn main() {
 
     // Part 2
 
-    let pixels: HashSet<(i32, i32)> = signals
+    let pixels: HashSet<[i32; 2]> = signals
         .iter()
         .enumerate()
         .filter_map(|(i, pos)| {
             let (x, y) =
                 ((i % DISPLAY_WIDTH) as i32, (i / DISPLAY_WIDTH) as i32);
-            ((pos - x).abs() <= 1).then_some((x, y))
+            ((pos - x).abs() <= 1).then_some([x, y])
         })
         .collect();
 
@@ -85,7 +85,7 @@ fn main() {
 
     for y in 0..DISPLAY_HEIGHT {
         for x in 0..DISPLAY_WIDTH {
-            if pixels.contains(&(x as i32, y as i32)) {
+            if pixels.contains(&[x as i32, y as i32]) {
                 eprint!("#");
             } else {
                 eprint!(".");
