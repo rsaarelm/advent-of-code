@@ -238,6 +238,16 @@ where
     elts.as_slice().try_into().unwrap()
 }
 
+pub fn to_array<T, const N: usize>(
+    input: impl IntoIterator<Item = T>,
+) -> [T; N] {
+    input
+        .into_iter()
+        .collect::<Vec<T>>()
+        .try_into()
+        .unwrap_or_else(|_| panic!("fail"))
+}
+
 pub fn to_ivec2s(
     mut input: impl Iterator<Item = i32>,
 ) -> impl Iterator<Item = IVec2> {
