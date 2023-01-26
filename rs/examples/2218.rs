@@ -34,7 +34,7 @@ fn main() {
                 }
             })
         },
-        bounds.min().into(),
+        &bounds.min().into(),
     )
     .map(|(n, _)| n)
     .collect();

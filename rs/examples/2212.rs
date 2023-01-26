@@ -50,7 +50,7 @@ fn main() {
                     .then_some(b)
             })
         },
-        end,
+        &end,
     )
     .collect();
 

@@ -39,8 +39,7 @@ fn main() {
     let mut dist = vec![vec![0; indices.len()]; indices.len()];
     for node in raw_rates.keys().chain(Some(&"AA".to_string())) {
         let n_i = indices.iter().position(|a| a == node).unwrap();
-        for (p, d) in
-            dijkstra_map(|node| raw_links[node].iter().cloned(), node.clone())
+        for (p, d) in dijkstra_map(|node| raw_links[node].iter().cloned(), node)
         {
             if raw_rates.contains_key(&p) {
                 let p_i = indices.iter().position(|a| a == &p).unwrap();

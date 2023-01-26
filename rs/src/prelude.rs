@@ -458,14 +458,14 @@ pub fn stdin_flatgrid() -> (NRange<i32, 2>, Vec<char>) {
 /// Generate a shortest paths map on a grid according to a neighbors function.
 pub fn dijkstra_map<'a, T, I>(
     neighbors: impl Fn(&T) -> I + 'a,
-    start: T,
+    start: &T,
 ) -> impl Iterator<Item = (T, usize)> + 'a
 where
     T: Clone + Eq + Hash + 'a,
-    I: Iterator<Item = T>,
+    I: IntoIterator<Item = T>,
 {
     let mut seen = HashSet::default();
-    let mut edge = VecDeque::from([(start, 0)]);
+    let mut edge = VecDeque::from([(start.clone(), 0)]);
     std::iter::from_fn(move || {
         // Candidates are in a queue and consumed first-in, first-out. This
         // should guarantee that the first time a node is popped from the queue
@@ -474,7 +474,7 @@ where
         while let Some((node, len)) = edge.pop_front() {
             if !seen.contains(&node) {
                 seen.insert(node.clone());
-                for n in neighbors(&node) {
+                for n in neighbors(&node).into_iter() {
                     edge.push_back((n, len + 1));
                 }
                 return Some((node, len));
