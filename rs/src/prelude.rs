@@ -271,7 +271,7 @@ pub fn hex_to_bytes(hex: impl AsRef<str>) -> Vec<u8> {
 pub fn bytes_to_hex(digest: &[u8]) -> String {
     let mut ret = String::new();
     for b in digest {
-        write!(&mut ret, "{b:02X}").unwrap();
+        write!(&mut ret, "{b:02x}").unwrap();
     }
     ret
 }
