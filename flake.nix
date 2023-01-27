@@ -65,6 +65,9 @@
 
               # Zig
               # zig
+
+              # Idris
+              idris2
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
             RUST_BACKTRACE = "1";
