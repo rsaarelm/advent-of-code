@@ -46,24 +46,15 @@ def input_files(day: str) -> Iterable[Tuple[str, Optional[str]]]:
             yield (f, None)
 
 
-def clean_item(item: str) -> Union[int, str]:
-    ret: Union[int, str] = item.strip()
-    try:
-        ret = int(item)
-    except ValueError:
-        pass
-    return ret
-
-
 def parse_output(
     output: str,
-) -> Tuple[Union[int, str], Optional[Union[int, str]]]:
+) -> Tuple[str, Optional[str]]:
     output = output.strip()
     if not output:
         die("No output produced")
 
     # Expecting one or two integers
-    results = [clean_item(item) for item in output.split("\n")]
+    results = [item.strip() for item in output.split("\n")]
     if len(results) == 1:
         return (results[0], None)
     elif len(results) == 2:
@@ -74,7 +65,7 @@ def parse_output(
 
 def run_input(
     lang: str, prog: str, input: IO
-) -> Tuple[Union[int, str], Optional[Union[int, str]]]:
+) -> Tuple[str, Optional[str]]:
     result = subprocess.run(
         ["just", "run", prog],
         cwd="%s/" % lang,
@@ -90,7 +81,7 @@ def run_input(
         return die("\x1b[1;31minvalid output\x1b[0m\n%s" % result.stdout)
 
 
-def expected_output(input_path: str) -> Tuple[Optional[int], Optional[int]]:
+def expected_output(input_path: str) -> Tuple[Optional[str], Optional[str]]:
     base, _ = os.path.splitext(input_path)
     output = base + ".out"
     if not os.path.exists(output):
@@ -106,7 +97,7 @@ def expected_output(input_path: str) -> Tuple[Optional[int], Optional[int]]:
     return parse_output(text)
 
 
-def process_value(value: int, expected: Optional[int]):
+def process_value(value: str, expected: Optional[str]):
     """Either print or test value."""
     if expected is None:
         if sys.stdout.isatty():
