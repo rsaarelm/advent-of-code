@@ -52,7 +52,7 @@ pub fn md5sum(input: &[u8]) -> [u8; 16] {
 
     // Pad message so that it ends up 8 bytes away from a 64 byte boundary.
     // All messages must have nonzero padding.
-    let padding_needed = 65 - ((input.len() + 9) % 64);
+    let padding_needed = 64 - ((input.len() + 8) % 64);
 
     let padded_input = input
         .iter()
@@ -126,6 +126,11 @@ mod test {
         assert_eq!(
             md5sum("The quick brown fox jumps over the lazy dog".as_bytes()),
             hex_to_bytes("9e107d9d372bb6826bd81d3542a419d6")[..]
+        );
+
+        assert_eq!(
+            md5sum("Lorem ipsum dolor sit amet, consectetur adipiscing elit".as_bytes()),
+            hex_to_bytes("fc10a08df7fafa3871166646609e1c95")[..]
         );
     }
 }
