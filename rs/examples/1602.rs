@@ -21,14 +21,14 @@ fn press(
 fn main() {
     let input: Vec<String> = stdin_lines().collect();
 
-    let p1 = flatgrid(
+    let p1 = grid(
         "
 123
 456
 789",
     );
 
-    let p2 = flatgrid(
+    let p2 = grid(
         "
   1
  234

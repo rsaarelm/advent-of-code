@@ -129,7 +129,10 @@ mod test {
         );
 
         assert_eq!(
-            md5sum("Lorem ipsum dolor sit amet, consectetur adipiscing elit".as_bytes()),
+            md5sum(
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+                    .as_bytes()
+            ),
             hex_to_bytes("fc10a08df7fafa3871166646609e1c95")[..]
         );
     }

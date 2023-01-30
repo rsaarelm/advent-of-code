@@ -1,7 +1,7 @@
 use aoc::prelude::*;
 
 fn main() {
-    let (bounds, buf) = stdin_flatgrid();
+    let (bounds, buf) = stdin_grid();
 
     for x in 0..bounds.width() {
         print!(

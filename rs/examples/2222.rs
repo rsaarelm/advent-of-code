@@ -5,29 +5,26 @@ fn main() {
     const VOID: char = '\0';
     debug_assert!(VOID == char::default());
 
-    let (w, h, mut grid) = stdin_grid();
+    let (bounds, mut grid) = stdin_grid();
     // Extract instructions, remove them from grid data.
-    let code: String = grid[grid.len() - 1]
-        .iter()
+    let code: String = (0..bounds.width())
+        .map(|x| grid[bounds.idx([x, bounds.height() - 1])])
         .filter(|c| !c.is_whitespace())
         .collect();
-    let h = h - 1;
-    grid.truncate(grid.len() - 1);
+    let bounds = area(bounds.width(), bounds.height() - 2);
 
     // Turn spaces into Default chars.
-    for line in grid.iter_mut() {
-        for c in line.iter_mut() {
-            if *c == ' ' {
-                *c = VOID;
-            }
+    for c in grid.iter_mut() {
+        if *c == ' ' {
+            *c = VOID;
         }
     }
 
     // Assume cube faces are square, determine cube size.
     let s = f64::sqrt(
-        (area(w as i32, h as i32)
+        (bounds
             .into_iter()
-            .filter(|p| grid.get(*p) != VOID)
+            .filter(|&p| grid[bounds.idx(p)] != VOID)
             .count()
             / 6) as _,
     ) as i32;
@@ -36,13 +33,10 @@ fn main() {
     let face = ivec2(
         (0..)
             .step_by(s as usize)
-            .find(|x| grid.get(ivec2(*x, 0)) != VOID)
+            .find(|x| grid[bounds.idx([*x, 0])] != VOID)
             .unwrap(),
         0,
     );
-
-    // Corner cases b gone
-    let grid = InfiniteGrid(grid);
 
     let mut walk = Vec::new();
     let mut acc = 0;
@@ -79,14 +73,14 @@ fn main() {
         for _ in 0..n {
             let mut p2 = pos + vec;
 
-            while grid.get(p2) == VOID {
+            while grid[bounds.idx(p2)] == VOID {
                 // Walked off space, do a loop.
                 p2 += vec;
-                p2.x = p2.x.rem_euclid(w as i32);
-                p2.y = p2.y.rem_euclid(h as i32);
+                p2.x = p2.x.rem_euclid(bounds.width());
+                p2.y = p2.y.rem_euclid(bounds.height());
             }
 
-            if grid.get(p2) == '#' {
+            if grid[bounds.idx(p2)] == '#' {
                 break;
             } else {
                 pos = p2;
@@ -111,7 +105,7 @@ fn main() {
         for [x, y] in area(s, s) {
             let chart_pos = face + ivec2(x, y);
 
-            let c = grid.get(chart_pos);
+            let c = grid[bounds.idx(chart_pos)];
             debug_assert!(c != VOID);
 
             // Project to (slightly above) unit cube surface.
@@ -142,7 +136,10 @@ fn main() {
         // track of the 3D space frame.
         for dir in 0..4 {
             let f = face + DIR_4[dir] * s;
-            if grid.get(f) != VOID && !visited_faces.contains(&f) {
+            if bounds.contains(f)
+                && grid[bounds.idx(f)] != VOID
+                && !visited_faces.contains(&f)
+            {
                 visited_faces.insert(f);
                 face_stack.push((f, m * ROT_XY[dir]));
             }
@@ -187,7 +184,7 @@ fn main() {
                 debug_assert!(cube_chart.contains_key(&p2));
             }
 
-            if grid.get(cube_chart[&p2]) == '#' {
+            if grid[bounds.idx(cube_chart[&p2])] == '#' {
                 break;
             } else {
                 pos = p2;

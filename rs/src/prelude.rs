@@ -148,43 +148,6 @@ where
     })
 }
 
-// Soft-deprecated by stdin_flatgrid.
-pub fn stdin_grid() -> (usize, usize, Vec<Vec<char>>) {
-    let mut grid: Vec<Vec<char>> = stdin_lines()
-        .filter_map(|line| {
-            let line = line.trim_end();
-            if !line.is_empty() {
-                Some(line.chars().collect())
-            } else {
-                None
-            }
-        })
-        .collect();
-    let w = grid.iter().map(|line| line.len()).max().unwrap_or(0);
-    let h = grid.len();
-
-    // Make sure the right edge is uniform.
-    for line in grid.iter_mut() {
-        while line.len() < w {
-            line.push(' ');
-        }
-    }
-
-    (w, h, grid)
-}
-
-pub fn stdin_grid_into<T: From<char>>() -> (usize, usize, Vec<Vec<T>>) {
-    let (w, h, grid) = stdin_grid();
-
-    (
-        w,
-        h,
-        grid.into_iter()
-            .map(|line| line.into_iter().map(T::from).collect())
-            .collect(),
-    )
-}
-
 pub fn stdin_grid_iter() -> impl Iterator<Item = ([i32; 2], char)> {
     let mut x = 0;
     let mut y = 0;
@@ -352,60 +315,6 @@ impl<N: Ord + Eq + Clone> SetUtil for BTreeSet<N> {
     }
 }
 
-pub trait Grid {
-    type Item;
-    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item;
-    fn dim(&self) -> IVec2 {
-        // Default to infinite grid with no meaningful dim value.
-        ivec2(-1, -1)
-    }
-
-    fn contains(&self, pos: impl Into<[i32; 2]>) -> bool {
-        let pos = pos.into();
-        let pos = IVec2::from(pos);
-
-        let dim = self.dim();
-        // Magic value for infinite grid.
-        if dim == ivec2(-1, -1) {
-            true
-        } else {
-            pos.cmpge(IVec2::ZERO).all() && pos.cmplt(self.dim()).all()
-        }
-    }
-}
-
-impl<T: Clone> Grid for Vec<Vec<T>> {
-    type Item = T;
-
-    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item {
-        let [x, y] = pos.into();
-        self[y as usize][x as usize].clone()
-    }
-
-    fn dim(&self) -> IVec2 {
-        if self.is_empty() {
-            ivec2(0, 0)
-        } else {
-            ivec2(self[0].len() as i32, self.len() as i32)
-        }
-    }
-}
-
-pub struct InfiniteGrid<G>(pub G);
-
-impl<T: Default + Clone, G: Grid<Item = T>> Grid for InfiniteGrid<G> {
-    type Item = T;
-
-    fn get(&self, pos: impl Into<[i32; 2]>) -> Self::Item {
-        let pos = pos.into();
-        if self.0.contains(pos) {
-            self.0.get(pos)
-        } else {
-            T::default()
-        }
-    }
-}
-
 /// Convert a string into a flattened rectangular array, return that and the
 /// computed bounding box.
 ///
@@ -418,13 +327,13 @@ impl<T: Default + Clone, G: Grid<Item = T>> Grid for InfiniteGrid<G> {
 /// ```
 /// # use aoc::prelude::*;
 ///
-/// let (range, grid) = flatgrid("
+/// let (range, grid) = grid("
 ///  a
 /// bcd
 ///  e");
 /// assert_eq!(range, area(3, 3));
 /// ```
-pub fn flatgrid(s: impl AsRef<str>) -> (NRange<i32, 2>, Vec<char>) {
+pub fn grid(s: impl AsRef<str>) -> (NRange<i32, 2>, Vec<char>) {
     let s = s.as_ref().trim_end();
     let mut w = 0;
     let mut h = 0;
@@ -451,8 +360,8 @@ pub fn flatgrid(s: impl AsRef<str>) -> (NRange<i32, 2>, Vec<char>) {
     (bounds, ret)
 }
 
-pub fn stdin_flatgrid() -> (NRange<i32, 2>, Vec<char>) {
-    flatgrid(stdin_string())
+pub fn stdin_grid() -> (NRange<i32, 2>, Vec<char>) {
+    grid(stdin_string())
 }
 
 /// Generate a shortest paths map on a grid according to a neighbors function.

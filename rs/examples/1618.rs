@@ -30,9 +30,6 @@ fn main() {
             ret
         });
 
-        println!(
-            "{}",
-            safe_spots.take(y).map(u128::count_ones).sum::<u32>()
-        );
+        println!("{}", safe_spots.take(y).map(u128::count_ones).sum::<u32>());
     }
 }

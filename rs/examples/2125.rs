@@ -13,19 +13,21 @@ use aoc::prelude::*;
 // field::verticals() -> south facing
 
 fn main() {
-    let (w, h, mut grid) = stdin_grid();
+    let (bounds, mut grid) = stdin_grid();
 
     for i in 0.. {
         let mut moves = 0;
         let mut grid2 = grid.clone();
 
         // Horizontals
-        for [x, y] in area(w, h) {
-            let x2 = (x + 1) % w;
-            if grid[y][x] == '>' && grid[y][x2] == '.' {
+        for p in bounds {
+            let p = IVec2::from(p);
+            if grid[bounds.idx(p)] == '>'
+                && grid[bounds.idx(p + ivec2(1, 0))] == '.'
+            {
                 moves += 1;
-                grid2[y][x] = '.';
-                grid2[y][x2] = '>';
+                grid2[bounds.idx(p)] = '.';
+                grid2[bounds.idx(p + ivec2(1, 0))] = '>';
             }
         }
 
@@ -33,12 +35,14 @@ fn main() {
         grid2 = grid.clone();
 
         // Verticals
-        for [x, y] in area(w, h) {
-            let y2 = (y + 1) % h;
-            if grid[y][x] == 'v' && grid[y2][x] == '.' {
+        for p in bounds {
+            let p = IVec2::from(p);
+            if grid[bounds.idx(p)] == 'v'
+                && grid[bounds.idx(p + ivec2(0, 1))] == '.'
+            {
                 moves += 1;
-                grid2[y][x] = '.';
-                grid2[y2][x] = 'v';
+                grid2[bounds.idx(p)] = '.';
+                grid2[bounds.idx(p + ivec2(0, 1))] = 'v';
             }
         }
 

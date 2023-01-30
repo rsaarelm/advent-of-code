@@ -17,36 +17,36 @@ impl Terrain for char {
 }
 
 fn main() {
-    let map = stdin_grid().2;
+    let (bounds, map) = stdin_grid();
 
     let mut map_start = Default::default();
     let mut starts = Vec::new();
     let mut end = Default::default();
 
-    for (y, line) in map.iter().enumerate() {
-        for (x, t) in line.iter().enumerate() {
-            let pos = ivec2(x as i32, y as i32);
-            if t.height() == 0 {
-                starts.push(ivec2(x as i32, y as i32));
-            }
-            if *t == 'S' {
-                map_start = pos;
-            } else if *t == 'E' {
-                end = pos;
-            }
+    for pos in bounds {
+        let pos = IVec2::from(pos);
+        let t = map[bounds.idx(pos)];
+        if t.height() == 0 {
+            starts.push(pos);
+        }
+        if t == 'S' {
+            map_start = pos;
+        } else if t == 'E' {
+            end = pos;
         }
     }
 
     // Generate path costs backwards from the end point.
     let routes: HashMap<IVec2, usize> = dijkstra_map(
         |&a| {
-            let dest_height = map.get(a).height();
+            let dest_height = map[bounds.idx(a)].height();
             // Make a reference that can be moved to the closure below without
             // consuming the main map.
             let map = &map;
             DIR_4.iter().filter_map(move |&d| {
                 let b = a + d;
-                (map.contains(b) && map.get(b).height() + 1 >= dest_height)
+                (bounds.contains(b)
+                    && map[bounds.idx(b)].height() + 1 >= dest_height)
                     .then_some(b)
             })
         },
