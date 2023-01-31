@@ -1,17 +1,5 @@
 use aoc::prelude::*;
 
-// Concepts
-//
-// Point on playing field
-// field.right(point) -> point
-// field.down(point) -> point
-//
-// because we need to know the varying widths for looping
-// but points can also be flat now since pitch is also a thing
-//
-// field::horizontals() -> east facing
-// field::verticals() -> south facing
-
 fn main() {
     let (bounds, mut grid) = stdin_grid();
 
