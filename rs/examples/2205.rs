@@ -1,5 +1,6 @@
-use aoc::prelude::*;
 use std::fmt;
+
+use aoc::prelude::*;
 
 #[derive(Clone, Debug)]
 struct Stacks(Vec<Vec<char>>);
