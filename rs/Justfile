@@ -5,3 +5,7 @@ run task:
     else
         cargo run --example {{task}}
     fi
+
+test:
+    cargo test
+    cargo test --examples

@@ -355,7 +355,7 @@ mod tests {
     use super::*;
 
     fn prog() -> Vec<Op> {
-        include_str!("../../test/2124.txt")
+        include_str!("../test/2124.txt")
             .lines()
             .map(|c| c.parse().unwrap())
             .collect()
