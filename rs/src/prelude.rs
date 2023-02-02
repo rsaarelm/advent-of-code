@@ -393,6 +393,17 @@ where
     })
 }
 
+pub fn grid_astar<I>(
+    start: &IVec2,
+    end: &IVec2,
+    neighbors: impl Fn(&IVec2) -> I,
+) -> Option<Vec<IVec2>>
+where
+    I: IntoIterator<Item = IVec2>,
+{
+    astar_search(start, neighbors, |n| (*n - *end).chess_len(), |n| n == end)
+}
+
 /// Steer towards target using `heuristic` from `start`. Returns path
 /// including both start and end positions. If heuristic never overestimates
 /// the steps to reach goal, will return an optimal path.
@@ -642,19 +653,29 @@ impl Operator {
 }
 
 pub trait VecExt {
-    /// Vector length in Manhattan metric.
+    /// Vector length in taxicab metric.
     fn taxi_len(self) -> i32;
+    /// Vector length in chessboard metric.
+    fn chess_len(self) -> i32;
 }
 
 impl VecExt for IVec2 {
     fn taxi_len(self) -> i32 {
         self.x.abs() + self.y.abs()
     }
+
+    fn chess_len(self) -> i32 {
+        self.x.abs().max(self.y.abs())
+    }
 }
 
 impl VecExt for IVec3 {
     fn taxi_len(self) -> i32 {
         self.x.abs() + self.y.abs() + self.z.abs()
+    }
+
+    fn chess_len(self) -> i32 {
+        self.x.abs().max(self.y.abs()).max(self.z.abs())
     }
 }
 
