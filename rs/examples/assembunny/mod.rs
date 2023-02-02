@@ -43,6 +43,7 @@ enum Opcode {
     Inc(char),
     Dec(char),
     Tgl(char),
+    Out(Operand),
 }
 
 use Opcode::*;
@@ -55,7 +56,58 @@ impl Opcode {
             Inc(a) => Dec(*a),
             Dec(a) => Inc(*a),
             Tgl(a) => Inc(*a),
+            Out(a) => Out(*a),
         }
+    }
+}
+
+pub struct Cpu<'a> {
+    pc: i32,
+    regs: [i32; 4],
+    prog: &'a mut Program,
+}
+
+impl<'a> Cpu<'a> {
+    pub fn new(prog: &'a mut Program, regs: [i32; 4]) -> Self {
+        Cpu { pc: 0, regs, prog }
+    }
+
+    pub fn run(&mut self) {
+        for _ in self {}
+    }
+}
+
+impl<'a> Iterator for Cpu<'a> {
+    type Item = Option<i32>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pc < 0 || self.pc >= self.prog.0.len() as i32 {
+            return None;
+        }
+
+        self.pc += 1;
+        match self.prog.0[(self.pc - 1) as usize] {
+            Cpy(_, Int(_)) => {}
+            Cpy(a, Reg(b)) => self.regs[reg(b)] = a.val(&self.regs),
+            Jnz(a, b) => {
+                if a.val(&self.regs) != 0 {
+                    self.pc += b.val(&self.regs) - 1;
+                }
+            }
+            Inc(a) => self.regs[reg(a)] += 1,
+            Dec(a) => self.regs[reg(a)] -= 1,
+            Tgl(a) => {
+                let i = self.pc + self.regs[reg(a)] - 1;
+                if i >= 0 && i < self.prog.0.len() as i32 {
+                    Opcode::toggle(&mut self.prog.0[i as usize]);
+                }
+            }
+            Out(a) => {
+                return Some(Some(a.val(&self.regs)));
+            }
+        }
+
+        Some(None)
     }
 }
 
@@ -64,29 +116,8 @@ pub struct Program(Vec<Opcode>);
 
 impl Program {
     pub fn run(&mut self, regs: &mut [i32; 4]) {
-        let mut pc = 0;
-        let prog = &mut self.0;
-
-        while pc >= 0 && pc < prog.len() as i32 {
-            match prog[pc as usize] {
-                Cpy(_, Int(_)) => {}
-                Cpy(a, Reg(b)) => regs[reg(b)] = a.val(&regs),
-                Jnz(a, b) => {
-                    if a.val(&regs) != 0 {
-                        pc += b.val(&regs);
-                        continue;
-                    }
-                }
-                Inc(a) => regs[reg(a)] += 1,
-                Dec(a) => regs[reg(a)] -= 1,
-                Tgl(a) => {
-                    let i = pc + regs[reg(a)];
-                    if i >= 0 && i < prog.len() as i32 {
-                        Opcode::toggle(&mut prog[i as usize]);
-                    }
-                }
-            }
-            pc += 1;
-        }
+        let mut cpu = Cpu::new(self, *regs);
+        cpu.run();
+        *regs = cpu.regs;
     }
 }
