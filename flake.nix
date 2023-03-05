@@ -68,6 +68,9 @@
 
               # Idris
               idris2
+
+              # Nushell
+              nushell
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
             RUST_BACKTRACE = "1";
