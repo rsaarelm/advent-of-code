@@ -54,7 +54,7 @@ fn main() {
             .try_into()
             .unwrap();
 
-        ops.push((op, NRange::from_points_inclusive([a, b])));
+        ops.push((op, Rect::from_points_inclusive([a, b])));
     }
 
     let bounds = volume([1000, 1000]);

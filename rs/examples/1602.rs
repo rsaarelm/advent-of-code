@@ -1,7 +1,7 @@
 use aoc::prelude::*;
 
 fn press(
-    (bounds, grid): &(NRange<i32, 2>, Vec<char>),
+    (bounds, grid): &(Rect<i32>, Vec<char>),
     prev: char,
     code: &str,
 ) -> char {

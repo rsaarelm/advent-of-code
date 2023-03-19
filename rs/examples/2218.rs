@@ -19,7 +19,7 @@ fn main() {
 
     // Part 2
 
-    let bounds = NRange::from_points_inclusive(droplets.iter().copied())
+    let bounds = Cube::from_points_inclusive(droplets.iter().copied())
         .inflate([1, 1, 1]);
 
     let open: HashSet<IVec3> = dijkstra_map(

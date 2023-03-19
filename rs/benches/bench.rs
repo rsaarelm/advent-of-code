@@ -6,7 +6,7 @@ use rand::{rngs::SmallRng, Rng, SeedableRng};
 use test::Bencher;
 
 struct Maze {
-    bounds: NRange<i32, 2>,
+    bounds: Rect<i32>,
     cells: Vec<bool>,
 }
 

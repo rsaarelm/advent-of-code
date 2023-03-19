@@ -25,7 +25,7 @@ impl State {
 
     fn neighbors(
         &self,
-        bounds: &NRange<i32, 2>,
+        bounds: &Rect<i32>,
         obstacles: &HashSet<IVec2>,
     ) -> Vec<State> {
         let mut ret = Vec::new();
@@ -91,7 +91,7 @@ fn main() {
     println!("{pairs}");
 
     // Part 2
-    let bounds = NRange::from_points_inclusive(volumes.iter().map(|(p, _)| *p));
+    let bounds = Rect::from_points_inclusive(volumes.iter().map(|(p, _)| *p));
     let payload = ivec2(bounds.width() - 1, 0);
 
     // Eyeballing the data, the regular nodes all have <100 size, big ones are

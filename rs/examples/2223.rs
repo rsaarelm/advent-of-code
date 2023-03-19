@@ -50,7 +50,7 @@ fn main() {
 
         // Part 1
         if round == 11 {
-            let zone = NRange::from_points_inclusive(elves.iter().copied());
+            let zone = Rect::from_points_inclusive(elves.iter().copied());
             println!("{}", zone.volume() as usize - elves.len());
         }
 

@@ -20,8 +20,8 @@ pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 pub use glam::{ivec2, ivec3, IVec2, IVec3, Vec3Swizzles};
 
 pub use crate::md5::md5sum;
-pub use crate::n_range::{area, volume, NRange};
 pub use crate::ocr::{ocr, points, PointCloud};
+pub use crate::orthotope::{area, volume, Cube, Rect};
 
 pub const RIGHT: usize = 0;
 pub const DOWN: usize = 1;
@@ -333,7 +333,7 @@ impl<N: Ord + Eq + Clone> SetUtil for BTreeSet<N> {
 ///  e");
 /// assert_eq!(range, area(3, 3));
 /// ```
-pub fn grid(s: impl AsRef<str>) -> (NRange<i32, 2>, Vec<char>) {
+pub fn grid(s: impl AsRef<str>) -> (Rect<i32>, Vec<char>) {
     let s = s.as_ref().trim_end();
     let mut w = 0;
     let mut h = 0;
@@ -360,7 +360,7 @@ pub fn grid(s: impl AsRef<str>) -> (NRange<i32, 2>, Vec<char>) {
     (bounds, ret)
 }
 
-pub fn stdin_grid() -> (NRange<i32, 2>, Vec<char>) {
+pub fn stdin_grid() -> (Rect<i32>, Vec<char>) {
     grid(stdin_string())
 }
 

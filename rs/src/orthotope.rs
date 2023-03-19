@@ -5,6 +5,9 @@ use std::{
 
 use num_traits::{Euclid, One, Zero};
 
+pub type Rect<T> = Orthotope<T, 2>;
+pub type Cube<T> = Orthotope<T, 3>;
+
 pub trait Element:
     Copy
     + Default
@@ -31,23 +34,23 @@ impl<T> Element for T where
 ///
 /// Equivalent to an axis-aligned bounding rectangle, bounding box etc.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub struct NRange<X, const N: usize> {
-    p0: [X; N],
-    p1: [X; N],
+pub struct Orthotope<T, const N: usize> {
+    p0: [T; N],
+    p1: [T; N],
 }
 
-pub fn area<T: Element>(w: T, h: T) -> NRange<T, 2> {
-    NRange::sized([w, h])
+pub fn area<T: Element>(w: T, h: T) -> Orthotope<T, 2> {
+    Orthotope::sized([w, h])
 }
 
 pub fn volume<T: Element, const N: usize>(
     p: impl Into<[T; N]>,
-) -> NRange<T, N> {
-    NRange::sized(p.into())
+) -> Orthotope<T, N> {
+    Orthotope::sized(p.into())
 }
 
-impl<T, const N: usize> NRange<T, N> {
-    /// Faster than `NRange::new`, but does not check that dimensions are
+impl<T, const N: usize> Orthotope<T, N> {
+    /// Faster than `Orthotope::new`, but does not check that dimensions are
     /// positive.
     ///
     /// # Safety
@@ -56,47 +59,50 @@ impl<T, const N: usize> NRange<T, N> {
     pub unsafe fn new_unsafe(
         p0: impl Into<[T; N]>,
         p1: impl Into<[T; N]>,
-    ) -> NRange<T, N> {
-        NRange {
+    ) -> Orthotope<T, N> {
+        Orthotope {
             p0: p0.into(),
             p1: p1.into(),
         }
     }
 }
 
-impl<T: Element, const N: usize> Default for NRange<T, N> {
+impl<T: Element, const N: usize> Default for Orthotope<T, N> {
     fn default() -> Self {
-        NRange {
+        Orthotope {
             p0: [T::default(); N],
             p1: [T::default(); N],
         }
     }
 }
 
-impl<T: Element, const N: usize> NRange<T, N> {
-    /// Create a new n-range. If p1 has components that are smaller than p0's,
-    /// the range is clamped to zero.
-    pub fn new(p0: impl Into<[T; N]>, p1: impl Into<[T; N]>) -> NRange<T, N> {
+impl<T: Element, const N: usize> Orthotope<T, N> {
+    /// Create a new orthotope. If p1 has components that are smaller than
+    /// p0's, the corresponding range is clamped to zero.
+    pub fn new(
+        p0: impl Into<[T; N]>,
+        p1: impl Into<[T; N]>,
+    ) -> Orthotope<T, N> {
         let (p0, p1) = (p0.into(), p1.into());
 
-        NRange {
+        Orthotope {
             p0,
             p1: std::array::from_fn(|i| pmax(p0[i], p1[i])),
         }
     }
 
-    pub fn sized(p: impl Into<[T; N]>) -> NRange<T, N> {
-        NRange::new([T::zero(); N], p)
+    pub fn sized(p: impl Into<[T; N]>) -> Orthotope<T, N> {
+        Orthotope::new([T::zero(); N], p)
     }
 
-    /// Builds a n-range from the elementwise minimum and maximum of the
+    /// Builds an orthotope from the elementwise minimum and maximum of the
     /// points in the input point cloud.
     ///
-    /// NB. The resulting range does not contain the outer rim of the points
-    /// since ranges are exclusive on the outer end.
+    /// NB. The resulting orthotope does not contain the outer rim of the
+    /// points since the component ranges are exclusive on the outer end.
     pub fn from_points(
         it: impl IntoIterator<Item = impl Into<[T; N]>>,
-    ) -> NRange<T, N> {
+    ) -> Orthotope<T, N> {
         let mut it = it.into_iter();
         if let Some(p) = it.next().map(|e| e.into()) {
             let (p0, p1) =
@@ -107,17 +113,17 @@ impl<T: Element, const N: usize> NRange<T, N> {
                     }
                     (p0, p1)
                 });
-            NRange { p0, p1 }
+            Orthotope { p0, p1 }
         } else {
             Default::default()
         }
     }
 
-    /// Builds a n-range guaranteed to contain every point in the point cloud.
-    /// For integer `T` the result is the smallest such range.
+    /// Builds an orthotope guaranteed to contain every point in the point
+    /// cloud. For integer `T` the result is the smallest such orthotope.
     pub fn from_points_inclusive(
         it: impl IntoIterator<Item = impl Into<[T; N]>>,
-    ) -> NRange<T, N> {
+    ) -> Orthotope<T, N> {
         let mut it = it.into_iter();
         if let Some(p0) = it.next().map(|e| e.into()) {
             let mut p1 = p0;
@@ -133,7 +139,7 @@ impl<T: Element, const N: usize> NRange<T, N> {
                     }
                     (p0, p1)
                 });
-            NRange { p0, p1 }
+            Orthotope { p0, p1 }
         } else {
             Default::default()
         }
@@ -148,21 +154,21 @@ impl<T: Element, const N: usize> NRange<T, N> {
         (0..N).all(move |i| (self.p0[i]..self.p1[i]).contains(&e[i]))
     }
 
-    pub fn contains_range(&self, r: &Self) -> bool {
+    pub fn contains_other(&self, r: &Self) -> bool {
         (0..N).all(|i| (self.p0[i] <= r.p0[i] && self.p1[i] >= r.p1[i]))
     }
 
     /// Return the product of the components of the dimension vector of the
-    /// range.
+    /// orthotope.
     ///
-    /// NB. This can overflow easily with large multidimensional ranges.
+    /// NB. This can overflow easily with large multidimensional orthotopes.
     pub fn volume(&self) -> T {
         (0..N)
             .map(move |i| self.p1[i] - self.p0[i])
             .fold(T::one(), |a, b| a * b)
     }
 
-    /// Return vector with dimensions of the range.
+    /// Return vector with dimensions of the orthotope.
     pub fn dim(&self) -> [T; N] {
         let mut ret = self.p1;
         for i in 0..N {
@@ -201,7 +207,7 @@ impl<T: Element, const N: usize> NRange<T, N> {
             p1[i] = p1[i] + amount[i];
         }
 
-        NRange::new(p0, p1)
+        Orthotope::new(p0, p1)
     }
 
     pub fn center(&self) -> [T; N] {
@@ -227,17 +233,17 @@ impl<T: Element, const N: usize> NRange<T, N> {
         E::from(p)
     }
 
-    /// Return the n-range of the intersection of `self` and `rhs`.
+    /// Return the orthotope of the intersection of `self` and `rhs`.
     pub fn intersection(&self, rhs: &Self) -> Self {
-        NRange::new(
+        Orthotope::new(
             std::array::from_fn(|i| pmax(self.p0[i], rhs.p0[i])),
             std::array::from_fn(|i| pmin(self.p1[i], rhs.p1[i])),
         )
     }
 
-    /// Return the smallest n-range that contains `self` and `rhs`.
+    /// Return the smallest orthotope that contains `self` and `rhs`.
     pub fn union(&self, rhs: &Self) -> Self {
-        NRange::new(
+        Orthotope::new(
             std::array::from_fn(|i| pmin(self.p0[i], rhs.p0[i])),
             std::array::from_fn(|i| pmax(self.p1[i], rhs.p1[i])),
         )
@@ -266,21 +272,21 @@ impl<T: Element, const N: usize> NRange<T, N> {
 
         std::array::from_fn(|i| {
             if i == 0 {
-                NRange::new(self.p0, sp1)
+                Orthotope::new(self.p0, sp1)
             } else {
-                NRange::new(sp0, self.p1)
+                Orthotope::new(sp0, self.p1)
             }
         })
     }
 }
 
-impl<T, const N: usize> NRange<T, N>
+impl<T, const N: usize> Orthotope<T, N>
 where
     T: Element + Euclid,
 {
-    /// Projects a point into the inside of the range using modular arithmetic
-    /// on each axis. A point leaving across one end will return on the other
-    /// end.
+    /// Projects a point into the inside of the orthotope using modular
+    /// arithmetic on each axis. A point leaving across one end will return on
+    /// the other end.
     pub fn mod_proj<E>(&self, p: E) -> E
     where
         E: From<[T; N]> + Into<[T; N]>,
@@ -295,7 +301,7 @@ where
     }
 }
 
-impl<T, const N: usize> NRange<T, N>
+impl<T, const N: usize> Orthotope<T, N>
 where
     T: Element + Euclid + TryInto<usize> + TryFrom<usize>,
 {
@@ -352,8 +358,8 @@ where
     }
 }
 
-impl<T: Element> NRange<T, 2> {
-    /// Split a 2-range into four quarters.
+impl<T: Element> Orthotope<T, 2> {
+    /// Split a rectangle into four quarters.
     pub fn partition(&self) -> [Self; 4] {
         let center = self.center();
         let xp = [self.p0[0], center[0], self.p1[0]];
@@ -361,13 +367,13 @@ impl<T: Element> NRange<T, 2> {
         std::array::from_fn(|i| {
             let x = i % 2;
             let y = (i / 2) % 2;
-            NRange::new([xp[x], yp[y]], [xp[x + 1], yp[y + 1]])
+            Orthotope::new([xp[x], yp[y]], [xp[x + 1], yp[y + 1]])
         })
     }
 }
 
-impl<T: Element> NRange<T, 3> {
-    /// Split a 3-range into eight octants.
+impl<T: Element> Orthotope<T, 3> {
+    /// Split a cube into eight octants.
     pub fn partition(&self) -> [Self; 8] {
         let center = self.center();
         let xp = [self.p0[0], center[0], self.p1[0]];
@@ -377,7 +383,7 @@ impl<T: Element> NRange<T, 3> {
             let x = i % 2;
             let y = (i / 2) % 2;
             let z = i / 4;
-            NRange::new(
+            Orthotope::new(
                 [xp[x], yp[y], zp[z]],
                 [xp[x + 1], yp[y + 1], zp[z + 1]],
             )
@@ -385,12 +391,12 @@ impl<T: Element> NRange<T, 3> {
     }
 }
 
-impl<E, T, const N: usize> Add<E> for NRange<T, N>
+impl<E, T, const N: usize> Add<E> for Orthotope<T, N>
 where
     E: Into<[T; N]>,
     T: Element,
 {
-    type Output = NRange<T, N>;
+    type Output = Orthotope<T, N>;
 
     fn add(self, rhs: E) -> Self::Output {
         let rhs = rhs.into();
@@ -403,12 +409,12 @@ where
     }
 }
 
-impl<E, T, const N: usize> Sub<E> for NRange<T, N>
+impl<E, T, const N: usize> Sub<E> for Orthotope<T, N>
 where
     E: Into<[T; N]>,
     T: Element,
 {
-    type Output = NRange<T, N>;
+    type Output = Orthotope<T, N>;
 
     fn sub(self, rhs: E) -> Self::Output {
         let rhs = rhs.into();
@@ -421,25 +427,25 @@ where
     }
 }
 
-impl<T: Element, const N: usize> IntoIterator for NRange<T, N> {
+impl<T: Element, const N: usize> IntoIterator for Orthotope<T, N> {
     type Item = [T; N];
 
-    type IntoIter = RangeIter<T, N>;
+    type IntoIter = OrthotopeIter<T, N>;
 
-    fn into_iter(self) -> RangeIter<T, N> {
-        RangeIter {
+    fn into_iter(self) -> OrthotopeIter<T, N> {
+        OrthotopeIter {
             inner: self,
             x: self.p0,
         }
     }
 }
 
-pub struct RangeIter<T, const N: usize> {
-    inner: NRange<T, N>,
+pub struct OrthotopeIter<T, const N: usize> {
+    inner: Orthotope<T, N>,
     x: [T; N],
 }
 
-impl<T: Element, const N: usize> Iterator for RangeIter<T, N> {
+impl<T: Element, const N: usize> Iterator for OrthotopeIter<T, N> {
     type Item = [T; N];
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -489,7 +495,7 @@ mod tests {
 
     #[test]
     fn indexing() {
-        let bounds: NRange<i32, 3> = NRange::new([1, 2, 3], [4, 5, 6]);
+        let bounds: Orthotope<i32, 3> = Orthotope::new([1, 2, 3], [4, 5, 6]);
 
         for (i, p) in bounds.into_iter().enumerate() {
             if i == 0 {
@@ -524,10 +530,10 @@ mod tests {
     #[test]
     fn partition() {
         // 2D
-        let square: NRange<i32, 2> = volume([3, 4]);
-        let qt: [NRange<i32, 2>; 4] = square.partition();
+        let square: Orthotope<i32, 2> = volume([3, 4]);
+        let qt: [Orthotope<i32, 2>; 4] = square.partition();
         for i in 0..4 {
-            assert!(square.contains_range(&qt[i]));
+            assert!(square.contains_other(&qt[i]));
             assert!(qt[i].volume() > 0);
             for j in 0..4 {
                 if j == i {
@@ -539,10 +545,10 @@ mod tests {
         assert_eq!(qt.iter().map(|o| o.volume()).sum::<i32>(), square.volume());
 
         // 3D
-        let cube: NRange<i32, 3> = volume([3, 4, 5]);
-        let oct: [NRange<i32, 3>; 8] = cube.partition();
+        let cube: Orthotope<i32, 3> = volume([3, 4, 5]);
+        let oct: [Orthotope<i32, 3>; 8] = cube.partition();
         for i in 0..8 {
-            assert!(cube.contains_range(&oct[i]));
+            assert!(cube.contains_other(&oct[i]));
             assert!(oct[i].volume() > 0);
             for j in 0..8 {
                 if j == i {
@@ -556,25 +562,25 @@ mod tests {
 
     #[test]
     fn split() {
-        let cube: NRange<i32, 3> = volume([3, 4, 5]);
+        let cube: Orthotope<i32, 3> = volume([3, 4, 5]);
         for axis in 0..3 {
             let [a, b] = cube.split_along(axis);
             assert!(a.volume() > 0);
             assert!(b.volume() > 0);
             assert_eq!(a.union(&b), cube);
             assert!(a.intersection(&b).is_empty());
-            assert!(cube.contains_range(&a));
-            assert!(cube.contains_range(&b));
+            assert!(cube.contains_other(&a));
+            assert!(cube.contains_other(&b));
         }
 
-        let even_cube: NRange<i32, 3> = volume([2, 6, 10]);
+        let even_cube: Orthotope<i32, 3> = volume([2, 6, 10]);
         for axis in 0..3 {
             let [a, b] = even_cube.split_along(axis);
             assert_eq!(a.volume(), b.volume());
             assert_eq!(a.union(&b), even_cube);
             assert!(a.intersection(&b).is_empty());
-            assert!(even_cube.contains_range(&a));
-            assert!(even_cube.contains_range(&b));
+            assert!(even_cube.contains_other(&a));
+            assert!(even_cube.contains_other(&b));
         }
     }
 }

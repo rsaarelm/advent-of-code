@@ -1,6 +1,6 @@
 use aoc::prelude::*;
 
-fn evolve(bounds: &NRange<i32, 2>, grid: &mut HashSet<[i32; 2]>) {
+fn evolve(bounds: &Rect<i32>, grid: &mut HashSet<[i32; 2]>) {
     let mut g2 = HashSet::default();
     for p in *bounds {
         let lit = grid.contains(&p);

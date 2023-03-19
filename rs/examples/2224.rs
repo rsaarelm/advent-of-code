@@ -4,7 +4,7 @@ use bitvec::prelude::*;
 #[derive(Debug)]
 struct Valley {
     blizzards: BitVec,
-    bounds: NRange<i32, 3>,
+    bounds: Cube<i32>,
 }
 
 impl Valley {

@@ -2,7 +2,7 @@ use aoc::prelude::*;
 
 /// Iterate cells along a line on the grid.
 fn sweep<'a>(
-    bounds: &'a NRange<i32, 2>,
+    bounds: &'a Rect<i32>,
     grid: &'a Vec<char>,
     mut p: IVec2,
     d: IVec2,
@@ -21,7 +21,7 @@ fn sweep<'a>(
 
 // Line of sight updating closure generator.
 fn line_of_sight<'a>(
-    bounds: &'a NRange<i32, 2>,
+    bounds: &'a Rect<i32>,
     view: &'a mut Vec<usize>,
 ) -> impl FnMut((IVec2, i32)) + 'a {
     let mut current = -1;
