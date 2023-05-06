@@ -22,6 +22,8 @@ fn main() {
     // Part 2
 
     let pos = {
+        todo!("FIXME: Get z3 working again");
+        /*
         // Forbidden technique: SMT Solver no jutsu.
 
         use z3::{ast::Int, *};
@@ -63,6 +65,7 @@ fn main() {
         );
 
         ivec3(x, y, z)
+        */
     };
 
     println!("{}", pos.taxi_len());
