@@ -652,6 +652,20 @@ impl Operator {
     }
 }
 
+/// Return corresponding comparison function given a comparison operator
+/// string.
+pub fn cmp_fn(op: &str) -> fn(i32, i32) -> bool {
+    match op {
+        "==" => |a, b| a == b,
+        "!=" => |a, b| a != b,
+        "<=" => |a, b| a <= b,
+        "<" => |a, b| a < b,
+        ">=" => |a, b| a >= b,
+        ">" => |a, b| a > b,
+        _ => panic!("cmp: Unknown op {op}"),
+    }
+}
+
 pub trait VecExt {
     /// Vector length in taxicab metric.
     fn taxi_len(self) -> i32;
