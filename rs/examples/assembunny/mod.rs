@@ -1,39 +1,7 @@
 use serde::Deserialize;
-use serde_with::DeserializeFromStr;
 
-use aoc::prelude::*;
-
-#[derive(Copy, Clone, Debug, DeserializeFromStr)]
-enum Operand {
-    Int(i32),
-    Reg(char),
-}
-
+use aoc::{prelude::*, Operand};
 use Operand::*;
-
-impl Operand {
-    fn val(&self, regs: &[i32; 4]) -> i32 {
-        match self {
-            Int(n) => *n,
-            Reg(c) => regs[reg(*c)],
-        }
-    }
-}
-
-fn reg(c: char) -> usize {
-    (c as u8 - 'a' as u8) as usize
-}
-
-impl FromStr for Operand {
-    type Err = &'static str;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.parse::<i32>() {
-            Ok(n) => Ok(Int(n)),
-            _ => Ok(Reg(s.chars().next().unwrap())),
-        }
-    }
-}
 
 #[derive(Copy, Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]

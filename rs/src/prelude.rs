@@ -693,6 +693,11 @@ impl VecExt for IVec3 {
     }
 }
 
+/// Map register to index.
+pub fn reg(c: char) -> usize {
+    (c as u8 - b'a') as usize
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
