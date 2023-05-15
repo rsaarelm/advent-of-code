@@ -9,7 +9,7 @@ fn main() {
         let mut p = prog.clone();
         let cpu = assembunny::Cpu::new(&mut p, [i, 0, 0, 0]);
         for (x, y) in cpu.flatten().enumerate() {
-            if y != (x as i32) % 2 {
+            if y != (x as i64) % 2 {
                 break;
             }
             if x > 4096 {

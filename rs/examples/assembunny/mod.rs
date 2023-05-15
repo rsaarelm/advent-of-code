@@ -30,13 +30,13 @@ impl Opcode {
 }
 
 pub struct Cpu<'a> {
-    pc: i32,
-    regs: [i32; 4],
+    pc: i64,
+    regs: [i64; 4],
     prog: &'a mut Program,
 }
 
 impl<'a> Cpu<'a> {
-    pub fn new(prog: &'a mut Program, regs: [i32; 4]) -> Self {
+    pub fn new(prog: &'a mut Program, regs: [i64; 4]) -> Self {
         Cpu { pc: 0, regs, prog }
     }
 
@@ -46,10 +46,10 @@ impl<'a> Cpu<'a> {
 }
 
 impl<'a> Iterator for Cpu<'a> {
-    type Item = Option<i32>;
+    type Item = Option<i64>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.pc < 0 || self.pc >= self.prog.0.len() as i32 {
+        if self.pc < 0 || self.pc >= self.prog.0.len() as i64 {
             return None;
         }
 
@@ -66,7 +66,7 @@ impl<'a> Iterator for Cpu<'a> {
             Dec(a) => self.regs[reg(a)] -= 1,
             Tgl(a) => {
                 let i = self.pc + self.regs[reg(a)] - 1;
-                if i >= 0 && i < self.prog.0.len() as i32 {
+                if i >= 0 && i < self.prog.0.len() as i64 {
                     Opcode::toggle(&mut self.prog.0[i as usize]);
                 }
             }
@@ -83,7 +83,7 @@ impl<'a> Iterator for Cpu<'a> {
 pub struct Program(Vec<Opcode>);
 
 impl Program {
-    pub fn run(&mut self, regs: &mut [i32; 4]) {
+    pub fn run(&mut self, regs: &mut [i64; 4]) {
         let mut cpu = Cpu::new(self, *regs);
         cpu.run();
         *regs = cpu.regs;
