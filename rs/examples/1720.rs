@@ -1,12 +1,9 @@
 use aoc::prelude::*;
 
 fn agree(a: &IVec3, b: &IVec3) -> bool {
-    for i in 0..3 {
-        if a[i] != 0 && b[i] != 0 && a[i].signum() != b[i].signum() {
-            return false;
-        }
-    }
-    true
+    // Zero agrees with anything so the only mode of disagreement is -1 * 1 =
+    // -1 on any pair of components
+    (a.signum() * b.signum()).cmpge(IVec3::ZERO).all()
 }
 
 struct System(Vec<(IVec3, IVec3, IVec3)>);
