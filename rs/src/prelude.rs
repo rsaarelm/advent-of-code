@@ -666,6 +666,35 @@ pub fn cmp_fn(op: &str) -> fn(i32, i32) -> bool {
     }
 }
 
+// XXX: These are expensive, allocating a full new array. This stuff could be
+// done cheaply by introducing some kind of intermediate interface on arrays
+// that can apply transformation functions to the access coordinates, but that
+// would introduce additional design complexities.
+
+/// Create a new grid that's the original mirrored along the Y-axis.
+pub fn mirror_grid<T: Clone>((bounds, buf): (Rect<i32>, Vec<T>)) -> (Rect<i32>, Vec<T>) {
+    let w = bounds.width() - 1;
+    let ret_buf = (0..buf.len()).map(|i| {
+        let [x, y] = bounds.get(i);
+        buf[bounds.idx([w - x, y])].clone()
+    }).collect();
+
+    (bounds, ret_buf)
+}
+
+/// Create a new grid that's the original rotated 90 degrees clockwise.
+pub fn rotate_grid<T: Clone>((bounds, buf): (Rect<i32>, Vec<T>)) -> (Rect<i32>, Vec<T>) {
+    let [x, y] = bounds.max();
+    let ret_bounds = Rect::new(bounds.min(), [y, x]);
+    let h = bounds.height() - 1;
+    let ret_buf = (0..buf.len()).map(|i| {
+        let [x, y] = ret_bounds.get(i);
+        buf[bounds.idx([y, h - x])].clone()
+    }).collect();
+
+    (ret_bounds, ret_buf)
+}
+
 pub trait VecExt {
     /// Vector length in taxicab metric.
     fn taxi_len(self) -> i32;
