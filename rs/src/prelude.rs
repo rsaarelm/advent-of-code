@@ -672,25 +672,33 @@ pub fn cmp_fn(op: &str) -> fn(i32, i32) -> bool {
 // would introduce additional design complexities.
 
 /// Create a new grid that's the original mirrored along the Y-axis.
-pub fn mirror_grid<T: Clone>((bounds, buf): (Rect<i32>, Vec<T>)) -> (Rect<i32>, Vec<T>) {
+pub fn mirror_grid<T: Clone>(
+    (bounds, buf): (Rect<i32>, Vec<T>),
+) -> (Rect<i32>, Vec<T>) {
     let w = bounds.width() - 1;
-    let ret_buf = (0..buf.len()).map(|i| {
-        let [x, y] = bounds.get(i);
-        buf[bounds.idx([w - x, y])].clone()
-    }).collect();
+    let ret_buf = (0..buf.len())
+        .map(|i| {
+            let [x, y] = bounds.get(i);
+            buf[bounds.idx([w - x, y])].clone()
+        })
+        .collect();
 
     (bounds, ret_buf)
 }
 
 /// Create a new grid that's the original rotated 90 degrees clockwise.
-pub fn rotate_grid<T: Clone>((bounds, buf): (Rect<i32>, Vec<T>)) -> (Rect<i32>, Vec<T>) {
+pub fn rotate_grid<T: Clone>(
+    (bounds, buf): (Rect<i32>, Vec<T>),
+) -> (Rect<i32>, Vec<T>) {
     let [x, y] = bounds.max();
     let ret_bounds = Rect::new(bounds.min(), [y, x]);
     let h = bounds.height() - 1;
-    let ret_buf = (0..buf.len()).map(|i| {
-        let [x, y] = ret_bounds.get(i);
-        buf[bounds.idx([y, h - x])].clone()
-    }).collect();
+    let ret_buf = (0..buf.len())
+        .map(|i| {
+            let [x, y] = ret_bounds.get(i);
+            buf[bounds.idx([y, h - x])].clone()
+        })
+        .collect();
 
     (ret_bounds, ret_buf)
 }
@@ -725,6 +733,34 @@ impl VecExt for IVec3 {
 /// Map register to index.
 pub fn reg(c: char) -> usize {
     (c as u8 - b'a') as usize
+}
+
+pub fn is_prime<N>(n: N) -> bool
+where
+    N: Copy
+        + Zero
+        + One
+        + std::ops::Add
+        + std::ops::Rem<Output = N>
+        + std::ops::Mul
+        + PartialOrd
+        + PartialEq,
+{
+    let zero = N::zero();
+    let mut i = N::one() + N::one();
+    loop {
+        if i * i > n {
+            break;
+        }
+
+        if n % i == zero {
+            return false;
+        }
+
+        i = i + N::one();
+    }
+
+    true
 }
 
 #[cfg(test)]
