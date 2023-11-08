@@ -21,7 +21,7 @@ pub use glam::{ivec2, ivec3, IVec2, IVec3, Vec3Swizzles};
 
 pub use crate::md5::md5sum;
 pub use crate::ocr::{ocr, points, PointCloud};
-pub use crate::orthotope::{area, volume, Cube, Rect};
+pub use crate::axis_box::{area, volume, Cube, Rect};
 
 pub const RIGHT: usize = 0;
 pub const DOWN: usize = 1;

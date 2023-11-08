@@ -5,8 +5,8 @@ use std::{
 
 use num_traits::{Euclid, One, Zero};
 
-pub type Rect<T> = Orthotope<T, 2>;
-pub type Cube<T> = Orthotope<T, 3>;
+pub type Rect<T> = AxisBox<T, 2>;
+pub type Cube<T> = AxisBox<T, 3>;
 
 pub trait Element:
     Copy
@@ -34,22 +34,22 @@ impl<T> Element for T where
 ///
 /// Equivalent to an axis-aligned bounding rectangle, bounding box etc.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub struct Orthotope<T, const N: usize> {
+pub struct AxisBox<T, const N: usize> {
     p0: [T; N],
     p1: [T; N],
 }
 
-pub fn area<T: Element>(w: T, h: T) -> Orthotope<T, 2> {
-    Orthotope::sized([w, h])
+pub fn area<T: Element>(w: T, h: T) -> AxisBox<T, 2> {
+    AxisBox::sized([w, h])
 }
 
 pub fn volume<T: Element, const N: usize>(
     p: impl Into<[T; N]>,
-) -> Orthotope<T, N> {
-    Orthotope::sized(p.into())
+) -> AxisBox<T, N> {
+    AxisBox::sized(p.into())
 }
 
-impl<T, const N: usize> Orthotope<T, N> {
+impl<T, const N: usize> AxisBox<T, N> {
     /// Faster than `Orthotope::new`, but does not check that dimensions are
     /// positive.
     ///
@@ -59,40 +59,40 @@ impl<T, const N: usize> Orthotope<T, N> {
     pub unsafe fn new_unsafe(
         p0: impl Into<[T; N]>,
         p1: impl Into<[T; N]>,
-    ) -> Orthotope<T, N> {
-        Orthotope {
+    ) -> AxisBox<T, N> {
+        AxisBox {
             p0: p0.into(),
             p1: p1.into(),
         }
     }
 }
 
-impl<T: Element, const N: usize> Default for Orthotope<T, N> {
+impl<T: Element, const N: usize> Default for AxisBox<T, N> {
     fn default() -> Self {
-        Orthotope {
+        AxisBox {
             p0: [T::default(); N],
             p1: [T::default(); N],
         }
     }
 }
 
-impl<T: Element, const N: usize> Orthotope<T, N> {
+impl<T: Element, const N: usize> AxisBox<T, N> {
     /// Create a new orthotope. If p1 has components that are smaller than
     /// p0's, the corresponding range is clamped to zero.
     pub fn new(
         p0: impl Into<[T; N]>,
         p1: impl Into<[T; N]>,
-    ) -> Orthotope<T, N> {
+    ) -> AxisBox<T, N> {
         let (p0, p1) = (p0.into(), p1.into());
 
-        Orthotope {
+        AxisBox {
             p0,
             p1: std::array::from_fn(|i| pmax(p0[i], p1[i])),
         }
     }
 
-    pub fn sized(p: impl Into<[T; N]>) -> Orthotope<T, N> {
-        Orthotope::new([T::zero(); N], p)
+    pub fn sized(p: impl Into<[T; N]>) -> AxisBox<T, N> {
+        AxisBox::new([T::zero(); N], p)
     }
 
     /// Builds an orthotope from the elementwise minimum and maximum of the
@@ -102,7 +102,7 @@ impl<T: Element, const N: usize> Orthotope<T, N> {
     /// points since the component ranges are exclusive on the outer end.
     pub fn from_points(
         it: impl IntoIterator<Item = impl Into<[T; N]>>,
-    ) -> Orthotope<T, N> {
+    ) -> AxisBox<T, N> {
         let mut it = it.into_iter();
         if let Some(p) = it.next().map(|e| e.into()) {
             let (p0, p1) =
@@ -113,7 +113,7 @@ impl<T: Element, const N: usize> Orthotope<T, N> {
                     }
                     (p0, p1)
                 });
-            Orthotope { p0, p1 }
+            AxisBox { p0, p1 }
         } else {
             Default::default()
         }
@@ -123,7 +123,7 @@ impl<T: Element, const N: usize> Orthotope<T, N> {
     /// cloud. For integer `T` the result is the smallest such orthotope.
     pub fn from_points_inclusive(
         it: impl IntoIterator<Item = impl Into<[T; N]>>,
-    ) -> Orthotope<T, N> {
+    ) -> AxisBox<T, N> {
         let mut it = it.into_iter();
         if let Some(p0) = it.next().map(|e| e.into()) {
             let mut p1 = p0;
@@ -139,7 +139,7 @@ impl<T: Element, const N: usize> Orthotope<T, N> {
                     }
                     (p0, p1)
                 });
-            Orthotope { p0, p1 }
+            AxisBox { p0, p1 }
         } else {
             Default::default()
         }
@@ -207,7 +207,7 @@ impl<T: Element, const N: usize> Orthotope<T, N> {
             p1[i] = p1[i] + amount[i];
         }
 
-        Orthotope::new(p0, p1)
+        AxisBox::new(p0, p1)
     }
 
     pub fn center(&self) -> [T; N] {
@@ -235,7 +235,7 @@ impl<T: Element, const N: usize> Orthotope<T, N> {
 
     /// Return the orthotope of the intersection of `self` and `rhs`.
     pub fn intersection(&self, rhs: &Self) -> Self {
-        Orthotope::new(
+        AxisBox::new(
             std::array::from_fn(|i| pmax(self.p0[i], rhs.p0[i])),
             std::array::from_fn(|i| pmin(self.p1[i], rhs.p1[i])),
         )
@@ -243,7 +243,7 @@ impl<T: Element, const N: usize> Orthotope<T, N> {
 
     /// Return the smallest orthotope that contains `self` and `rhs`.
     pub fn union(&self, rhs: &Self) -> Self {
-        Orthotope::new(
+        AxisBox::new(
             std::array::from_fn(|i| pmin(self.p0[i], rhs.p0[i])),
             std::array::from_fn(|i| pmax(self.p1[i], rhs.p1[i])),
         )
@@ -272,15 +272,15 @@ impl<T: Element, const N: usize> Orthotope<T, N> {
 
         std::array::from_fn(|i| {
             if i == 0 {
-                Orthotope::new(self.p0, sp1)
+                AxisBox::new(self.p0, sp1)
             } else {
-                Orthotope::new(sp0, self.p1)
+                AxisBox::new(sp0, self.p1)
             }
         })
     }
 }
 
-impl<T, const N: usize> Orthotope<T, N>
+impl<T, const N: usize> AxisBox<T, N>
 where
     T: Element + Euclid,
 {
@@ -301,7 +301,7 @@ where
     }
 }
 
-impl<T, const N: usize> Orthotope<T, N>
+impl<T, const N: usize> AxisBox<T, N>
 where
     T: Element + Euclid + TryInto<usize> + TryFrom<usize>,
 {
@@ -358,7 +358,7 @@ where
     }
 }
 
-impl<T: Element> Orthotope<T, 2> {
+impl<T: Element> AxisBox<T, 2> {
     /// Split a rectangle into four quarters.
     pub fn partition(&self) -> [Self; 4] {
         let center = self.center();
@@ -367,12 +367,12 @@ impl<T: Element> Orthotope<T, 2> {
         std::array::from_fn(|i| {
             let x = i % 2;
             let y = (i / 2) % 2;
-            Orthotope::new([xp[x], yp[y]], [xp[x + 1], yp[y + 1]])
+            AxisBox::new([xp[x], yp[y]], [xp[x + 1], yp[y + 1]])
         })
     }
 }
 
-impl<T: Element> Orthotope<T, 3> {
+impl<T: Element> AxisBox<T, 3> {
     /// Split a cube into eight octants.
     pub fn partition(&self) -> [Self; 8] {
         let center = self.center();
@@ -383,7 +383,7 @@ impl<T: Element> Orthotope<T, 3> {
             let x = i % 2;
             let y = (i / 2) % 2;
             let z = i / 4;
-            Orthotope::new(
+            AxisBox::new(
                 [xp[x], yp[y], zp[z]],
                 [xp[x + 1], yp[y + 1], zp[z + 1]],
             )
@@ -391,12 +391,12 @@ impl<T: Element> Orthotope<T, 3> {
     }
 }
 
-impl<E, T, const N: usize> Add<E> for Orthotope<T, N>
+impl<E, T, const N: usize> Add<E> for AxisBox<T, N>
 where
     E: Into<[T; N]>,
     T: Element,
 {
-    type Output = Orthotope<T, N>;
+    type Output = AxisBox<T, N>;
 
     fn add(self, rhs: E) -> Self::Output {
         let rhs = rhs.into();
@@ -409,12 +409,12 @@ where
     }
 }
 
-impl<E, T, const N: usize> Sub<E> for Orthotope<T, N>
+impl<E, T, const N: usize> Sub<E> for AxisBox<T, N>
 where
     E: Into<[T; N]>,
     T: Element,
 {
-    type Output = Orthotope<T, N>;
+    type Output = AxisBox<T, N>;
 
     fn sub(self, rhs: E) -> Self::Output {
         let rhs = rhs.into();
@@ -427,7 +427,7 @@ where
     }
 }
 
-impl<T: Element, const N: usize> IntoIterator for Orthotope<T, N> {
+impl<T: Element, const N: usize> IntoIterator for AxisBox<T, N> {
     type Item = [T; N];
 
     type IntoIter = OrthotopeIter<T, N>;
@@ -441,7 +441,7 @@ impl<T: Element, const N: usize> IntoIterator for Orthotope<T, N> {
 }
 
 pub struct OrthotopeIter<T, const N: usize> {
-    inner: Orthotope<T, N>,
+    inner: AxisBox<T, N>,
     x: [T; N],
 }
 
@@ -495,7 +495,7 @@ mod tests {
 
     #[test]
     fn indexing() {
-        let bounds: Orthotope<i32, 3> = Orthotope::new([1, 2, 3], [4, 5, 6]);
+        let bounds: AxisBox<i32, 3> = AxisBox::new([1, 2, 3], [4, 5, 6]);
 
         for (i, p) in bounds.into_iter().enumerate() {
             if i == 0 {
@@ -530,8 +530,8 @@ mod tests {
     #[test]
     fn partition() {
         // 2D
-        let square: Orthotope<i32, 2> = volume([3, 4]);
-        let qt: [Orthotope<i32, 2>; 4] = square.partition();
+        let square: AxisBox<i32, 2> = volume([3, 4]);
+        let qt: [AxisBox<i32, 2>; 4] = square.partition();
         for i in 0..4 {
             assert!(square.contains_other(&qt[i]));
             assert!(qt[i].volume() > 0);
@@ -545,8 +545,8 @@ mod tests {
         assert_eq!(qt.iter().map(|o| o.volume()).sum::<i32>(), square.volume());
 
         // 3D
-        let cube: Orthotope<i32, 3> = volume([3, 4, 5]);
-        let oct: [Orthotope<i32, 3>; 8] = cube.partition();
+        let cube: AxisBox<i32, 3> = volume([3, 4, 5]);
+        let oct: [AxisBox<i32, 3>; 8] = cube.partition();
         for i in 0..8 {
             assert!(cube.contains_other(&oct[i]));
             assert!(oct[i].volume() > 0);
@@ -562,7 +562,7 @@ mod tests {
 
     #[test]
     fn split() {
-        let cube: Orthotope<i32, 3> = volume([3, 4, 5]);
+        let cube: AxisBox<i32, 3> = volume([3, 4, 5]);
         for axis in 0..3 {
             let [a, b] = cube.split_along(axis);
             assert!(a.volume() > 0);
@@ -573,7 +573,7 @@ mod tests {
             assert!(cube.contains_other(&b));
         }
 
-        let even_cube: Orthotope<i32, 3> = volume([2, 6, 10]);
+        let even_cube: AxisBox<i32, 3> = volume([2, 6, 10]);
         for axis in 0..3 {
             let [a, b] = even_cube.split_along(axis);
             assert_eq!(a.volume(), b.volume());
