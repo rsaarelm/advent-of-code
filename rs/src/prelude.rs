@@ -243,6 +243,10 @@ pub fn bytes_to_hex(digest: &[u8]) -> String {
     ret
 }
 
+pub fn suffixes(s: &str) -> impl Iterator<Item = &str> {
+    s.char_indices().map(|(n, _)| &s[n..])
+}
+
 pub trait Row: Sized {
     fn parse(s: impl AsRef<str>) -> Self;
 }
