@@ -19,9 +19,9 @@ pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 
 pub use glam::{ivec2, ivec3, IVec2, IVec3, Vec3Swizzles};
 
+pub use crate::axis_box::{area, volume, Cube, Rect};
 pub use crate::md5::md5sum;
 pub use crate::ocr::{ocr, points, PointCloud};
-pub use crate::axis_box::{area, volume, Cube, Rect};
 
 pub const RIGHT: usize = 0;
 pub const DOWN: usize = 1;
@@ -215,8 +215,12 @@ pub fn to_ivec2s(
     mut input: impl Iterator<Item = i32>,
 ) -> impl Iterator<Item = IVec2> {
     std::iter::from_fn(move || {
-        let Some(x) = input.next() else { return None; };
-        let Some(y) = input.next() else { return None; };
+        let Some(x) = input.next() else {
+            return None;
+        };
+        let Some(y) = input.next() else {
+            return None;
+        };
         Some(ivec2(x, y))
     })
 }
