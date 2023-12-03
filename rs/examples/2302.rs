@@ -35,7 +35,7 @@ fn main() {
             .reduce(|(a, b, c), (i, j, k)| (a.max(i), b.max(j), c.max(k)))
             .unwrap();
 
-        if r <= 12 && g <= 13 && b <=14 {
+        if r <= 12 && g <= 13 && b <= 14 {
             p1 += i + 1;
         }
 
