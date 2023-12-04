@@ -197,6 +197,7 @@ fn extract_params(prog: &Vec<Op>) -> Result<Params, ()> {
 
     for i in 0..N_DIGITS {
         // Fuck yeah pattern matching
+        #[rustfmt::skip]
         let [Inp(Var::W),
              Mul(Var::X, Lit(0)),
              Add(Var::X, Ptr(Var::Z)),

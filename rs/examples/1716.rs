@@ -102,6 +102,9 @@ fn main() {
     }
 
     let offset = 1_000_000_000 % seen.len();
-    let state = seen.iter().find_map(|(k, v)| (*v == offset).then_some(k)).unwrap();
+    let state = seen
+        .iter()
+        .find_map(|(k, v)| (*v == offset).then_some(k))
+        .unwrap();
     println!("{}", std::str::from_utf8(state).unwrap());
 }

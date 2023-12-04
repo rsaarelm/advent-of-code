@@ -47,7 +47,9 @@ impl<I: Iterator<Item = String>> Iterator for QuintFilter<I> {
     type Item = Option<String>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let Some(key) = self.window.pop_front() else { return None };
+        let Some(key) = self.window.pop_front() else {
+            return None;
+        };
 
         let mut ok = false;
         for (n, c) in key.chars().dedup_with_count() {

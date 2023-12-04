@@ -79,10 +79,7 @@ impl<T: Element, const N: usize> Default for AxisBox<T, N> {
 impl<T: Element, const N: usize> AxisBox<T, N> {
     /// Create a new orthotope. If p1 has components that are smaller than
     /// p0's, the corresponding range is clamped to zero.
-    pub fn new(
-        p0: impl Into<[T; N]>,
-        p1: impl Into<[T; N]>,
-    ) -> AxisBox<T, N> {
+    pub fn new(p0: impl Into<[T; N]>, p1: impl Into<[T; N]>) -> AxisBox<T, N> {
         let (p0, p1) = (p0.into(), p1.into());
 
         AxisBox {
@@ -320,7 +317,8 @@ where
         let mut ret = 0;
         let mut scale = 1;
         for i in 0..N {
-            let Ok(x) = (p[i] - self.p0[i]).rem_euclid(&size[i]).try_into() else {
+            let Ok(x) = (p[i] - self.p0[i]).rem_euclid(&size[i]).try_into()
+            else {
                 panic!("bad range");
             };
             ret += x * scale;

@@ -57,7 +57,7 @@ fn main() {
                 infected.insert(key, Infected);
                 infects += 1;
             }
-            Some(Infected) =>{
+            Some(Infected) => {
                 dir = (dir + 1) % 4;
                 infected.insert(key, Flagged);
             }

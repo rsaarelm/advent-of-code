@@ -30,4 +30,3 @@ pub fn knot_hash(input: &[u8]) -> Vec<u8> {
         .map(|c| c.reduce(|acc, e| acc ^ e).unwrap_or(0) as u8)
         .collect()
 }
-

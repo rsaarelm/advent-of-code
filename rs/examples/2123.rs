@@ -236,8 +236,8 @@ impl State {
         let p1;
         if let Some(bin) = bin(x1) {
             // Moving from bin. Find top item to move.
-            let Some(p) = bin.home_cells().rev().find(|&i|
-                self[i].is_some()) else {
+            let Some(p) = bin.home_cells().rev().find(|&i| self[i].is_some())
+            else {
                 return None;
             };
             if self[p] == Some(Rubble) {
@@ -267,7 +267,9 @@ impl State {
                 .expect("Corridor cell with x pos not found");
         }
         // Now we see what we're moving.
-        let Some(amphipod) = self[p1] else { return None; };
+        let Some(amphipod) = self[p1] else {
+            return None;
+        };
         debug_assert!(amphipod != Rubble);
 
         // Destination point.
@@ -279,8 +281,7 @@ impl State {
             }
 
             // Find first empty slot in bin.
-            let Some(p) = bin.home_cells().find(|&i|
-                self[i].is_none()) else {
+            let Some(p) = bin.home_cells().find(|&i| self[i].is_none()) else {
                 // Fail if bin is full.
                 return None;
             };

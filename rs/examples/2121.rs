@@ -84,8 +84,9 @@ impl State {
 fn main() {
     let input = stdin_lines().map(fixed_numbers).collect::<Vec<[i64; 2]>>();
 
-    let [[_, player_1], [_, player_2]] = input.as_slice()
-    else { panic!() };
+    let [[_, player_1], [_, player_2]] = input.as_slice() else {
+        panic!()
+    };
 
     // 1
     let mut player = [Player::new(*player_1), Player::new(*player_2)];

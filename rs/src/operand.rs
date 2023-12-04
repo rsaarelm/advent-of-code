@@ -17,7 +17,7 @@ impl Operand {
     pub fn val(&self, mem: &[i64]) -> i64 {
         match self {
             Int(n) => *n,
-            Reg(c) => mem[reg(*c)]
+            Reg(c) => mem[reg(*c)],
         }
     }
 }
