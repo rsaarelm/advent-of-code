@@ -8,6 +8,7 @@ edition = "2021"
 name = "aoc"
 
 [dependencies]
+anyhow = "1"
 bitvec = "1"
 derive_deref = "1"
 fraction = "0.14"
