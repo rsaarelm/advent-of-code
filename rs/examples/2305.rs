@@ -4,7 +4,10 @@ use itertools::Itertools;
 
 use aoc::prelude::*;
 
-fn remove_interval(set: &mut Vec<Range<i64>>, r: Range<i64>) -> Vec<Range<i64>> {
+fn remove_interval(
+    set: &mut Vec<Range<i64>>,
+    r: Range<i64>,
+) -> Vec<Range<i64>> {
     // Invariant: Set is sorted and non-overlapping.
 
     // Cut-off elements.
@@ -16,26 +19,23 @@ fn remove_interval(set: &mut Vec<Range<i64>>, r: Range<i64>) -> Vec<Range<i64>> 
         if set[i].end <= r.start {
             i += 1;
         }
-
         // Full overlap, remove entire interval.
         else if r.start <= set[i].start && set[i].end <= r.end {
             parts.push(set[i].clone());
             set.remove(i);
             // Removed an element, so i stays the same.
         }
-
         // Cut in two
         else if set[i].start < r.start && r.end < set[i].end {
             let a = set[i].start..r.start;
             let b = r.end..set[i].end;
             set[i] = a;
-            set.insert(i+1, b);
+            set.insert(i + 1, b);
             parts.push(r.clone());
 
             // r.end has been passed, exit
             break;
         }
-
         // Left half cut
         else if r.end < set[i].end {
             parts.push(set[i].start..r.end);
@@ -44,20 +44,16 @@ fn remove_interval(set: &mut Vec<Range<i64>>, r: Range<i64>) -> Vec<Range<i64>> 
             // r.end has been passed, exit
             break;
         }
-
         // Right half cut, modify element and continue.
         else if r.start > set[i].start {
             parts.push(r.start..set[i].end);
             set[i].end = r.start;
             i += 1;
         }
-
         // Subsequent values are past the new range.
         else if set[i].start >= r.end {
             break;
-        }
-
-        else {
+        } else {
             unreachable!()
         }
     }
@@ -116,8 +112,7 @@ fn main() {
     for line in stdin_lines() {
         if line.trim().is_empty() {
             continue;
-        }
-        else if line.contains("seeds") {
+        } else if line.contains("seeds") {
             seeds = numbers(line);
         } else if line.contains(':') {
             // Maps are always in same order, don't bother with labels.
@@ -125,13 +120,14 @@ fn main() {
         } else {
             let n = maps.len() - 1;
             let [a, b, len] = fixed_numbers::<i64, 3>(line);
-            maps[n].push((b..(b+len), (a - b)));
+            maps[n].push((b..(b + len), (a - b)));
         }
     }
 
-    let mut p1: Vec<Range<i64>> = seeds.iter().map(|&a| a..(a+1)).collect();
+    let mut p1: Vec<Range<i64>> = seeds.iter().map(|&a| a..(a + 1)).collect();
     p1.sort_by_key(|a| a.start);
-    let mut p2: Vec<Range<i64>> = seeds.iter().tuples().map(|(&a, &b)| a..(a+b)).collect();
+    let mut p2: Vec<Range<i64>> =
+        seeds.iter().tuples().map(|(&a, &b)| a..(a + b)).collect();
     p2.sort_by_key(|a| a.start);
 
     for p in [p1, p2] {
