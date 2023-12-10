@@ -2,26 +2,22 @@ use aoc::prelude::*;
 
 // return new dir
 fn step(pipe: &HashMap<IVec2, char>, pos: IVec2, dir: IVec2) -> Option<IVec2> {
-    // XXX: Can't pattern-match ivecs?
-    match (
-        <[i32; 2]>::from(dir),
-        pipe.get(&(pos + dir)).copied().unwrap_or(' '),
-    ) {
-        ([1, 0], '-') => Some(DIR_4[RIGHT]),
-        ([1, 0], '7') => Some(DIR_4[DOWN]),
-        ([1, 0], 'J') => Some(DIR_4[UP]),
+    match (dir4(dir), pipe.get(&(pos + dir)).copied().unwrap_or(' ')) {
+        (RIGHT, '-') => Some(DIR_4[RIGHT]),
+        (RIGHT, '7') => Some(DIR_4[DOWN]),
+        (RIGHT, 'J') => Some(DIR_4[UP]),
 
-        ([0, 1], '|') => Some(DIR_4[DOWN]),
-        ([0, 1], 'L') => Some(DIR_4[RIGHT]),
-        ([0, 1], 'J') => Some(DIR_4[LEFT]),
+        (DOWN, '|') => Some(DIR_4[DOWN]),
+        (DOWN, 'L') => Some(DIR_4[RIGHT]),
+        (DOWN, 'J') => Some(DIR_4[LEFT]),
 
-        ([-1, 0], '-') => Some(DIR_4[LEFT]),
-        ([-1, 0], 'L') => Some(DIR_4[UP]),
-        ([-1, 0], 'F') => Some(DIR_4[DOWN]),
+        (LEFT, '-') => Some(DIR_4[LEFT]),
+        (LEFT, 'L') => Some(DIR_4[UP]),
+        (LEFT, 'F') => Some(DIR_4[DOWN]),
 
-        ([0, -1], '|') => Some(DIR_4[UP]),
-        ([0, -1], '7') => Some(DIR_4[LEFT]),
-        ([0, -1], 'F') => Some(DIR_4[RIGHT]),
+        (UP, '|') => Some(DIR_4[UP]),
+        (UP, '7') => Some(DIR_4[LEFT]),
+        (UP, 'F') => Some(DIR_4[RIGHT]),
 
         _ => None,
     }
@@ -63,9 +59,7 @@ fn main() {
     println!("{}", n / 2);
 
     // Repair the 'S' into a part of the track.
-    let new_s = match (1 << DIR_4.iter().position(|&a| a == dir0).unwrap())
-        | (1 << DIR_4.iter().position(|&a| a == dir1).unwrap())
-    {
+    let new_s = match (1 << dir4(dir0)) | (1 << dir4(dir1)) {
         0b0011 => 'F',
         0b0101 => '-',
         0b1001 => 'L',

@@ -93,6 +93,11 @@ pub fn neighbors_8<T: Clone + Into<IVec2> + From<IVec2>>(
     DIR_8.iter().map(move |&d| (d + p.clone().into()).into())
 }
 
+pub fn dir4(a: impl Into<IVec2>) -> usize {
+    let a = a.into();
+    DIR_4.iter().position(|&x| x == a).unwrap()
+}
+
 pub const SPACE_6: [IVec3; 6] = [
     ivec3(1, 0, 0),
     ivec3(-1, 0, 0),
