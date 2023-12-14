@@ -9,6 +9,7 @@ use std::{
 use glam::Mat3;
 use lazy_static::lazy_static;
 pub use memoize::memoize;
+pub use indexmap::IndexMap;
 use num_traits::{One, Zero};
 use regex::Regex;
 pub use std::str::FromStr;
