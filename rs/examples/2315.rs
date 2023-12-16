@@ -13,24 +13,32 @@ fn hash(s: &str) -> usize {
 
 fn main() {
     assert_eq!(hash("HASH"), 52);
-    let input: Vec<String> = stdin_string().split(',').map(|a| a.to_owned()).collect();
+    let input: Vec<String> =
+        stdin_string().split(',').map(|a| a.to_owned()).collect();
 
     // P1
     println!("{}", input.iter().map(|a| hash(a)).sum::<usize>());
 
     // P2
 
-    let mut store: [Vec<(String, usize)>; 256] = std::array::from_fn(|_| Vec::new());
+    let mut store: [Vec<(String, usize)>; 256] =
+        std::array::from_fn(|_| Vec::new());
 
     for elt in &input {
         if let Ok(a) = re_parser::<String>("(.*)-")(elt) {
             let idx = hash(&a);
-            if let Some(pos) = store[idx].iter().position(|(x, _)| x == a.as_str()) {
+            if let Some(pos) =
+                store[idx].iter().position(|(x, _)| x == a.as_str())
+            {
                 store[idx].remove(pos);
             }
-        } else if let Ok((a, n)) = re_parser::<(String, usize)>("(.*)=(.*)")(elt) {
+        } else if let Ok((a, n)) =
+            re_parser::<(String, usize)>("(.*)=(.*)")(elt)
+        {
             let idx = hash(&a);
-            if let Some(pos) = store[idx].iter().position(|(x, _)| x == a.as_str()) {
+            if let Some(pos) =
+                store[idx].iter().position(|(x, _)| x == a.as_str())
+            {
                 store[idx][pos] = (a, n);
             } else {
                 store[idx].push((a, n));
