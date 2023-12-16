@@ -744,6 +744,23 @@ impl VecExt for IVec3 {
     }
 }
 
+pub trait Rotate {
+    /// Rotate clockwise
+    fn cw(self) -> Self;
+    /// Rotate counterclockwise.
+    fn ccw(self) -> Self;
+}
+
+impl Rotate for IVec2 {
+    fn cw(self) -> Self {
+        ivec2(-self.y, self.x)
+    }
+
+    fn ccw(self) -> Self {
+        ivec2(self.y, -self.x)
+    }
+}
+
 /// Map register to index.
 pub fn reg(c: char) -> usize {
     (c as u8 - b'a') as usize
