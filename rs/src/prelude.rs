@@ -378,6 +378,15 @@ pub fn stdin_grid() -> (Rect<i32>, Vec<char>) {
     grid(stdin_string())
 }
 
+pub fn print_grid(bounds: Rect<i32>, mut f: impl FnMut(IVec2)) {
+    for y in 0..bounds.height() {
+        for x in 0..bounds.width() {
+            f(ivec2(x, y));
+        }
+        eprintln!();
+    }
+}
+
 /// Generate a shortest paths map on a grid according to a neighbors function.
 pub fn dijkstra_map<'a, T, I>(
     neighbors: impl Fn(&T) -> I + 'a,
