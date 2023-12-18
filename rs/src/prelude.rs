@@ -813,6 +813,22 @@ where
     true
 }
 
+/// Polygon area using the shoelace formula.
+pub fn polygon_area(vertices: &[I64Vec2]) -> i64 {
+    // Determinant
+    fn det(a: i64, b: i64, c: i64, d: i64) -> i64 {
+        i64vec2(a, b).perp_dot(i64vec2(c, d))
+    }
+
+    let mut area2: i64 = 0;
+    for i in 0..vertices.len() {
+        let a = vertices[i];
+        let b = vertices[(i + 1) % vertices.len()];
+        area2 += det(a.x, b.x, a.y, b.y);
+    }
+    area2 / 2
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
