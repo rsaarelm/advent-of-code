@@ -18,7 +18,7 @@ pub use std::str::FromStr;
 // everywhere when you don't care about DDOS.
 pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
 
-pub use glam::{ivec2, ivec3, IVec2, IVec3, Vec3Swizzles};
+pub use glam::{i64vec2, ivec2, ivec3, I64Vec2, IVec2, IVec3, Vec3Swizzles};
 
 pub use crate::axis_box::{area, volume, Cube, Rect};
 pub use crate::md5::md5sum;
@@ -767,6 +767,16 @@ impl Rotate for IVec2 {
 
     fn ccw(self) -> Self {
         ivec2(self.y, -self.x)
+    }
+}
+
+impl Rotate for I64Vec2 {
+    fn cw(self) -> Self {
+        i64vec2(-self.y, self.x)
+    }
+
+    fn ccw(self) -> Self {
+        i64vec2(self.y, -self.x)
     }
 }
 
