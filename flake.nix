@@ -38,6 +38,7 @@
               just
               tokei
               pre-commit
+              graphviz
 
               # Rust
               rust
