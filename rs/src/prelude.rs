@@ -7,18 +7,19 @@ use std::{
 };
 
 use glam::Mat3;
-pub use indexmap::IndexMap;
 use lazy_static::lazy_static;
-pub use memoize::memoize;
 use num_traits::{One, Zero};
 use regex::Regex;
+
+pub use glam::{i64vec2, ivec2, ivec3, I64Vec2, IVec2, IVec3, Vec3Swizzles};
+pub use indexmap::IndexMap;
+pub use memoize::memoize;
+pub use si_trace_print::{efn, efx, en};
 pub use std::str::FromStr;
 
 // Faster hashmap and hashset implementations, no reason not to use these
 // everywhere when you don't care about DDOS.
 pub use rustc_hash::{FxHashMap as HashMap, FxHashSet as HashSet};
-
-pub use glam::{i64vec2, ivec2, ivec3, I64Vec2, IVec2, IVec3, Vec3Swizzles};
 
 pub use crate::axis_box::{area, volume, Cube, Rect};
 pub use crate::md5::md5sum;
