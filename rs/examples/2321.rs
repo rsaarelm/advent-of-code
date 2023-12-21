@@ -1,5 +1,4 @@
 use aoc::prelude::*;
-use polyfit_rs::polyfit_rs::polyfit;
 
 fn rim(
     bounds: &Rect<i32>,
@@ -67,23 +66,23 @@ fn main() {
 
     // Grab some data points. We need three points to derive a quadratic
     // polynomial.
-    let mut x = Vec::new();
-    let mut y = Vec::new();
+    let mut xs = Vec::new();
+    let mut ys = Vec::new();
 
     let mut area = 0;
     for i in (1..).step_by(2) {
         area += rim(&bounds, &blocks, start, i);
         if i % n == k {
-            x.push(i as f64);
-            y.push(area as f64);
+            xs.push(i as f64);
+            ys.push(area as f64);
         }
-        if x.len() == 3 {
+        if xs.len() == 3 {
             break;
         }
     }
 
     // And then use a crate to fit it because lazy.
-    let [c, b, a] = &polyfit(&x, &y, 2).unwrap()[..] else {
+    let [c, b, a] = &fit_polynomial(&xs, &ys)[..] else {
         panic!()
     };
 

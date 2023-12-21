@@ -830,6 +830,28 @@ pub fn polygon_area(vertices: &[I64Vec2]) -> i64 {
     area2 / 2
 }
 
+/// Find the `xs.len() - 1` degree polynomial that fits the input points.
+pub fn fit_polynomial(xs: &[f64], ys: &[f64]) -> Vec<f64> {
+    use nalgebra::{DMatrix, DVector};
+
+    assert_eq!(xs.len(), ys.len());
+    assert!(xs.len() >= 2);
+
+    // | x_1^0  x_1^1  x_2^2  ... |
+    // | x_2^0  x_2^1  x_2^2  ... |
+    // | ...                      |
+    let a = DMatrix::from_fn(xs.len(), xs.len(), |i, j| xs[i].powi(j as i32));
+
+    let b = DVector::from_row_slice(ys);
+    let decomp = a.svd(true, true);
+
+    decomp
+        .solve(&b, 1.0e-12)
+        .expect("Failed to fit polynomial")
+        .data
+        .into()
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
