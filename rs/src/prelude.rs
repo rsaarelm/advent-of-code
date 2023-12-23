@@ -379,7 +379,7 @@ pub fn stdin_grid() -> (Rect<i32>, Vec<char>) {
     grid(stdin_string())
 }
 
-pub fn print_grid(bounds: Rect<i32>, mut f: impl FnMut(IVec2)) {
+pub fn print_grid(bounds: &Rect<i32>, mut f: impl FnMut(IVec2)) {
     for y in 0..bounds.height() {
         for x in 0..bounds.width() {
             f(ivec2(x, y) + IVec2::from(bounds.min()));
