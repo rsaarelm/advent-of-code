@@ -81,7 +81,6 @@ fn main() {
         }
     }
 
-    // And then use a crate to fit it because lazy.
     let [c, b, a] = &fit_polynomial(&xs, &ys)[..] else {
         panic!()
     };
