@@ -854,6 +854,18 @@ pub fn fit_polynomial(xs: &[f64], ys: &[f64]) -> Vec<f64> {
         .into()
 }
 
+pub fn solve_linear_system(coeffs: &[f64], consts: &[f64]) -> Option<Vec<f64>> {
+    let n = consts.len();
+    assert!(n > 0);
+    assert_eq!(coeffs.len(), n * n);
+
+    let a = DMatrix::from_row_slice(n, n, coeffs);
+    let b = DVector::from_row_slice(consts);
+
+    let c = a.try_inverse()?;
+    Some((c * b).data.into())
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -908,5 +920,14 @@ mod test {
 
         assert_eq!(ROT_CW * vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
         assert_eq!(ROT_CCW * vec3(1.0, 0.0, 0.0), vec3(0.0, -1.0, 0.0));
+    }
+
+    #[test]
+    fn linear_solver() {
+        //  3x + 8y = 5
+        // 4x + 11y = 7
+        let sln =
+            solve_linear_system(&[3.0, 8.0, 4.0, 11.0], &[5.0, 7.0]).unwrap();
+        assert_eq!(sln, vec![-1.0, 1.0]);
     }
 }
