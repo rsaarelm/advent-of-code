@@ -118,7 +118,7 @@ fn main() {
         }
     }
 
-    assert!(graph.len() <= 64);  // Too big for bitmask.
+    assert!(graph.len() <= 64); // Too big for bitmask.
 
     println!("{}", worst_path(&graph, 0, 0));
 

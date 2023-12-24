@@ -8,10 +8,14 @@ use std::{
 
 use glam::Mat3;
 use lazy_static::lazy_static;
+use nalgebra::{DMatrix, DVector};
 use num_traits::{One, Zero};
 use regex::Regex;
 
-pub use glam::{i64vec2, ivec2, ivec3, I64Vec2, IVec2, IVec3, Vec3Swizzles};
+pub use glam::{
+    i64vec2, i64vec3, ivec2, ivec3, I64Vec2, I64Vec3, IVec2, IVec3,
+    Vec3Swizzles,
+};
 pub use indexmap::IndexMap;
 pub use memoize::memoize;
 pub use si_trace_print::{efn, efx, en};
@@ -832,8 +836,6 @@ pub fn polygon_area(vertices: &[I64Vec2]) -> i64 {
 
 /// Find the `xs.len() - 1` degree polynomial that fits the input points.
 pub fn fit_polynomial(xs: &[f64], ys: &[f64]) -> Vec<f64> {
-    use nalgebra::{DMatrix, DVector};
-
     assert_eq!(xs.len(), ys.len());
     assert!(xs.len() >= 2);
 
@@ -857,7 +859,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_numbers() {
+    fn parse_numbers() {
         let v: Vec<i32> = vec![1, 2, 3, 4];
         let s: Vec<i32> = numbers("1 2 3 4");
         assert_eq!(s, v);
@@ -868,7 +870,7 @@ mod test {
     }
 
     #[test]
-    fn test_permutations() {
+    fn permutations() {
         let mut perm: Vec<u32> = (0..10).collect();
 
         let mut n = 0;
@@ -888,7 +890,7 @@ mod test {
     }
 
     #[test]
-    fn test_rotations() {
+    fn rotations() {
         use glam::vec3;
         assert_eq!(ROT_XY[UP] * vec3(-1.0, -1.0, -1.0), vec3(-1.0, -1.0, 1.0));
         assert_eq!(

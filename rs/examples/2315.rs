@@ -50,7 +50,7 @@ fn main() {
 
     let mut n = 0;
     for (i, a) in store.iter().enumerate() {
-        for (j, (b, x)) in a.iter().enumerate() {
+        for (j, (_, x)) in a.iter().enumerate() {
             n += (i + 1) * (j + 1) * x;
         }
     }
