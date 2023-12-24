@@ -52,7 +52,8 @@
               z3.dev
 
               # Python
-              # python3
+              python3
+              python3Packages.z3
               # python3Packages.numpy
               # python3Packages.python-lsp-server
               # # FIXME 2022-11-30 Broken package?
