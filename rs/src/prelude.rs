@@ -885,6 +885,80 @@ impl Interner {
     }
 }
 
+/// Iterate through points in 3D space out of origin.
+#[derive(Copy, Clone, Default, Debug)]
+pub struct SpacePoints(I64Vec3);
+
+impl Iterator for SpacePoints {
+    type Item = I64Vec3;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let ret = self.0;
+
+        let (x, y, z) = (self.0.x, self.0.y, self.0.z);
+
+        // Cycle through sign permutations.
+        if z < 0 {
+            *self = SpacePoints(i64vec3(x, y, -z));
+            return Some(ret);
+        } else if y < 0 {
+            *self = SpacePoints(i64vec3(x, -y, -z));
+            return Some(ret);
+        } else if x < 0 {
+            *self = SpacePoints(i64vec3(-x, -y, -z));
+            return Some(ret);
+        }
+
+        debug_assert!(x >= 0 && y >= 0 && z >= 0);
+
+        // Further mutations set all values to negative so sign permutations
+        // will be hit next.
+        let set = |a: &mut Self, x: i64, y: i64, z: i64| {
+            debug_assert!(x >= 0 && y >= 0 && z >= 0);
+            *a = SpacePoints(i64vec3(-x, -y, -z))
+        };
+
+        // Generate next element.
+        if x >= y && y >= z {
+            // At the end of permutating the values. Go back to ascending
+            // order.
+            let (x, y, z) = (z, y, x);
+
+            if y > x + 1 {
+                // Can pull values from y to x while keeping order.
+                set(self, x + 1, y - 1, z);
+            } else if 3 * (z - 1) >= x + y + z {
+                // Bring z down, fill y and spill over to x if needed.
+                let n = x + y + z;
+                let z2 = z - 1;
+                let y2 = z2.min(n - z2);
+                let x2 = n - z2 - y2;
+                set(self, x2, y2, z2);
+            } else {
+                // Can't shuffle further, increment the whole.
+                set(self, 0, 0, x + y + z + 1);
+            }
+        } else {
+            let min = x.min(y).min(z);
+
+            // Permute by walking smallest right.
+            // 123 213 231 132 312 321 (end)
+            // 122 212 221 (end)
+            if x == min && y != min {
+                set(self, y, x, z)
+            } else if y == min && z != min {
+                set(self, x, z, y)
+            } else if z == min && x != min {
+                set(self, z, y, x)
+            } else {
+                unreachable!()
+            }
+        }
+
+        Some(ret)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -948,5 +1022,21 @@ mod test {
         let sln =
             solve_linear_system(&[3.0, 8.0, 4.0, 11.0], &[5.0, 7.0]).unwrap();
         assert_eq!(sln, vec![-1.0, 1.0]);
+    }
+
+    #[test]
+    fn space_points() {
+        let cube = Cube::new([-10, -10, -10], [10, 10, 10]);
+
+        let mut points = HashSet::default();
+        for p in SpacePoints::default().take(cube.volume() as usize * 5) {
+            assert!(!points.contains(&p));
+            points.insert(p);
+        }
+
+        for p in cube {
+            let p = I64Vec3::from(p);
+            assert!(points.contains(&p));
+        }
     }
 }
