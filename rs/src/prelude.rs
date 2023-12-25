@@ -866,6 +866,25 @@ pub fn solve_linear_system(coeffs: &[f64], consts: &[f64]) -> Option<Vec<f64>> {
     Some((c * b).data.into())
 }
 
+/// A string interner that turns strings into numbers and remembers what it's
+/// seen.
+#[derive(Default)]
+pub struct Interner {
+    lookup: HashMap<String, usize>,
+}
+
+impl Interner {
+    pub fn get(&mut self, s: &str) -> usize {
+        if let Some(&n) = self.lookup.get(s) {
+            n
+        } else {
+            let n = self.lookup.len();
+            self.lookup.insert(s.to_owned(), n);
+            n
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
