@@ -50,6 +50,9 @@ fn solve(ps: &[I64Vec3], vs: &[I64Vec3], v: I64Vec3) -> Option<I64Vec3> {
         .0
         .into();
 
+    // HACK: Need to filter out actual diverging solutions, but floating point
+    // problems produce off-by-one values. so allow max +/- 1 deviation from
+    // median along any axis.
     if ret
         .iter()
         .map(|&a| (a - median).abs().max_element())
