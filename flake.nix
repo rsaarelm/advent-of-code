@@ -1,14 +1,14 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     rust-overlay.url = "github:oxalica/rust-overlay";
     naersk.url = "github:nmattia/naersk/master";
   };
 
-  outputs = { self, nixpkgs, utils, pre-commit-hooks, rust-overlay, naersk, ... }:
-    utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, pre-commit-hooks, rust-overlay, naersk, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
       let
         pname = "advent-of-code";
         pkgs = import nixpkgs {
@@ -30,7 +30,7 @@
         # Graphical version
         packages.default = naersk-lib.buildPackage { src = ./.; };
 
-        apps.default = utils.lib.mkApp { drv = packages.default; };
+        apps.default = flake-utils.lib.mkApp { drv = packages.default; };
 
         devShell = with pkgs;
           mkShell {
