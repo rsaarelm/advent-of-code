@@ -311,9 +311,7 @@ impl Shape {
     /// Extract one connected shape from point cloud and remove the shape's
     /// points from the cloud. Returns `None` if cloud is empty.
     pub fn extract(cloud: &mut PointCloud) -> Option<Self> {
-        let Some(&seed) = cloud.iter().next() else {
-            return None;
-        };
+        let &seed = cloud.iter().next()?;
         let mut edge = vec![seed];
         let mut points = PointCloud::new();
 
