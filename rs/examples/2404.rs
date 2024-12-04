@@ -52,7 +52,7 @@ fn main() {
     // P2
 
     let mut s = 0;
-    for p in bounds {
+    for p in area(bounds.width() - 2, bounds.height() - 2) {
         let a = ray(&grid, p.into(), ivec2(1, 1), 3);
         let b = ray(&grid, IVec2::from(p) + ivec2(2, 0), ivec2(-1, 1), 3);
         if (a == "MAS" || a == "SAM") && (b == "MAS" || b == "SAM") {
