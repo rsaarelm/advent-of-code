@@ -555,6 +555,13 @@ pub fn histogram<T: Clone + Eq + Hash + Ord>(
     hist.into_iter()
 }
 
+pub fn idx_of<'a, T: Eq>(
+    seq: impl IntoIterator<Item = &'a T>,
+    a: &'a T,
+) -> Option<usize> {
+    seq.into_iter().position(|x| x == a)
+}
+
 pub trait RegexParseable: Sized {
     type Error;
 
