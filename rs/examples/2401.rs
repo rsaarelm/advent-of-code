@@ -8,8 +8,18 @@ fn main() {
     a.sort();
     b.sort();
 
-    println!("{}", a.iter().zip(b.iter()).map(|(a, b)| (a-b).abs()).sum::<i64>());
+    println!(
+        "{}",
+        a.iter()
+            .zip(b.iter())
+            .map(|(a, b)| (a - b).abs())
+            .sum::<i64>()
+    );
 
-    println!("{}", a.iter().map(|&x| x * b.iter().filter(|&&y| y == x).count() as i64).sum::<i64>());
+    println!(
+        "{}",
+        a.iter()
+            .map(|&x| x * b.iter().filter(|&&y| y == x).count() as i64)
+            .sum::<i64>()
+    );
 }
-

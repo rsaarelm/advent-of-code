@@ -8,7 +8,9 @@ fn safe_pair(sign: i32, a: i32, b: i32) -> bool {
 
 fn is_safe(seq: &[i32]) -> bool {
     let sign = (seq[1] - seq[0]).signum();
-    seq.iter().tuple_windows().all(|(a, b)| safe_pair(sign, *a, *b))
+    seq.iter()
+        .tuple_windows()
+        .all(|(a, b)| safe_pair(sign, *a, *b))
 }
 
 fn is_safe_2(seq: &[i32]) -> bool {

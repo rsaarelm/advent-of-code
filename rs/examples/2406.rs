@@ -1,7 +1,11 @@
 use aoc::prelude::*;
 
 // Return length for exit, None if path loops.
-fn path(bounds: &Rect<i32>, map: &HashSet<IVec2>, mut pos: IVec2) -> Option<HashMap<IVec2, Vec<IVec2>>> {
+fn path(
+    bounds: &Rect<i32>,
+    map: &HashSet<IVec2>,
+    mut pos: IVec2,
+) -> Option<HashMap<IVec2, Vec<IVec2>>> {
     let mut dir = ivec2(0, -1);
     // Footprint, tracking directions it was traversed in.
     let mut posns: HashMap<IVec2, Vec<IVec2>> = HashMap::default();
