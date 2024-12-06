@@ -22,13 +22,13 @@ fn main() {
     let mut pos: IVec2 = Default::default();
     let mut bounds: Rect<i32> = Default::default();
 
-    for ([x, y], c) in stdin_grid_iter(&mut bounds) {
+    for (p, c) in stdin_grid_iter(&mut bounds) {
         match c {
             '#' => {
-                map.insert(ivec2(x, y));
+                map.insert(p.into());
             }
             '^' => {
-                pos = ivec2(x, y);
+                pos = p.into();
             }
             '.' => {}
             _ => panic!("Bad char {c}"),
@@ -46,12 +46,12 @@ fn main() {
         let mut map2 = map.clone();
         map2.insert(p);
 
-        let mut seen: HashSet<(IVec2, IVec2)> = HashSet::default();
+        let mut seen = HashSet::default();
         // Get position + direction by tracking consecutive pairs of steps,
         // this lets us see when we've entered a loop.
         for step in path(&map2, pos)
             .take_while(|&p| bounds.contains(p))
-            .tuple_windows()
+            .tuple_windows::<(_, _)>()
         {
             if seen.contains(&step) {
                 // Loop detected, mark this one down and continue scan.
