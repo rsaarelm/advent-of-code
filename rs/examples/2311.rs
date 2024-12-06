@@ -40,7 +40,7 @@ fn expand(coords: &[I64Vec2], age: i64) -> i64 {
 }
 
 fn main() {
-    let coords: Vec<I64Vec2> = stdin_grid_iter()
+    let coords: Vec<I64Vec2> = stdin_grid_iter(&mut Rect::default())
         .filter_map(|(p, c)| {
             (c == '#').then_some(i64vec2(p[0] as i64, p[1] as i64))
         })

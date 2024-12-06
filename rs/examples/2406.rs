@@ -30,9 +30,7 @@ fn main() {
     let mut pos: IVec2 = Default::default();
     let mut bounds: Rect<i32> = Default::default();
 
-    for ([x, y], c) in stdin_grid_iter() {
-        bounds.p1[0] = bounds.p1[0].max(x + 1);
-        bounds.p1[1] = bounds.p1[1].max(y + 1);
+    for ([x, y], c) in stdin_grid_iter(&mut bounds) {
         match c {
             '#' => {
                 map.insert(ivec2(x, y));

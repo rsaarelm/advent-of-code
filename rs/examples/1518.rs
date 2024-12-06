@@ -23,8 +23,8 @@ fn rewire(grid: &mut HashSet<[i32; 2]>) {
 }
 
 fn main() {
-    let bounds = area(100, 100);
-    let start: HashSet<[i32; 2]> = stdin_grid_iter()
+    let mut bounds = Rect::default();
+    let start: HashSet<[i32; 2]> = stdin_grid_iter(&mut bounds)
         .filter_map(|(p, c)| (c == '#').then_some(p))
         .collect();
 

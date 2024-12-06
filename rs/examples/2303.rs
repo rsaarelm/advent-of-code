@@ -55,7 +55,7 @@ fn scan(
 }
 
 fn main() {
-    let cloud = stdin_grid_iter()
+    let cloud = stdin_grid_iter(&mut Rect::default())
         .map(|(p, c)| (IVec2::from(p), c))
         .collect::<HashMap<_, _>>();
 

@@ -12,10 +12,8 @@ use State::*;
 fn main() {
     let mut map = HashMap::default();
 
-    let (mut max_x, mut max_y) = (0, 0);
-    for ([x, y], c) in stdin_grid_iter() {
-        max_x = max_x.max(x);
-        max_y = max_y.max(y);
+    let mut bounds = Rect::default();
+    for ([x, y], c) in stdin_grid_iter(&mut bounds) {
         if c == '#' {
             map.insert([x, y], Infected);
         }
@@ -24,7 +22,7 @@ fn main() {
     // P1
 
     let mut infected = map.clone();
-    let mut pos = ivec2(max_x / 2, max_y / 2);
+    let mut pos: IVec2 = bounds.center().into();
     let mut dir = UP;
 
     let mut infects = 0;
@@ -46,7 +44,7 @@ fn main() {
     // P2
 
     let mut infected = map.clone();
-    let mut pos = ivec2(max_x / 2, max_y / 2);
+    let mut pos: IVec2 = bounds.center().into();
     let mut dir = UP;
 
     let mut infects = 0;

@@ -24,8 +24,9 @@ fn step(pipe: &HashMap<IVec2, char>, pos: IVec2, dir: IVec2) -> Option<IVec2> {
 }
 
 fn main() {
-    let mut input: HashMap<IVec2, char> =
-        stdin_grid_iter().map(|(p, c)| (p.into(), c)).collect();
+    let mut input: HashMap<IVec2, char> = stdin_grid_iter(&mut Rect::default())
+        .map(|(p, c)| (p.into(), c))
+        .collect();
 
     let start = input
         .iter()

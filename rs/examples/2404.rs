@@ -12,8 +12,8 @@ fn ray(
 }
 
 fn main() {
-    let grid: HashMap<[i32; 2], char> = stdin_grid_iter().collect();
-    let bounds: Rect<i32> = Rect::from_points_inclusive(grid.keys().copied());
+    let mut bounds = Rect::default();
+    let grid: HashMap<[i32; 2], char> = stdin_grid_iter(&mut bounds).collect();
 
     // Size of the input square.
     let dim = bounds.width().max(bounds.height());

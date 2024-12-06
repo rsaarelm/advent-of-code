@@ -159,7 +159,10 @@ where
     })
 }
 
-pub fn stdin_grid_iter() -> impl Iterator<Item = ([i32; 2], char)> {
+pub fn stdin_grid_iter(
+    bounds: &mut Rect<i32>,
+) -> impl Iterator<Item = ([i32; 2], char)> + use<'_> {
+    *bounds = Rect::new([0, 0], [0, 0]);
     let mut x = 0;
     let mut y = 0;
     stdin_chars().filter_map(move |c| match c {
@@ -173,6 +176,8 @@ pub fn stdin_grid_iter() -> impl Iterator<Item = ([i32; 2], char)> {
             None
         }
         c => {
+            bounds.p1[0] = bounds.p1[0].max(x + 1);
+            bounds.p1[1] = bounds.p1[1].max(y + 1);
             x += 1;
             Some(([x - 1, y], c))
         }
