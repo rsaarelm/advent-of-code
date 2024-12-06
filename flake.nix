@@ -41,15 +41,15 @@
               graphviz
 
               # Rust
-              rust
-              rust-analyzer
-              clippy
-              cargo-outdated
-              cargo-udeps
+              #rust
+              #rust-analyzer
+              #clippy
+              #cargo-outdated
+              #cargo-udeps
 
               # Needed for rust-Z3
-              clang.cc.lib
-              z3.dev
+              #clang.cc.lib
+              #z3.dev
 
               # Python
               python3
@@ -69,10 +69,10 @@
               # zig
 
               # Idris
-              idris2
+              # idris2
 
               # Nushell
-              nushell
+              # nushell
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
             RUST_BACKTRACE = "1";
