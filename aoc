@@ -1,0 +1,116 @@
+#!/usr/bin/env rust-script
+
+//! Advent of Code multitool.
+//!
+//! ```cargo
+//! [dependencies]
+//! anyhow = "1"
+//! chrono = "0.4"
+//! clap = { version = "4", features = ["derive"] }
+//! humanize-duration = { version = "0.0.6", features = ["chrono"] }
+//! reqwest = { version = "0.12", features = ["blocking"] }
+//! ```
+
+use anyhow::bail;
+use chrono::{DateTime, Datelike, TimeZone, Utc};
+use clap::{Parser, Subcommand};
+use humanize_duration::{prelude::DurationExt, Truncate};
+
+// TODO When running a task, download input/1501.txt first if it's missing (no need for explicit download cmd)
+// TODO Running aoc without arguments will show time until next task and will download input if we're within an advent day that doesn't have input yet
+// TODO Canonize saves output to input/1501.out, output may be just one line for p1
+// TODO Run the language-specific tasks using pipes
+// TODO Time task runs
+// TODO "run rs" for all rs tasks, "run rs/15" for all 2015 tasks (handle missing task errors gracefully)
+// TODO Highlight right/wrong/unknown answers as per old python script
+// TODO Run example inputs before main input, bail if example fails against expected answer
+// TODO Report tasks as missing or broken / wrong answer / right answer, times for right answers
+// TODO Just command in language subdirs to report existing task so we can differentiate missing and broken tasks
+// TODO Countdown to task function when run without args less than an hour before next task drops, block in CLI so you can pipe an alarm to play afterwards
+// TODO Countdown function immediately checks that a working cookie is given (try to download 2015 day 1) and fails with error msg if not
+// TODO Remove inputs and answers from git repo (keep the examples, those are the same for everyone)
+// TODO Create input/ dir if it's missing
+// TODO Default run Rust lang task for today if today is an advent day (24h after start)
+// TODO Canonize will fail if a conflicting existing answer exists
+
+#[derive(Parser, Debug)]
+#[command(author, version, about)]
+struct Args {
+    #[command(subcommand)]
+    command: Option<Cmd>,
+}
+
+#[derive(Subcommand, Debug)]
+enum Cmd {
+    /// Run a task.
+    Run {
+        /// The language and day of the task, eg. "rs/1501" for Rust task for 2015-12-01.
+        /// Assumes Rust and the latest valid day if unspecified.
+        task: Option<String>,
+    },
+
+    /// Save the output of a correctly working task as the official answer.
+    Canonize {
+        /// The language and day of the task, eg. "rs/1501" for Rust task for 2015-12-01.
+        task: String 
+    },
+}
+
+trait DateExt {
+    /// Format used by aoc tool, 2015-12-01 becomes 1501
+    fn code(&self) -> String;
+}
+
+impl<T: Datelike + Sized> DateExt for T {
+    fn code(&self) -> String {
+        format!("{:02}{:02}", self.year() - 2000, self.day())
+    }
+}
+
+fn start_times() -> impl Iterator<Item = DateTime<Utc>> {
+    (2015..).flat_map(|year| {
+        (1..=25).map(move |day| Utc.with_ymd_and_hms(year, 12, day, 5, 0, 0).unwrap())
+    })
+}
+
+fn download_input(cookie: &str, date: DateTime<Utc>) -> anyhow::Result<String> {
+    let client = reqwest::blocking::Client::new();
+    let url = format!(
+        "https://adventofcode.com/{}/day/{}/input",
+        date.year(),
+        date.day()
+    );
+    let response = client
+        .get(url)
+        .header("Cookie", format!("session={}", cookie))
+        .send()?;
+
+    if response.status().is_success() {
+        Ok(response.text()?)
+    } else {
+        bail!("Failed {:?}", response.status());
+    }
+}
+
+fn get_cookie() -> anyhow::Result<String> {
+    match std::env::var("ADVENT_SESSION") {
+        Ok(cookie) => Ok(cookie),
+        Err(_) => bail!("Set the environment variable 'ADVENT_SESSION' to the value of your 'session' cookie from adventofcode.com"),
+    }
+}
+
+fn main() -> anyhow::Result<()> {
+    let args = Args::parse();
+    println!("{args:?}");
+    let now = chrono::Utc::now();
+
+    let next = start_times().find(|&x| x > now).unwrap();
+    println!("{} until next task", (next - now).human(Truncate::Second));
+
+    //let test_day = start_times().next().unwrap();
+    //println!("{:?}", download_input(&get_cookie()?, test_day));
+
+    Ok(())
+}
+
+// vim:set syntax=rust:
