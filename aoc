@@ -23,19 +23,20 @@ use chrono::{DateTime, Datelike, TimeZone, Utc};
 use clap::{Parser, Subcommand};
 use humanize_duration::{prelude::DurationExt, Truncate};
 
+// TODO Do type work, day <-> task id, answer sets (one or two, some examples might want to skip answer 1 with hyphen)
 // TODO Running aoc without arguments will show time until next task and will download input if we're within an advent day that doesn't have input yet
 // TODO Canonize saves output to input/1501.out, output may be just one line for p1
 // TODO Time task runs
 // TODO "run rs" for all rs tasks, "run rs/15" for all 2015 tasks (handle missing task errors gracefully)
 // TODO Highlight right/wrong/unknown answers as per old python script
 // TODO Run example inputs before main input, bail if example fails against expected answer
-// TODO Report tasks as missing (just exists returns error) or broken / wrong answer / right answer, times for right answers
+// TODO Report tasks as missing (just exists returns error) or broken (runner errors) / wrong answer / right answer, times for right answers
 // TODO Countdown to task function when run without args less than an hour before next task drops, block in CLI so you can pipe an alarm to play afterwards
 // TODO Countdown function immediately checks that a working cookie is given (try to download 2015 day 1) and fails with error msg if not
 // TODO Remove inputs and answers from git repo (keep the examples, those are the same for everyone)
-// TODO Create input/ dir if it's missing
 // TODO Default run Rust lang task for today if today is an advent day (24h after start)
 // TODO Canonize will fail if a conflicting existing answer exists
+// TODO Actually, do "submit" instead of canonize (do both), it'll bounce the task through AOC server and will clear things if it passes (must do P1 -> P2 workflow)
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -48,6 +49,14 @@ struct Args {
 enum Cmd {
     /// Run a task.
     Run {
+        /// The language and day of the task, eg. "rs/1501" for Rust task for 2015-12-01.
+        /// Assumes Rust and the latest valid day if unspecified.
+        task: Option<String>,
+    },
+
+    /// Run a task and submit answer to `adventofcode.com` if it's uncanonized.
+    /// Canonize the answer if `adventofcode.com` accepts it.
+    Submit {
         /// The language and day of the task, eg. "rs/1501" for Rust task for 2015-12-01.
         /// Assumes Rust and the latest valid day if unspecified.
         task: Option<String>,
@@ -92,7 +101,42 @@ fn download_input(cookie: &str, date: DateTime<Utc>) -> anyhow::Result<String> {
     if response.status().is_success() {
         Ok(response.text()?)
     } else {
-        bail!("Failed {:?}", response.status());
+        bail!("Failed: {:?}", response.status());
+    }
+}
+
+fn submit_answer(
+    cookie: &str,
+    date: DateTime<Utc>,
+    level: usize,
+    answer: &str,
+) -> anyhow::Result<bool> {
+    // TODO Test submitting an answer to aoc
+    assert!(level == 1 || level == 2);
+    let client = reqwest::blocking::Client::new();
+    let url = format!(
+        "https://adventofcode.com/{}/day/{}/answer",
+        date.year(),
+        date.day()
+    );
+
+    let response = client
+        .post(url)
+        .header("Cookie", format!("session={}", cookie))
+        .form(&[("level", level.to_string()), ("answer", answer.to_string())])
+        .send()?;
+
+    if response.status().is_success() {
+        let text = response.text()?;
+        if text.contains("That's the right answer!") {
+            Ok(true)
+        } else if body.contains("That's not the right answer") {
+            Ok(false)
+        } else {
+            bail!("Unexpected response: {}", body);
+        }
+    } else {
+        bail!("Failed: {:?}", response.status());
     }
 }
 
