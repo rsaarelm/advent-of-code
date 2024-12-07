@@ -11,21 +11,25 @@
 //! reqwest = { version = "0.12", features = ["blocking"] }
 //! ```
 
+use std::{
+    fs,
+    io::Write,
+    path::Path,
+    process::{self, Stdio},
+};
+
 use anyhow::bail;
 use chrono::{DateTime, Datelike, TimeZone, Utc};
 use clap::{Parser, Subcommand};
 use humanize_duration::{prelude::DurationExt, Truncate};
 
-// TODO When running a task, download input/1501.txt first if it's missing (no need for explicit download cmd)
 // TODO Running aoc without arguments will show time until next task and will download input if we're within an advent day that doesn't have input yet
 // TODO Canonize saves output to input/1501.out, output may be just one line for p1
-// TODO Run the language-specific tasks using pipes
 // TODO Time task runs
 // TODO "run rs" for all rs tasks, "run rs/15" for all 2015 tasks (handle missing task errors gracefully)
 // TODO Highlight right/wrong/unknown answers as per old python script
 // TODO Run example inputs before main input, bail if example fails against expected answer
-// TODO Report tasks as missing or broken / wrong answer / right answer, times for right answers
-// TODO Just command in language subdirs to report existing task so we can differentiate missing and broken tasks
+// TODO Report tasks as missing (just exists returns error) or broken / wrong answer / right answer, times for right answers
 // TODO Countdown to task function when run without args less than an hour before next task drops, block in CLI so you can pipe an alarm to play afterwards
 // TODO Countdown function immediately checks that a working cookie is given (try to download 2015 day 1) and fails with error msg if not
 // TODO Remove inputs and answers from git repo (keep the examples, those are the same for everyone)
@@ -52,7 +56,7 @@ enum Cmd {
     /// Save the output of a correctly working task as the official answer.
     Canonize {
         /// The language and day of the task, eg. "rs/1501" for Rust task for 2015-12-01.
-        task: String 
+        task: String,
     },
 }
 
@@ -99,13 +103,71 @@ fn get_cookie() -> anyhow::Result<String> {
     }
 }
 
+fn ensure_input_dir() -> anyhow::Result<()> {
+    let input_dir = Path::new("input");
+    if !input_dir.exists() {
+        eprintln!("Creating input/ directory");
+        fs::create_dir(input_dir)?;
+    }
+    Ok(())
+}
+
+fn input(task: &str) -> anyhow::Result<String> {
+    let path = format!("input/{task}.txt");
+    let path = Path::new(&path);
+
+    // Input already exists, good to go.
+    if path.exists() {
+        return Ok(fs::read_to_string(path)?);
+    }
+
+    ensure_input_dir()?;
+
+    // TODO Unify the task format, parseable type?, can use it with cookie DL
+    // TODO When running a task, download input/1501.txt first if it's missing (no need for explicit download cmd)
+    todo!("Download missing input")
+}
+
+fn run(lang: &str, task: &str) -> anyhow::Result<String> {
+    let mut command = process::Command::new("just")
+        .arg("run")
+        .arg(task)
+        .current_dir(lang)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::inherit())
+        .spawn()?;
+
+    let mut stdin = command.stdin.take().unwrap();
+    let input = input(task)?;
+    std::thread::spawn(move || {
+        stdin.write_all(input.as_bytes()).unwrap();
+    });
+
+    let output = command.wait_with_output()?;
+
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+}
+
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    println!("{args:?}");
     let now = chrono::Utc::now();
 
     let next = start_times().find(|&x| x > now).unwrap();
     println!("{} until next task", (next - now).human(Truncate::Second));
+
+    match &args {
+        Args {
+            command: Some(Cmd::Run { task: Some(task) }),
+        } => {
+            let [lang, task] = task.split('/').collect::<Vec<_>>()[..] else {
+                bail!("Bad task")
+            };
+            let ret = run(lang, task)?;
+            print!("{ret}");
+        }
+        _ => {}
+    }
 
     //let test_day = start_times().next().unwrap();
     //println!("{:?}", download_input(&get_cookie()?, test_day));
