@@ -3,6 +3,11 @@
 
 result
 
+# Ignore personal inputs and answers.
+# XXX: This will break in 2100 when personal inputs have form 10024.txt
+input/????.txt
+input/????.out
+
 /.lsp
 /.clj-kondo
 /.obj
