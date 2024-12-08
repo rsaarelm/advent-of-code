@@ -33,6 +33,12 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Cmd {
+    /// Fetch input for a day.
+    Get {
+        /// Day to fetch, in form "1501" for 2015-12-01. If not specified,
+        /// wait until the next task should be released, then fetch that.
+        task: Option<String>,
+    },
     /// Run a task. Try to download personal input from `adventofcode.com` if
     /// it's not present in the input/ folder.
     Run {
@@ -52,11 +58,48 @@ use Cmd::*;
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    let now = chrono::Utc::now();
+    let mut now = chrono::Utc::now();
 
-    let next = start_times().find(|&x| x > now).unwrap();
+    let next_date = start_times().find(|&x| x > now).unwrap();
 
     match &args {
+        Args {
+            command: Some(Get { task }),
+        } => {
+            let date = if let Some(task) = task {
+                parse_task_date(task)?
+            } else {
+                next_date
+            };
+
+            let path = format!("input/{}.txt", date.code());
+
+            if Path::new(&path).exists() {
+                eprintln!("Input already exists.");
+                return Ok(());
+            }
+
+            // Fail fast if there's no cookie.
+            let _ = get_cookie()?;
+
+            if date > now {
+                eprintln!("Waiting for next task...");
+
+                while date > now {
+                    std::thread::sleep(Duration::from_secs(1));
+                    now = chrono::Utc::now();
+                    print!(
+                        "{}         \r",
+                        humantime::format_duration(Duration::from_secs(
+                            (date - now).num_seconds() as u64
+                        ))
+                    );
+                    io::stdout().flush().unwrap();
+                }
+            }
+
+            get_input(date)?;
+        }
         Args {
             command: Some(runner @ (Run { task } | Submit { task })),
         } => {
@@ -140,12 +183,15 @@ fn main() -> anyhow::Result<()> {
                     eprintln!("Writing answers to {answer_file}");
                     fs::write(&answer_file, lines.join("\n") + "\n")?;
                 }
+                _ => {}
             }
         }
         _ => {
             println!(
                 "{} until next task",
-                humantime::format_duration(Duration::from_secs((next - now).num_seconds() as u64))
+                humantime::format_duration(Duration::from_secs(
+                    (next_date - now).num_seconds() as u64
+                ))
             );
         }
     }
