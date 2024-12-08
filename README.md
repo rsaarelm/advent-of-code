@@ -9,22 +9,51 @@ Advent of Code is at https://adventofcode.com/
 
 ## Running a solution
 
-Use the runner script with your language suffix and date, for a Python
+Use the `aoc` runner script with your language suffix and date, for a Python
 solution for 2015-12-01, you'd use
 
-    ./run py/1501
+    ./aoc run py/1501
+
+The runner expects to find the corresponding personal input at `input/1501.txt`.
+
+## Automatic interaction with `adventofcode.com`
+
+Get your `session` cookie from a logged-in Advent of Code browser session and
+store it in `ADVENT_SESSION` environment variable. When this variable is set,
+the `aoc` tool can download personal inputs from the website and to submit
+solutions. Eg.
+
+    export ADVENT_SESSION=***YOUR-COOKIE-STRING-HERE***
+    ./aoc get 1501
+
+    # ...write a C solution...
+
+    ./aoc submit c/1501
 
 ## Writing a new solution
 
-* Save your input in a file named according to the year and the day in the
-  `input/` subdirectory, 2018-12-14 becomes `input/1814.txt`.
+* Use `aoc get` or save your personal input manually in a file named according
+  to the year and the day in the `input/` subdirectory, 2018-12-14 becomes
+  `input/1814.txt`.
 
-* Save test inputs and outputs using the same number prefix followed by any
-  non-numeric characters. Test input for 2018-12-14 can become
-  `input/1814a.txt` and the corresponding output `input/1814a.out`.
+* You can add one or more examples in a file with the day's prefix followed by
+  any non-numeric characters, eg. `input/1814a.txt`. The example file can have
+  multiple regions of inputs and expected answers separated by `%` alone in a
+  line.
 
-* The output file can have only a single line of output in case you're still
-  working with part 1 of the exercise.
+  Example file with input and expected outputs:
+
+    ULL
+    RRDDD
+    LURDL
+    UUUUD
+    %
+    1985
+    5DB3
+
+  The expected results can have a single line only if you're still working on
+  P1, and if you only have a value for P2 you can use `-` for the first
+  expected result to ignore it.
 
 * Write your solution using the same naming convention under the directory of
   the language you're using. Details may vary by language. For Python, it's
@@ -42,6 +71,6 @@ solution for 2015-12-01, you'd use
 
   in the subdirectory of the language.
 
-* Each solution awaits for input from stdin and prints its results for parts 1
-  and 2 to stdout as two lines. While only part 1 is finished, the solution
-  prints a single line with the part 1 solution and then exits.
+  You should also provide `just exists [DAY]` that will return an error code
+  if no program exists for this day in this language. This allows building
+  tools that run through all solutions for a given language automatically.
