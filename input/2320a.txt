@@ -3,3 +3,5 @@ broadcaster -> a, b, c
 %b -> c
 %c -> inv
 &inv -> a
+%
+32000000

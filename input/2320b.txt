@@ -3,3 +3,5 @@ broadcaster -> a
 &inv -> b
 %b -> con
 &con -> output
+%
+11687500
