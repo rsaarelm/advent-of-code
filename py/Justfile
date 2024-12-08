@@ -1,2 +1,8 @@
 run task:
     @python3 a{{task}}.py
+
+exists task:
+    #!/bin/sh
+    if [ ! -f ./a{{task}}.py ]; then
+        exit 1
+    fi

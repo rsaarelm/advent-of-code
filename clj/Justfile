@@ -1,6 +1,12 @@
 run task:
     @clj -m aoc.{{task}}
 
+exists task:
+    #!/bin/sh
+    if [ ! -f src/aoc/{{task}}.clj ]; then
+        exit 1
+    fi
+
 test:
     clj -A:test:runner
 

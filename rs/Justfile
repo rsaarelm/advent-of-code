@@ -1,9 +1,15 @@
 run task:
-    #!/usr/bin/env sh
+    #!/bin/sh
     if [[ -z "${DEBUG}" ]]; then
         cargo run --release --example {{task}}
     else
         cargo run --example {{task}}
+    fi
+
+exists task:
+    #!/bin/sh
+    if [ ! -f examples/{{task}}.rs ]; then
+        exit 1
     fi
 
 test:
