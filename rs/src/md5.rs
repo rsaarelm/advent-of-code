@@ -57,7 +57,7 @@ pub fn md5sum(input: &[u8]) -> [u8; 16] {
     let padded_input = input
         .iter()
         .copied()
-        .chain([0x80].into_iter())
+        .chain([0x80])
         .chain(std::iter::repeat(0).take(padding_needed - 1))
         .chain(((input.len() * 8) as u64).to_le_bytes());
 

@@ -229,11 +229,11 @@ fn get_examples(date: DateTime<Utc>) -> Result<Vec<(String, [Option<String>; 2])
         let file = fs::File::open(&path)?;
         let reader = io::BufReader::new(file);
 
-        let mut lines = reader.lines().flatten();
+        let mut lines = reader.lines().map_while(Result::ok);
 
         'read: loop {
             let mut input = String::new();
-            while let Some(line) = lines.next() {
+            for line in lines.by_ref() {
                 // Section break
                 if line == "%" {
                     break;
@@ -475,7 +475,11 @@ fn run(
             //
             // Skip example outputs when not printing to TTY, we want to be
             // able to pipe only the personal answers to an output file.
-            (a, _) => if !is_example { println!("{a}") },
+            (a, _) => {
+                if !is_example {
+                    println!("{a}")
+                }
+            }
         }
     }
     eprintln!("{}", format_duration(duration));

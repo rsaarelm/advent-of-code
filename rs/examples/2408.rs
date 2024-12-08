@@ -9,7 +9,10 @@ fn main() {
     let mut pairs = HashSet::default();
     // Assumption: Each pair will get inserted twice as (a, b) and (b, a).
     for (p, c) in &map {
-        for q in map.iter().filter_map(|(q, a)| (a == c && q != p).then_some(q)) {
+        for q in map
+            .iter()
+            .filter_map(|(q, a)| (a == c && q != p).then_some(q))
+        {
             pairs.insert((*p, *q));
         }
     }
