@@ -24,7 +24,9 @@
             tokei
             pre-commit
             graphviz
+            # Needed by aoc tool
             pkg-config
+            openssl
 
             rustc
             rust-analyzer
