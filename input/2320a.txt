@@ -5,3 +5,11 @@ broadcaster -> a, b, c
 &inv -> a
 %
 32000000
+%
+broadcaster -> a
+%a -> inv, con
+&inv -> b
+%b -> con
+&con -> output
+%
+11687500
