@@ -115,7 +115,7 @@ fn main() -> anyhow::Result<()> {
 
             // Run examples.
             for (example, expected) in get_examples(date)? {
-                let err_count = run(lang, task, &example, &expected)?;
+                let err_count = run(lang, task, &example, &expected, true)?;
                 if err_count > 0 {
                     bail!("Failed to match example");
                 }
@@ -126,7 +126,7 @@ fn main() -> anyhow::Result<()> {
 
             match runner {
                 Run { .. } => {
-                    let err_count = run(lang, task, &input, &expected)?;
+                    let err_count = run(lang, task, &input, &expected, false)?;
                     if err_count > 0 {
                         bail!("Failed to match expected result");
                     }
@@ -445,7 +445,13 @@ fn exists(lang: &str, task: &str) -> Result<bool> {
 }
 
 /// Return number of errors detected.
-fn run(lang: &str, task: &str, input: &str, expected: &[Option<String>; 2]) -> Result<usize> {
+fn run(
+    lang: &str,
+    task: &str,
+    input: &str,
+    expected: &[Option<String>; 2],
+    is_example: bool,
+) -> Result<usize> {
     let start = Instant::now();
     let lines = execute(lang, task, input)?;
     let duration = start.elapsed();
@@ -466,7 +472,10 @@ fn run(lang: &str, task: &str, input: &str, expected: &[Option<String>; 2]) -> R
             // Verified good answer to TTY.
             (a, Some(_)) if is_tty() => println!("\x1b[1;32mOK\x1b[0m {a}"),
             // Not printing to TTY, don't print pretty stuff.
-            (a, _) => println!("{a}"),
+            //
+            // Skip example outputs when not printing to TTY, we want to be
+            // able to pipe only the personal answers to an output file.
+            (a, _) => if !is_example { println!("{a}") },
         }
     }
     eprintln!("{}", format_duration(duration));
