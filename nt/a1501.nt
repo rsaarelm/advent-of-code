@@ -5,7 +5,7 @@ macro import std.macro.listcomprehension;
 import std.stdio;
 
 int delta(char c) {
-    // TODO 2022-09-19 Use proper char literals when available
+    // XXX Proper char literals aren't there yet...
     return    1 if c == "("[0]
         else -1 if c == ")"[0]
         else  0;

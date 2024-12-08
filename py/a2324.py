@@ -1,7 +1,7 @@
 from prelude import *
 from z3 import *
 
-# TODO: Make this format the output properly...
+# XXX: Does not format output properly, you need to eyeball the solution for now
 
 if __name__ == '__main__':
     x = Int('x')
