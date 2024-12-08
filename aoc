@@ -1,0 +1,503 @@
+#!/usr/bin/env rust-script
+
+//! Advent of Code multitool.
+//!
+//! ```cargo
+//! [dependencies]
+//! anyhow = "1"
+//! atty = "0.2"
+//! chrono = "0.4"
+//! clap = { version = "4", features = ["derive"] }
+//! humantime = "2"
+//! reqwest = { version = "0.12", features = ["blocking"] }
+//! ```
+
+use std::{
+    fs,
+    io::{self, BufRead, Write},
+    path::Path,
+    process::{self, Stdio},
+    time::{Duration, Instant},
+};
+
+use anyhow::{bail, Result};
+use chrono::{DateTime, Datelike, TimeZone, Utc};
+use clap::{Parser, Subcommand};
+
+#[derive(Parser, Debug)]
+#[command(author, version, about)]
+struct Args {
+    #[command(subcommand)]
+    command: Option<Cmd>,
+}
+
+#[derive(Subcommand, Debug)]
+enum Cmd {
+    /// Run a task. Try to download personal input from `adventofcode.com` if
+    /// it's not present in the input/ folder.
+    Run {
+        /// The language and day of the task, eg. "rs/1501" for Rust task for 2015-12-01.
+        task: String,
+    },
+
+    /// Run a task and submit answer to `adventofcode.com` if it has no cached answers yet.
+    /// Cache the answers to disk if `adventofcode.com` validates them.
+    Submit {
+        /// The language and day of the task, eg. "rs/1501" for Rust task for 2015-12-01.
+        task: String,
+    },
+}
+
+use Cmd::*;
+
+fn main() -> anyhow::Result<()> {
+    let args = Args::parse();
+    let now = chrono::Utc::now();
+
+    let next = start_times().find(|&x| x > now).unwrap();
+
+    match &args {
+        Args {
+            command: Some(runner @ (Run { task } | Submit { task })),
+        } => {
+            let [lang, task] = task.split('/').collect::<Vec<_>>()[..] else {
+                bail!("Bad task")
+            };
+
+            if !exists(lang, task)? {
+                bail!("{lang}/{task} does not exist");
+            }
+
+            let date = parse_task_date(task)?;
+
+            // Run examples.
+            for (example, expected) in get_examples(date)? {
+                let err_count = run(lang, task, &example, &expected)?;
+                if err_count > 0 {
+                    bail!("Failed to match example");
+                }
+            }
+
+            // Run main input.
+            let (input, expected) = get_input(date)?;
+
+            match runner {
+                Run { .. } => {
+                    let err_count = run(lang, task, &input, &expected)?;
+                    if err_count > 0 {
+                        bail!("Failed to match expected result");
+                    }
+                }
+                Submit { .. } => {
+                    let cookie = get_cookie()?;
+                    let mut lines = execute(lang, task, &input)?;
+                    for i in 0..2 {
+                        if let Some(e) = expected[i].as_ref() {
+                            if e.trim() != lines[i] {
+                                bail!("Result does not match expected answer, aborting submit");
+                            }
+                        }
+                    }
+
+                    if expected[0].is_some() && expected[1].is_some() {
+                        eprintln!("Task is already fully validated.");
+                        return Ok(());
+                    }
+
+                    // adventofcode doesn't like it if you submit both parts in quick succession.
+                    // Note if we're sending both at once and add a ten second delay.
+                    let mut delay = false;
+                    for (i, a) in lines.iter().enumerate() {
+                        if expected[i].is_some() {
+                            // We already have a cached answer, skipping.
+                            continue;
+                        }
+
+                        let p = i + 1;
+                        eprintln!("Submitting P{p}...");
+
+                        if delay {
+                            eprintln!("Waiting a moment before submitting P2...");
+                            std::thread::sleep(Duration::from_secs(10));
+                        } else {
+                            delay = true;
+                        }
+
+                        match submit_answer(&cookie, date, p, a)? {
+                            None => eprintln!("\x1b[1;32mAccepted!\x1b[0m"),
+                            Some(e) => bail!("{e}"),
+                        }
+                    }
+
+                    // If script returned just one value and the expected set
+                    // already has a second one, reuse the one from the expected
+                    // set.
+                    if lines.len() == 1 && expected[1].is_some() {
+                        lines.push(expected[1].clone().unwrap());
+                    }
+
+                    let answer_file = format!("input/{}.out", date.code());
+                    eprintln!("Writing answers to {answer_file}");
+                    fs::write(&answer_file, lines.join("\n") + "\n")?;
+                }
+            }
+        }
+        _ => {
+            println!(
+                "{} until next task",
+                humantime::format_duration(Duration::from_secs((next - now).num_seconds() as u64))
+            );
+        }
+    }
+
+    Ok(())
+}
+
+fn get_examples(date: DateTime<Utc>) -> Result<Vec<(String, [Option<String>; 2])>> {
+    let mut ret = Vec::new();
+    let code = date.code();
+
+    // Find files that have the date's code and any non-numeric stuff after it.
+    let mut example_files = Vec::new();
+    ensure_input_dir()?;
+    for file in fs::read_dir("input/")?.filter_map(|e| {
+        let e = e.ok()?;
+        e.file_type().ok()?.is_file().then_some(e.path())
+    }) {
+        let base = file.file_stem().unwrap_or_default().to_string_lossy();
+
+        // File must have exactly the code prefix and no further digits in the name immediately after it.
+        if !base.starts_with(&code)
+            || ndigits(&base) != code.len()
+            || base.len() == code.len()
+            || file.extension().unwrap_or_default() != "txt"
+        {
+            continue;
+        }
+        example_files.push(file);
+    }
+
+    example_files.sort();
+
+    for path in example_files {
+        let file = fs::File::open(&path)?;
+        let reader = io::BufReader::new(file);
+
+        let mut lines = reader.lines().flatten();
+
+        'read: loop {
+            let mut input = String::new();
+            while let Some(line) = lines.next() {
+                // Section break
+                if line == "%" {
+                    break;
+                }
+                input.push_str(&line);
+                input.push('\n');
+            }
+
+            // Maybe we had a trailing %
+            if input.trim().is_empty() {
+                break 'read;
+            }
+
+            let mut result = [None, None];
+            for (i, line) in lines.by_ref().filter(|s| !s.trim().is_empty()).enumerate() {
+                // Section break
+                if line == "%" {
+                    ret.push((input, result));
+                    continue 'read;
+                }
+
+                if i >= 2 {
+                    bail!("Too many lines in answer block in example {path:?}");
+                }
+                // Denote missing value with hyphen.
+                if line == "-" {
+                    continue;
+                }
+                result[i] = Some(line);
+            }
+
+            ret.push((input, result));
+
+            // We got here by running out of lines, break.
+            break;
+        }
+    }
+
+    Ok(ret)
+}
+
+/// Get the personal input.
+fn get_input(date: DateTime<Utc>) -> Result<(String, [Option<String>; 2])> {
+    ensure_input_dir()?;
+
+    let code = date.code();
+    let input_file = format!("input/{code}.txt");
+    let answer_file = format!("input/{code}.out");
+    let mut answers = [None, None];
+
+    // Get answers if there are answers.
+    if Path::new(&answer_file).exists() {
+        let text = fs::read_to_string(&answer_file)?;
+        for (i, line) in text.lines().filter(|s| !s.trim().is_empty()).enumerate() {
+            // Missing answer.
+            if line == "-" {
+                continue;
+            }
+            if i >= 2 {
+                bail!("Too many lines in answer file {answer_file}");
+            }
+            answers[i] = Some(line.trim().to_owned());
+        }
+    }
+
+    // Input file already exists, read it and we're done.
+    if Path::new(&input_file).exists() {
+        let input = fs::read_to_string(&input_file)?;
+        return Ok((input, answers));
+    }
+
+    // We can only fetch input for days for which an AoC entry has been
+    // published.
+    if !date.is_valid() {
+        bail!("No input found and task day isn't valid");
+    }
+
+    eprintln!("Input file {input_file:?} not found, trying to download...");
+
+    // We need our credentials from an environment variable...
+    let cookie = get_cookie()?;
+
+    // And we're go.
+    let input = download_input(&cookie, date)?;
+    eprintln!("Successfully downloaded {} bytes of input", input.len());
+
+    eprintln!("Writing downloaded input to {input_file}...");
+    fs::write(input_file, &input)?;
+
+    Ok((input, answers))
+}
+
+fn get_cookie() -> Result<String> {
+    match std::env::var("ADVENT_SESSION") {
+        Ok(cookie) => Ok(cookie),
+        Err(_) => bail!("Set the environment variable 'ADVENT_SESSION' to the value of your 'session' cookie from adventofcode.com"),
+    }
+}
+
+trait DateExt {
+    /// Format used by aoc tool, 2015-12-01 becomes 1501
+    fn code(&self) -> String;
+
+    fn is_valid(&self) -> bool;
+}
+
+impl DateExt for DateTime<Utc> {
+    fn code(&self) -> String {
+        format!("{:02}{:02}", self.year() - 2000, self.day())
+    }
+
+    fn is_valid(&self) -> bool {
+        self.year() >= 2015 && self.month() == 12 && self.day() <= 25 && self < &chrono::Utc::now()
+    }
+}
+
+fn start_times() -> impl Iterator<Item = DateTime<Utc>> {
+    (2015..).flat_map(|year| {
+        (1..=25).map(move |day| Utc.with_ymd_and_hms(year, 12, day, 5, 0, 0).unwrap())
+    })
+}
+
+fn download_input(cookie: &str, date: DateTime<Utc>) -> Result<String> {
+    let client = reqwest::blocking::Client::new();
+    let url = format!(
+        "https://adventofcode.com/{}/day/{}/input",
+        date.year(),
+        date.day()
+    );
+    let response = client
+        .get(url)
+        .header("Cookie", format!("session={}", cookie))
+        .send()?;
+
+    if response.status().is_success() {
+        Ok(response.text()?)
+    } else {
+        bail!("Failed: {:?}", response.status());
+    }
+}
+
+/// Submit solution to `adventofcode.com`. Return `None` if accepted, error
+/// text otherwise.
+fn submit_answer(
+    cookie: &str,
+    date: DateTime<Utc>,
+    level: usize,
+    answer: &str,
+) -> Result<Option<String>> {
+    assert!(level == 1 || level == 2);
+    let client = reqwest::blocking::Client::new();
+    let url = format!(
+        "https://adventofcode.com/{}/day/{}/answer",
+        date.year(),
+        date.day()
+    );
+
+    eprintln!("Submitting to {url:?}, {level}, {answer}");
+
+    let response = client
+        .post(url)
+        .header("Cookie", format!("session={}", cookie))
+        .form(&[("level", level.to_string()), ("answer", answer.to_string())])
+        .send()?;
+
+    if response.status().is_success() {
+        let text = response.text()?;
+        if text.contains("That's the right answer!") {
+            Ok(None)
+        } else if text.contains("Did you already complete it?") {
+            // We get this if we're submitting a task we already solved once.
+            // Unfortunately it won't validate the answer, let's just mark
+            // it as okay anyway to keep things simple.
+            Ok(None)
+        } else if text.contains("That's not the right answer") {
+            // Try to strip out the relevant part from the HTML blob.
+            Ok(Some(
+                text.lines()
+                    .find(|line| line.contains("<article>"))
+                    .map(|a| a.to_string())
+                    .unwrap_or_else(|| text),
+            ))
+        } else {
+            bail!("Unexpected response: {}", text);
+        }
+    } else {
+        bail!("Failed: {:?}", response.status());
+    }
+}
+
+fn ensure_input_dir() -> Result<()> {
+    let input_dir = Path::new("input");
+    if !input_dir.exists() {
+        eprintln!("Creating input/ directory");
+        fs::create_dir(input_dir)?;
+    }
+    Ok(())
+}
+
+/// Check if solution exists.
+fn exists(lang: &str, task: &str) -> Result<bool> {
+    let status = process::Command::new("just")
+        .arg("exists")
+        .arg(task)
+        .current_dir(lang)
+        .status()?;
+
+    Ok(status.success())
+}
+
+/// Return number of errors detected.
+fn run(lang: &str, task: &str, input: &str, expected: &[Option<String>; 2]) -> Result<usize> {
+    let start = Instant::now();
+    let lines = execute(lang, task, input)?;
+    let duration = start.elapsed();
+
+    let mut errors = 0;
+
+    for (a, exp) in lines.iter().zip(expected) {
+        let a = a.trim();
+        match (a, exp) {
+            // Known wrong answer, print an error
+            (a, Some(b)) if b.trim() != a => {
+                errors += 1;
+                eprintln!("\x1b[1;31mERR\x1b[0m got {a}, expected {b}.");
+                break;
+            }
+            // Unverified answer to TTY.
+            (a, None) if is_tty() => println!("\x1b[1;33m{a}\x1b[0m"),
+            // Verified good answer to TTY.
+            (a, Some(_)) if is_tty() => println!("\x1b[1;32mOK\x1b[0m {a}"),
+            // Not printing to TTY, don't print pretty stuff.
+            (a, _) => println!("{a}"),
+        }
+    }
+    eprintln!("{}", format_duration(duration));
+
+    Ok(errors)
+}
+
+/// Run the task and collect the outputs.
+fn execute(lang: &str, task: &str, input: &str) -> Result<Vec<String>> {
+    let mut command = process::Command::new("just")
+        .arg("run")
+        .arg(task)
+        .current_dir(lang)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::inherit())
+        .spawn()?;
+
+    let stdin = command.stdin.as_mut().unwrap();
+    stdin.write_all(input.as_bytes()).unwrap();
+    let output = String::from_utf8_lossy(&command.wait_with_output()?.stdout).to_string();
+
+    let lines: Vec<_> = output
+        .lines()
+        .filter(|a| !a.trim().is_empty())
+        .map(String::from)
+        .collect();
+
+    if lines.is_empty() {
+        bail!("No output produced.");
+    }
+
+    if lines.len() > 2 {
+        eprint!("{}", lines.join("\n"));
+        bail!("Too many lines of output.");
+    }
+
+    Ok(lines)
+}
+
+fn parse_task_date(task: &str) -> Result<DateTime<Utc>> {
+    let ndigits = ndigits(task);
+    if ndigits < 4 {
+        bail!("Bad task date {task}");
+    }
+
+    let year: u32 = task[0..(ndigits - 2)].parse()?;
+    let day: u32 = task[(ndigits - 2)..ndigits].parse()?;
+    if !(1..=25).contains(&day) {
+        bail!("Bad task date {task}");
+    }
+
+    Ok(Utc
+        .with_ymd_and_hms(year as i32 + 2000, 12, day, 5, 0, 0)
+        .unwrap())
+}
+
+fn format_duration(duration: Duration) -> String {
+    if duration.as_secs() > 59 {
+        format!(
+            "Running time: {}m {}s",
+            duration.as_secs() / 60,
+            duration.as_secs() % 60
+        )
+    } else if duration.as_secs() > 1 {
+        format!("Running time: {:.2}s", duration.as_secs_f32())
+    } else {
+        format!("Running time: {}ms", duration.as_millis())
+    }
+}
+
+fn is_tty() -> bool {
+    atty::is(atty::Stream::Stdout)
+}
+
+fn ndigits(s: &str) -> usize {
+    s.chars().take_while(|c| c.is_ascii_digit()).count()
+}
+
+// vim:set syntax=rust:
