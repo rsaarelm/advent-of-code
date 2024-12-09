@@ -323,7 +323,10 @@ fn get_input(date: DateTime<Utc>) -> Result<(String, [Option<String>; 2])> {
             }
 
             if write_answers {
-                eprintln!("Writing scraped answers to {answer_file}");
+                eprintln!(
+                    "Writing {} scraped answer(s) to {answer_file}",
+                    scraped.len()
+                );
                 fs::write(&answer_file, scraped.join("\n") + "\n")?;
             }
         }
