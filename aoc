@@ -110,14 +110,14 @@ fn main() -> anyhow::Result<()> {
                 bail!("Bad task")
             };
 
-            if !exists(lang, task)? {
+            let date = parse_task_date(task)?;
+
+            if !exists(lang, date)? {
                 bail!("{lang}/{task} does not exist");
             }
 
-            let date = parse_task_date(task)?;
-
             // Run examples.
-            for (example, expected) in get_examples(date)? {
+            for (example, expected) in read_examples(date)? {
                 let err_count = run(lang, task, &example, &expected, true)?;
                 if err_count > 0 {
                     bail!("Failed to match example");
@@ -202,7 +202,8 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn get_examples(date: DateTime<Utc>) -> Result<Vec<(String, [Option<String>; 2])>> {
+/// Read local examples.
+fn read_examples(date: DateTime<Utc>) -> Result<Vec<(String, [Option<String>; 2])>> {
     let mut ret = Vec::new();
     let code = date.code();
     let example_file = format!("examples/{code}.txt");
@@ -335,36 +336,6 @@ fn get_input(date: DateTime<Utc>) -> Result<(String, [Option<String>; 2])> {
     Ok((input, answers))
 }
 
-fn get_cookie() -> Result<String> {
-    match std::env::var("ADVENT_SESSION") {
-        Ok(cookie) => Ok(cookie),
-        Err(_) => bail!("Set the environment variable 'ADVENT_SESSION' to the value of your 'session' cookie from adventofcode.com"),
-    }
-}
-
-trait DateExt {
-    /// Format used by aoc tool, 2015-12-01 becomes 1501
-    fn code(&self) -> String;
-
-    fn is_valid(&self) -> bool;
-}
-
-impl DateExt for DateTime<Utc> {
-    fn code(&self) -> String {
-        format!("{:02}{:02}", self.year() - 2000, self.day())
-    }
-
-    fn is_valid(&self) -> bool {
-        self.year() >= 2015 && self.month() == 12 && self.day() <= 25 && self < &chrono::Utc::now()
-    }
-}
-
-fn start_times() -> impl Iterator<Item = DateTime<Utc>> {
-    (2015..).flat_map(|year| {
-        (1..=25).map(move |day| Utc.with_ymd_and_hms(year, 12, day, 5, 0, 0).unwrap())
-    })
-}
-
 fn download_input(cookie: &str, date: DateTime<Utc>) -> Result<String> {
     let client = reqwest::blocking::Client::new();
     let url = format!(
@@ -382,6 +353,121 @@ fn download_input(cookie: &str, date: DateTime<Utc>) -> Result<String> {
     } else {
         bail!("Failed: {:?}", response.status());
     }
+}
+
+/// Scrape correct answers for current cookie from the web page.
+fn scrape_answers(cookie: &str, date: DateTime<Utc>) -> Result<Vec<String>> {
+    static ANSWER_RE: OnceLock<Regex> = OnceLock::new();
+    let answer_re =
+        ANSWER_RE.get_or_init(|| Regex::new(r"Your puzzle answer was <code>(.*?)</code>").unwrap());
+
+    let client = reqwest::blocking::Client::new();
+    let url = format!(
+        "https://adventofcode.com/{}/day/{}",
+        date.year(),
+        date.day()
+    );
+    let response = client
+        .get(url)
+        .header("Cookie", format!("session={}", cookie))
+        .send()?;
+
+    if !response.status().is_success() {
+        bail!("Failed: {:?}", response.status());
+    }
+
+    let body = response.text()?;
+
+    if !body.contains("get your puzzle input") {
+        bail!("scraped page does not look like an AoC task");
+    }
+
+    let ret: Vec<_> = answer_re
+        .captures_iter(&body)
+        .map(|cap| cap[1].to_string())
+        .collect();
+
+    if ret.len() > 2 {
+        bail!("Scrape found {} answers, should be at most 2", ret.len());
+    }
+
+    Ok(ret)
+}
+
+/// Run a task with given input, print diagnostics, return errors detected.
+fn run(
+    lang: &str,
+    task: &str,
+    input: &str,
+    expected: &[Option<String>; 2],
+    is_example: bool,
+) -> Result<usize> {
+    let start = Instant::now();
+    let lines = execute(lang, task, input)?;
+    let duration = start.elapsed();
+
+    let mut errors = 0;
+
+    for (a, exp) in lines.iter().zip(expected) {
+        let a = a.trim();
+        match (a, exp) {
+            // Known wrong answer, print an error
+            (a, Some(b)) if b.trim() != a => {
+                errors += 1;
+                eprintln!("\x1b[1;31mERR\x1b[0m got {a}, expected {b}.");
+                break;
+            }
+            // Unverified answer to TTY.
+            (a, None) if is_tty() => println!("\x1b[1;33m{a}\x1b[0m"),
+            // Verified good answer to TTY.
+            (a, Some(_)) if is_tty() => println!("\x1b[1;32mOK\x1b[0m {a}"),
+            // Not printing to TTY, don't print pretty stuff.
+            //
+            // Skip example outputs when not printing to TTY, we want to be
+            // able to pipe only the personal answers to an output file.
+            (a, _) => {
+                if !is_example {
+                    println!("{a}")
+                }
+            }
+        }
+    }
+    eprintln!("{}", format_duration(duration));
+
+    Ok(errors)
+}
+
+/// Execute a task solution and collect the outputs.
+fn execute(lang: &str, task: &str, input: &str) -> Result<Vec<String>> {
+    let mut command = process::Command::new("just")
+        .arg("run")
+        .arg(task)
+        .current_dir(lang)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::inherit())
+        .spawn()?;
+
+    let stdin = command.stdin.as_mut().unwrap();
+    stdin.write_all(input.as_bytes()).unwrap();
+    let output = String::from_utf8_lossy(&command.wait_with_output()?.stdout).to_string();
+
+    let lines: Vec<_> = output
+        .lines()
+        .filter(|a| !a.trim().is_empty())
+        .map(String::from)
+        .collect();
+
+    if lines.is_empty() {
+        bail!("No output produced.");
+    }
+
+    if lines.len() > 2 {
+        eprint!("{}", lines.join("\n"));
+        bail!("Too many lines of output.");
+    }
+
+    Ok(lines)
 }
 
 /// Submit solution to `adventofcode.com`. Return `None` if accepted, error
@@ -433,43 +519,34 @@ fn submit_answer(
     }
 }
 
-/// Scrape correct answers for current cookie from the web page.
-fn scrape_answers(cookie: &str, date: DateTime<Utc>) -> Result<Vec<String>> {
-    static ANSWER_RE: OnceLock<Regex> = OnceLock::new();
-    let answer_re =
-        ANSWER_RE.get_or_init(|| Regex::new(r"Your puzzle answer was <code>(.*?)</code>").unwrap());
+fn get_cookie() -> Result<String> {
+    match std::env::var("ADVENT_SESSION") {
+        Ok(cookie) => Ok(cookie),
+        Err(_) => bail!("Set the environment variable 'ADVENT_SESSION' to the value of your 'session' cookie from adventofcode.com"),
+    }
+}
 
-    let client = reqwest::blocking::Client::new();
-    let url = format!(
-        "https://adventofcode.com/{}/day/{}",
-        date.year(),
-        date.day()
-    );
-    let response = client
-        .get(url)
-        .header("Cookie", format!("session={}", cookie))
-        .send()?;
+trait DateExt {
+    /// Format used by aoc tool, 2015-12-01 becomes 1501
+    fn code(&self) -> String;
 
-    if !response.status().is_success() {
-        bail!("Failed: {:?}", response.status());
+    fn is_valid(&self) -> bool;
+}
+
+impl DateExt for DateTime<Utc> {
+    fn code(&self) -> String {
+        format!("{:02}{:02}", self.year() - 2000, self.day())
     }
 
-    let body = response.text()?;
-
-    if !body.contains("get your puzzle input") {
-        bail!("scraped page does not look like an AoC task");
+    fn is_valid(&self) -> bool {
+        self.year() >= 2015 && self.month() == 12 && self.day() <= 25 && self < &chrono::Utc::now()
     }
+}
 
-    let ret: Vec<_> = answer_re
-        .captures_iter(&body)
-        .map(|cap| cap[1].to_string())
-        .collect();
-
-    if ret.len() > 2 {
-        bail!("Scrape found {} answers, should be at most 2", ret.len());
-    }
-
-    Ok(ret)
+fn start_times() -> impl Iterator<Item = DateTime<Utc>> {
+    (2015..).flat_map(|year| {
+        (1..=25).map(move |day| Utc.with_ymd_and_hms(year, 12, day, 5, 0, 0).unwrap())
+    })
 }
 
 fn ensure_input_dir() -> Result<()> {
@@ -481,91 +558,15 @@ fn ensure_input_dir() -> Result<()> {
     Ok(())
 }
 
-/// Check if solution exists.
-fn exists(lang: &str, task: &str) -> Result<bool> {
+/// Check if a solution program for a given day exists for a language.
+fn exists(lang: &str, date: DateTime<Utc>) -> Result<bool> {
     let status = process::Command::new("just")
         .arg("exists")
-        .arg(task)
+        .arg(date.code())
         .current_dir(lang)
         .status()?;
 
     Ok(status.success())
-}
-
-/// Return number of errors detected.
-fn run(
-    lang: &str,
-    task: &str,
-    input: &str,
-    expected: &[Option<String>; 2],
-    is_example: bool,
-) -> Result<usize> {
-    let start = Instant::now();
-    let lines = execute(lang, task, input)?;
-    let duration = start.elapsed();
-
-    let mut errors = 0;
-
-    for (a, exp) in lines.iter().zip(expected) {
-        let a = a.trim();
-        match (a, exp) {
-            // Known wrong answer, print an error
-            (a, Some(b)) if b.trim() != a => {
-                errors += 1;
-                eprintln!("\x1b[1;31mERR\x1b[0m got {a}, expected {b}.");
-                break;
-            }
-            // Unverified answer to TTY.
-            (a, None) if is_tty() => println!("\x1b[1;33m{a}\x1b[0m"),
-            // Verified good answer to TTY.
-            (a, Some(_)) if is_tty() => println!("\x1b[1;32mOK\x1b[0m {a}"),
-            // Not printing to TTY, don't print pretty stuff.
-            //
-            // Skip example outputs when not printing to TTY, we want to be
-            // able to pipe only the personal answers to an output file.
-            (a, _) => {
-                if !is_example {
-                    println!("{a}")
-                }
-            }
-        }
-    }
-    eprintln!("{}", format_duration(duration));
-
-    Ok(errors)
-}
-
-/// Run the task and collect the outputs.
-fn execute(lang: &str, task: &str, input: &str) -> Result<Vec<String>> {
-    let mut command = process::Command::new("just")
-        .arg("run")
-        .arg(task)
-        .current_dir(lang)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
-        .spawn()?;
-
-    let stdin = command.stdin.as_mut().unwrap();
-    stdin.write_all(input.as_bytes()).unwrap();
-    let output = String::from_utf8_lossy(&command.wait_with_output()?.stdout).to_string();
-
-    let lines: Vec<_> = output
-        .lines()
-        .filter(|a| !a.trim().is_empty())
-        .map(String::from)
-        .collect();
-
-    if lines.is_empty() {
-        bail!("No output produced.");
-    }
-
-    if lines.len() > 2 {
-        eprint!("{}", lines.join("\n"));
-        bail!("Too many lines of output.");
-    }
-
-    Ok(lines)
 }
 
 fn parse_task_date(task: &str) -> Result<DateTime<Utc>> {
@@ -599,6 +600,8 @@ fn format_duration(duration: Duration) -> String {
     }
 }
 
+/// Return true if we're in an interactive terminal session, not piping to a
+/// file.
 fn is_tty() -> bool {
     atty::is(atty::Stream::Stdout)
 }
