@@ -9,6 +9,7 @@
 //! chrono = "0.4"
 //! clap = { version = "4", features = ["derive"] }
 //! humantime = "2"
+//! regex = "1"
 //! reqwest = { version = "0.12", features = ["blocking"] }
 //! ```
 
@@ -17,12 +18,14 @@ use std::{
     io::{self, BufRead, Write},
     path::Path,
     process::{self, Stdio},
+    sync::OnceLock,
     time::{Duration, Instant},
 };
 
 use anyhow::{bail, Result};
 use chrono::{DateTime, Datelike, TimeZone, Utc};
 use clap::{Parser, Subcommand};
+use regex::Regex;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -302,6 +305,33 @@ fn get_input(date: DateTime<Utc>) -> Result<(String, [Option<String>; 2])> {
     eprintln!("Writing downloaded input to {input_file}...");
     fs::write(input_file, &input)?;
 
+    // Try to scrape answers in case we've already solved some of this day but
+    // don't have it cached. Also check if our cached values are wrong.
+    match scrape_answers(&cookie, date) {
+        Ok(scraped) => {
+            let mut write_answers = false;
+            for (i, a) in scraped.iter().enumerate() {
+                if let Some(b) = answers[i].as_ref() {
+                    if b != a {
+                        bail!("Scraped answers disagree with {answer_file} on P{}, got {a} when file has {b}", i+1);
+                    }
+                } else {
+                    answers[i] = Some(a.clone());
+                    write_answers = true;
+                }
+            }
+
+            if write_answers {
+                eprintln!("Writing scraped answers to {answer_file}");
+                fs::write(&answer_file, scraped.join("\n") + "\n")?;
+            }
+        }
+        // Scrape error isn't a showstopper so we just print an error instead of bailing.
+        Err(e) => {
+            eprintln!("Failed to scrape existing answers {e:?}");
+        }
+    }
+
     Ok((input, answers))
 }
 
@@ -401,6 +431,45 @@ fn submit_answer(
     } else {
         bail!("Failed: {:?}", response.status());
     }
+}
+
+/// Scrape correct answers for current cookie from the web page.
+fn scrape_answers(cookie: &str, date: DateTime<Utc>) -> Result<Vec<String>> {
+    static ANSWER_RE: OnceLock<Regex> = OnceLock::new();
+    let answer_re =
+        ANSWER_RE.get_or_init(|| Regex::new(r"Your puzzle answer was <code>(.*?)</code>").unwrap());
+
+    let client = reqwest::blocking::Client::new();
+    let url = format!(
+        "https://adventofcode.com/{}/day/{}",
+        date.year(),
+        date.day()
+    );
+    let response = client
+        .get(url)
+        .header("Cookie", format!("session={}", cookie))
+        .send()?;
+
+    if !response.status().is_success() {
+        bail!("Failed: {:?}", response.status());
+    }
+
+    let body = response.text()?;
+
+    if !body.contains("get your puzzle input") {
+        bail!("scraped page does not look like an AoC task");
+    }
+
+    let ret: Vec<_> = answer_re
+        .captures_iter(&body)
+        .map(|cap| cap[1].to_string())
+        .collect();
+
+    if ret.len() > 2 {
+        bail!("Scrape found {} answers, should be at most 2", ret.len());
+    }
+
+    Ok(ret)
 }
 
 fn ensure_input_dir() -> Result<()> {
