@@ -36,10 +36,10 @@ solutions. Eg.
   to the year and the day in the `input/` subdirectory, 2018-12-14 becomes
   `input/1814.txt`.
 
-* You can add one or more examples in a file with the day's prefix followed by
-  any non-numeric characters, eg. `input/1814a.txt`. The example file can have
-  multiple regions of inputs and expected answers separated by `%` alone in a
-  line.
+* You can add one or more examples for a given day in a file named after the
+  day's prefix in `examples/`, eg. `examples/1814.txt`. The example file can
+  have multiple regions of inputs and expected answers separated by `%` alone
+  in a line.
 
   Example file with input and expected outputs:
 

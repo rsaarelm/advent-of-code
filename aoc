@@ -202,31 +202,10 @@ fn main() -> anyhow::Result<()> {
 fn get_examples(date: DateTime<Utc>) -> Result<Vec<(String, [Option<String>; 2])>> {
     let mut ret = Vec::new();
     let code = date.code();
+    let example_file = format!("examples/{code}.txt");
 
-    // Find files that have the date's code and any non-numeric stuff after it.
-    let mut example_files = Vec::new();
-    ensure_input_dir()?;
-    for file in fs::read_dir("input/")?.filter_map(|e| {
-        let e = e.ok()?;
-        e.file_type().ok()?.is_file().then_some(e.path())
-    }) {
-        let base = file.file_stem().unwrap_or_default().to_string_lossy();
-
-        // File must have exactly the code prefix and no further digits in the name immediately after it.
-        if !base.starts_with(&code)
-            || ndigits(&base) != code.len()
-            || base.len() == code.len()
-            || file.extension().unwrap_or_default() != "txt"
-        {
-            continue;
-        }
-        example_files.push(file);
-    }
-
-    example_files.sort();
-
-    for path in example_files {
-        let file = fs::File::open(&path)?;
+    if Path::new(&example_file).exists() {
+        let file = fs::File::open(&example_file)?;
         let reader = io::BufReader::new(file);
 
         let mut lines = reader.lines().map_while(Result::ok);
@@ -256,7 +235,7 @@ fn get_examples(date: DateTime<Utc>) -> Result<Vec<(String, [Option<String>; 2])
                 }
 
                 if i >= 2 {
-                    bail!("Too many lines in answer block in example {path:?}");
+                    bail!("Too many lines in answer block in example {example_file:?}");
                 }
                 // Denote missing value with hyphen.
                 if line == "-" {
