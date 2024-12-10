@@ -1,9 +1,9 @@
 run task:
     #!/bin/sh
     if [[ -z "${DEBUG}" ]]; then
-        cargo run --release --example {{task}}
+        RUST_BACKTRACE=1 cargo run --release --example {{task}}
     else
-        cargo run --example {{task}}
+        RUST_BACKTRACE=1 cargo run --example {{task}}
     fi
 
 exists task:

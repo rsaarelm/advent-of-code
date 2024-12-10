@@ -36,7 +36,6 @@
             python3
             python3Packages.z3
           ];
-          RUST_BACKTRACE = "1";
         };
       }
     );
