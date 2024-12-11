@@ -381,7 +381,7 @@ fn scrape_answers(cookie: &str, date: DateTime<Utc>) -> Result<Vec<String>> {
 
     let body = response.text()?;
 
-    if !body.contains("get your puzzle input") {
+    if !body.contains("Advent of Code") {
         bail!("scraped page does not look like an AoC task");
     }
 
