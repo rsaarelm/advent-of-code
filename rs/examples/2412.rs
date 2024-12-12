@@ -44,16 +44,12 @@ fn main() {
         // Only count continuing lines at their x or y minimum for the
         // discount perimeter.
         for (u, n) in &perimeter {
-            debug_assert!(u.x.rem_euclid(2) != u.y.rem_euclid(2));
+            debug_assert!((u.x % 2 == 0) != (u.y % 2 == 0));
 
-            if u.y.rem_euclid(2) == 1
-                && perimeter.get(&(u - ivec2(2, 0))) != Some(n)
-            {
+            if u.y % 2 != 0 && perimeter.get(&(u - ivec2(2, 0))) != Some(n) {
                 discount_perimeter += 1;
             }
-            if u.x.rem_euclid(2) == 1
-                && perimeter.get(&(u - ivec2(0, 2))) != Some(n)
-            {
+            if u.x % 2 != 0 && perimeter.get(&(u - ivec2(0, 2))) != Some(n) {
                 discount_perimeter += 1;
             }
         }
