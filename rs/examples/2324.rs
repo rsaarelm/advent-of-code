@@ -14,7 +14,7 @@ fn intersect(
     let v = v2.as_dvec3();
 
     let sln =
-        solve_linear_system(&[u.x, -v.x, u.y, -v.y], &[b.x - a.x, b.y - a.y])?;
+        solve_float_linear_system(&[u.x, -v.x, u.y, -v.y], &[b.x - a.x, b.y - a.y])?;
     Some((sln[0], sln[1]))
 }
 

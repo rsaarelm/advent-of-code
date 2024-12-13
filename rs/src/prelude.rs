@@ -858,7 +858,10 @@ pub fn fit_polynomial(xs: &[f64], ys: &[f64]) -> Vec<f64> {
         .into()
 }
 
-pub fn solve_linear_system(coeffs: &[f64], consts: &[f64]) -> Option<Vec<f64>> {
+pub fn solve_float_linear_system(
+    coeffs: &[f64],
+    consts: &[f64],
+) -> Option<Vec<f64>> {
     let n = consts.len();
     assert!(n > 0);
     assert_eq!(coeffs.len(), n * n);
@@ -870,22 +873,28 @@ pub fn solve_linear_system(coeffs: &[f64], consts: &[f64]) -> Option<Vec<f64>> {
     Some((c * b).data.into())
 }
 
-pub fn solve_integer_linear_system(
-    coeffs: &[i64],
-    consts: &[i64],
-) -> Option<Vec<i64>> {
+pub fn solve_linear_system(coeffs: &[i64], consts: &[i64]) -> Option<Vec<i64>> {
     let n = consts.len();
 
-    let sln = solve_linear_system(
+    let sln = solve_float_linear_system(
         &coeffs.iter().map(|&a| a as f64).collect::<Vec<_>>(),
         &consts.iter().map(|&a| a as f64).collect::<Vec<_>>(),
     )?;
 
-    let ret = sln.into_iter().map(|a| a.round() as i64).collect::<Vec<_>>();
+    let ret = sln
+        .into_iter()
+        .map(|a| a.round() as i64)
+        .collect::<Vec<_>>();
 
     // Validate integer solution.
     for i in 0..n {
-        if coeffs[i*n..(i+1)*n].iter().zip(&ret).map(|(a, b)| a * b).sum::<i64>() != consts[i] {
+        if coeffs[i * n..(i + 1) * n]
+            .iter()
+            .zip(&ret)
+            .map(|(a, b)| a * b)
+            .sum::<i64>()
+            != consts[i]
+        {
             return None;
         }
     }
@@ -1047,7 +1056,8 @@ mod test {
         //  3x + 8y = 5
         // 4x + 11y = 7
         let sln =
-            solve_linear_system(&[3.0, 8.0, 4.0, 11.0], &[5.0, 7.0]).unwrap();
+            solve_float_linear_system(&[3.0, 8.0, 4.0, 11.0], &[5.0, 7.0])
+                .unwrap();
         assert_eq!(sln, vec![-1.0, 1.0]);
     }
 
