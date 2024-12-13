@@ -870,6 +870,29 @@ pub fn solve_linear_system(coeffs: &[f64], consts: &[f64]) -> Option<Vec<f64>> {
     Some((c * b).data.into())
 }
 
+pub fn solve_integer_linear_system(
+    coeffs: &[i64],
+    consts: &[i64],
+) -> Option<Vec<i64>> {
+    let n = consts.len();
+
+    let sln = solve_linear_system(
+        &coeffs.iter().map(|&a| a as f64).collect::<Vec<_>>(),
+        &consts.iter().map(|&a| a as f64).collect::<Vec<_>>(),
+    )?;
+
+    let ret = sln.into_iter().map(|a| a.round() as i64).collect::<Vec<_>>();
+
+    // Validate integer solution.
+    for i in 0..n {
+        if coeffs[i*n..(i+1)*n].iter().zip(&ret).map(|(a, b)| a * b).sum::<i64>() != consts[i] {
+            return None;
+        }
+    }
+
+    Some(ret)
+}
+
 /// A string interner that turns strings into numbers and remembers what it's
 /// seen.
 #[derive(Default)]
