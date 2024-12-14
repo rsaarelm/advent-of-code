@@ -13,9 +13,11 @@ fn intersect(
     let b = p2.as_dvec3();
     let v = v2.as_dvec3();
 
-    let sln =
-        solve_float_linear_system(&[u.x, -v.x, u.y, -v.y], &[b.x - a.x, b.y - a.y])?;
-    Some((sln[0], sln[1]))
+    let [a, b] = solve_float_linear_system(
+        &[u.x, -v.x, u.y, -v.y],
+        &[b.x - a.x, b.y - a.y],
+    )?;
+    Some((a, b))
 }
 
 fn solve(ps: &[I64Vec3], vs: &[I64Vec3], v: I64Vec3) -> Option<I64Vec3> {

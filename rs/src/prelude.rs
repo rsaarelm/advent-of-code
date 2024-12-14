@@ -858,10 +858,10 @@ pub fn fit_polynomial(xs: &[f64], ys: &[f64]) -> Vec<f64> {
         .into()
 }
 
-pub fn solve_float_linear_system(
-    coeffs: &[f64],
-    consts: &[f64],
-) -> Option<Vec<f64>> {
+pub fn solve_float_linear_system<const N: usize, const NN: usize>(
+    coeffs: &[f64; NN],
+    consts: &[f64; N],
+) -> Option<[f64; N]> {
     let n = consts.len();
     assert!(n > 0);
     assert_eq!(coeffs.len(), n * n);
@@ -870,27 +870,35 @@ pub fn solve_float_linear_system(
     let b = DVector::from_row_slice(consts);
 
     let c = a.try_inverse()?;
-    Some((c * b).data.into())
+    Some(
+        (c * b)
+            .iter()
+            .copied()
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap(),
+    )
 }
 
-pub fn solve_linear_system(coeffs: &[i64], consts: &[i64]) -> Option<Vec<i64>> {
+pub fn solve_linear_system<const N: usize, const NN: usize>(
+    coeffs: &[i64; NN],
+    consts: &[i64; N],
+) -> Option<[i64; N]> {
+    assert!(NN == N * N);
+
     let n = consts.len();
 
     let sln = solve_float_linear_system(
-        &coeffs.iter().map(|&a| a as f64).collect::<Vec<_>>(),
-        &consts.iter().map(|&a| a as f64).collect::<Vec<_>>(),
-    )?;
-
-    let ret = sln
-        .into_iter()
-        .map(|a| a.round() as i64)
-        .collect::<Vec<_>>();
+        &coeffs.map(|a| a as f64),
+        &consts.map(|a| a as f64),
+    )?
+    .map(|a| a.round() as i64);
 
     // Validate integer solution.
     for i in 0..n {
         if coeffs[i * n..(i + 1) * n]
             .iter()
-            .zip(&ret)
+            .zip(&sln)
             .map(|(a, b)| a * b)
             .sum::<i64>()
             != consts[i]
@@ -899,7 +907,7 @@ pub fn solve_linear_system(coeffs: &[i64], consts: &[i64]) -> Option<Vec<i64>> {
         }
     }
 
-    Some(ret)
+    Some(sln)
 }
 
 /// A string interner that turns strings into numbers and remembers what it's
@@ -1058,7 +1066,7 @@ mod test {
         let sln =
             solve_float_linear_system(&[3.0, 8.0, 4.0, 11.0], &[5.0, 7.0])
                 .unwrap();
-        assert_eq!(sln, vec![-1.0, 1.0]);
+        assert_eq!(sln, [-1.0, 1.0]);
     }
 
     #[test]
