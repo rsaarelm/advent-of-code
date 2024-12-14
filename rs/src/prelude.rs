@@ -541,7 +541,7 @@ pub fn next_prefix_permutation(
 pub fn histogram<T: Clone + Eq + Hash + Ord>(
     input: impl IntoIterator<Item = T>,
 ) -> impl Iterator<Item = (T, usize)> {
-    let mut hist: HashMap<T, usize> = HashMap::default();
+    let mut hist: HashMap<T, usize> = Default::default();
 
     for i in input.into_iter() {
         *hist.entry(i).or_default() += 1;
@@ -550,6 +550,23 @@ pub fn histogram<T: Clone + Eq + Hash + Ord>(
     let mut hist: Vec<(T, usize)> = hist.into_iter().collect();
     hist.sort_by_key(|(t, n)| (usize::MAX - *n, t.clone()));
     hist.into_iter()
+}
+
+/// Compute Shannon entropy for a set of values that get binned by equality.
+pub fn entropy<T: Hash + Eq>(input: impl IntoIterator<Item = T>) -> f64 {
+    let mut hist: HashMap<T, f64> = Default::default();
+    let mut n = 0.0;
+    for i in input.into_iter() {
+        *hist.entry(i).or_default() += 1.0;
+        n += 1.0;
+    }
+
+    hist.values()
+        .map(|x: &f64| {
+            let p = x / n;
+            -p * (p + f64::EPSILON).log2()
+        })
+        .sum::<f64>()
 }
 
 pub fn idx_of<'a, T: Eq>(

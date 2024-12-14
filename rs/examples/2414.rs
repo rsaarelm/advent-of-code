@@ -1,25 +1,5 @@
 use aoc::prelude::*;
 
-fn cloud_entropy(bounds: &Rect<i32>, points: &[IVec2]) -> f64 {
-    // Build a grid histogram of point densities.
-    const CELL_DIV: i32 = 8;
-    let cell = ivec2(
-        (bounds.width() / CELL_DIV).max(1),
-        (bounds.height() / CELL_DIV).max(1),
-    );
-    let mut grid = HashMap::default();
-    for &p in points {
-        *grid.entry(p / cell).or_default() += 1.0;
-    }
-
-    grid.values()
-        .map(|m: &f64| {
-            let p = m / points.len() as f64;
-            -p * (p + f64::EPSILON).log2()
-        })
-        .sum::<f64>()
-}
-
 fn main() {
     let mut ps = Vec::new();
     let mut vs = Vec::new();
@@ -58,7 +38,9 @@ fn main() {
     let mut min_entropy = f64::MAX;
     let mut min_entropy_frame = 0;
     for i in 0.. {
-        let entropy = cloud_entropy(&bounds, &ps);
+        // Pick an arbitrary bin size of 8x8 cells and compute Shannon entropy
+        // with that.
+        let entropy = entropy(ps.iter().map(|&p| p / ivec2(8, 8)));
 
         if entropy < min_entropy {
             min_entropy = entropy;
