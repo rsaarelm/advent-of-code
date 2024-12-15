@@ -87,6 +87,16 @@ pub const DIR_8: [IVec2; 8] = [
     ivec2(1, -1),
 ];
 
+pub fn char_to_dir(c: char) -> Option<IVec2> {
+    match c {
+        '^' => Some(ivec2(0, -1)),
+        '>' => Some(ivec2(1, 0)),
+        'v' => Some(ivec2(0, 1)),
+        '<' => Some(ivec2(-1, 0)),
+        _ => None,
+    }
+}
+
 pub fn neighbors_4<T: Clone + Into<IVec2> + From<IVec2>>(
     p: T,
 ) -> impl Iterator<Item = T> {
