@@ -10,7 +10,7 @@ name = "aoc"
 [dependencies]
 anyhow = "1"
 bitvec = "1"
-derive_deref = "1"
+derive_more = { version = "1", features = ["deref", "deref_mut"] }
 fraction = "0.15"
 glam = "0.29"
 idm = "0.4"

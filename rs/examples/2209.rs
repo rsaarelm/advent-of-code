@@ -1,5 +1,5 @@
 use aoc::prelude::*;
-use derive_deref::Deref;
+use derive_more::Deref;
 
 #[derive(Copy, Clone, Deref)]
 struct Dir(IVec2);

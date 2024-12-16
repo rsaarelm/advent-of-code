@@ -1,5 +1,5 @@
 use aoc::prelude::*;
-use derive_deref::{Deref, DerefMut};
+use derive_more::{Deref, DerefMut};
 
 #[derive(Default, Deref, DerefMut)]
 struct Spiral(IVec2);
