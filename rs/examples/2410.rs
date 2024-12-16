@@ -40,7 +40,11 @@ fn main() {
             })
             .collect();
         // Unique endpoints.
-        p1 += paths.iter().map(|p| p[p.len() - 1]).collect::<HashSet<_>>().len();
+        p1 += paths
+            .iter()
+            .map(|p| p[p.len() - 1])
+            .collect::<HashSet<_>>()
+            .len();
         // Unique paths.
         p2 += paths.len();
     }

@@ -19,7 +19,8 @@ fn main() {
     let mut p2 = 0;
 
     for &([ax, ay], [bx, by], [tx, ty]) in &machines {
-        if let Some([a, b]) = solve_linear_system(&[ax, bx, ay, by], &[tx, ty]) {
+        if let Some([a, b]) = solve_linear_system(&[ax, bx, ay, by], &[tx, ty])
+        {
             p1 += 3 * a + b;
         }
 
