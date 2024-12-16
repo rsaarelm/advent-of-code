@@ -1,5 +1,4 @@
 use aoc::prelude::*;
-use pathfinding::prelude::yen;
 
 fn main() {
     let (bounds, grid) = stdin_grid();
@@ -19,23 +18,20 @@ fn main() {
 
     let mut score = 0;
     let mut cover = HashSet::default();
-    for (path, c) in yen(
-        &(start, ivec2(1, 0)),
-        successors,
-        |&(pos, _)| pos == end,
-        // Guess the upper bound for number of optimal paths:
-        9,
-    ) {
+    for node in dijkstra_search(successors, &(start, ivec2(1, 0))) {
+        if node.item().0 != end {
+            continue;
+        }
         if score == 0 {
             // Start counting.
-            score = c;
-        } else if score < c {
+            score = node.total_cost();
+        } else if score < node.total_cost() {
             // All optimal paths seen.
             break;
         }
 
         // Scan path cover.
-        for (p, _) in path {
+        for ((p, _), _) in node.into_iter() {
             cover.insert(p);
         }
     }

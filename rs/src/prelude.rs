@@ -1,11 +1,15 @@
 use std::{
-    collections::{BTreeSet, VecDeque},
+    cmp::{Ordering, Reverse},
+    collections::{BTreeSet, BinaryHeap, VecDeque},
     convert::TryInto,
     fmt::{Debug, Write},
     hash::Hash,
     io::{stdin, BufRead},
+    ops::{Add, Sub},
+    rc::Rc,
 };
 
+use derive_more::Deref;
 use glam::Mat3;
 use lazy_static::lazy_static;
 use nalgebra::{DMatrix, DVector};
@@ -423,6 +427,109 @@ where
                 }
                 return Some((node, len));
             }
+        }
+        None
+    })
+}
+
+#[derive(Clone, Eq, PartialEq, Deref)]
+pub struct PathNode<T, N>(Rc<(T, N, Option<PathNode<T, N>>)>);
+
+impl<T, N> PathNode<T, N> {
+    pub fn new(item: T) -> Self
+    where
+        N: Zero,
+    {
+        PathNode(Rc::new((item, Zero::zero(), None)))
+    }
+
+    pub fn extend(&self, item: T, cost: N) -> Self
+    where
+        T: Clone,
+        N: Add<Output = N> + Copy,
+    {
+        PathNode(Rc::new((
+            item,
+            self.total_cost() + cost,
+            Some(self.clone()),
+        )))
+    }
+
+    pub fn item(&self) -> &T {
+        &self.0 .0
+    }
+
+    pub fn total_cost(&self) -> N
+    where
+        N: Copy,
+    {
+        self.0 .1
+    }
+
+    pub fn parent(&self) -> Option<Self>
+    where
+        T: Clone,
+        N: Copy,
+    {
+        self.0 .2.clone()
+    }
+
+    pub fn into_iter(&self) -> impl Iterator<Item = (T, N)> + '_
+    where
+        T: Clone,
+        N: Copy + Zero + Sub<Output = N>,
+    {
+        let mut node = Some(self.clone());
+        std::iter::from_fn(move || {
+            let n = node.take()?;
+            let ret = (
+                n.0 .0.clone(),
+                n.0 .1 - n.0 .2.as_ref().map_or_else(Zero::zero, |p| p.0 .1),
+            );
+            node = n.0 .2.clone();
+            Some(ret)
+        })
+    }
+}
+
+impl<T: Eq + PartialEq, N: Copy + PartialOrd + Ord> Ord for PathNode<T, N> {
+    // Ordering for BinaryHeap, smallest cost comes first.
+    fn cmp(&self, other: &Self) -> Ordering {
+        Reverse(self.total_cost()).cmp(&Reverse(other.total_cost()))
+    }
+}
+
+impl<T: Eq + PartialEq, N: Copy + PartialOrd + Ord> PartialOrd
+    for PathNode<T, N>
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+pub fn dijkstra_search<'a, T, I, N>(
+    neighbors: impl Fn(&T) -> I + 'a,
+    start: &T,
+) -> impl Iterator<Item = PathNode<T, N>> + 'a
+where
+    T: Clone + Eq + Hash + 'a,
+    I: IntoIterator<Item = (T, N)>,
+    N: Zero + Sub<Output = N> + Add<Output = N> + Copy + PartialOrd + Ord + 'a,
+{
+    let mut seen = HashMap::default();
+    let mut edge = BinaryHeap::from([PathNode::new(start.clone())]);
+    std::iter::from_fn(move || {
+        while let Some(node) = edge.pop() {
+            if matches!(seen.get(node.item()), Some(&cost) if cost < node.total_cost())
+            {
+                continue;
+            }
+            seen.insert(node.item().clone(), node.total_cost());
+
+            for (item, cost) in neighbors(node.item()).into_iter() {
+                edge.push(node.extend(item, cost));
+            }
+            return Some(node);
         }
         None
     })
