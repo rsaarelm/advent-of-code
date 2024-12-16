@@ -94,22 +94,16 @@ fn main() {
     let valley: Valley = stdin_string().parse().unwrap();
     let mut t = 0;
 
-    t += dijkstra_map(
-        |&p| valley.neighbors(p),
-        &valley.start().extend(t as i32),
-    )
-    .find_map(|(p, t)| (p.xy() == valley.end()).then_some(t))
-    .unwrap();
+    t += bfs(|&p| valley.neighbors(p), &valley.start().extend(t as i32))
+        .find_map(|(p, t)| (p.xy() == valley.end()).then_some(t))
+        .unwrap();
     println!("{t}");
 
-    t += dijkstra_map(|&p| valley.neighbors(p), &valley.end().extend(t as i32))
+    t += bfs(|&p| valley.neighbors(p), &valley.end().extend(t as i32))
         .find_map(|(p, t)| (p.xy() == valley.start()).then_some(t))
         .unwrap();
-    t += dijkstra_map(
-        |&p| valley.neighbors(p),
-        &valley.start().extend(t as i32),
-    )
-    .find_map(|(p, t)| (p.xy() == valley.end()).then_some(t))
-    .unwrap();
+    t += bfs(|&p| valley.neighbors(p), &valley.start().extend(t as i32))
+        .find_map(|(p, t)| (p.xy() == valley.end()).then_some(t))
+        .unwrap();
     println!("{t}");
 }

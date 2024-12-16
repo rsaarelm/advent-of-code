@@ -55,8 +55,7 @@ fn main() {
     }
 
     let node = *input.iter().next().unwrap().0;
-    let len_1 =
-        dijkstra_map(|a| input.get(a).unwrap().iter().copied(), &node).count();
+    let len_1 = bfs(|a| input.get(a).unwrap().iter().copied(), &node).count();
     let len_2 = input.len() - len_1;
     println!("{}", len_1 * len_2);
 }

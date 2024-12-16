@@ -37,7 +37,7 @@ fn main() {
     }
 
     // Generate path costs backwards from the end point.
-    let routes: HashMap<IVec2, usize> = dijkstra_map(
+    let routes: HashMap<IVec2, usize> = bfs(
         |&a| {
             let dest_height = map[bounds.idx(a)].height();
             // Make a reference that can be moved to the closure below without

@@ -38,7 +38,7 @@ fn main() {
     let (bounds, buf) = stdin_grid();
 
     let count = |p: [i32; 2], dir: [i32; 2]| {
-        dijkstra_map(neighbors(&bounds, &buf), &(p.into(), dir.into()))
+        bfs(neighbors(&bounds, &buf), &(p.into(), dir.into()))
             .map(|((pos, _), _)| pos)
             .collect::<HashSet<_>>()
             .len()

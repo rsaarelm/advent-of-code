@@ -98,7 +98,7 @@ fn main() {
 
     println!(
         "{}",
-        dijkstra_map(
+        bfs(
             |&p| [p + ivec2(0, 1), p + ivec2(-1, 1), p + ivec2(1, 1)]
                 .into_iter()
                 .filter(|&p| !chasm.is_blocked(p)),

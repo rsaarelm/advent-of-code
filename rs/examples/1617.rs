@@ -61,7 +61,7 @@ fn main() {
     // Part 2
     println!(
         "{}",
-        dijkstra_map(State::neighbors, &input)
+        bfs(State::neighbors, &input)
             .filter_map(|(t, n)| (t.heuristic() == 0).then_some(n))
             .max()
             .unwrap()

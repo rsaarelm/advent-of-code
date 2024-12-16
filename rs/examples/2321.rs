@@ -6,7 +6,7 @@ fn rim(
     start: IVec2,
     n: usize,
 ) -> usize {
-    dijkstra_map(
+    bfs(
         |&p| {
             neighbors_4(p).filter(|&p| {
                 !blocks.contains(&bounds.get(bounds.idx(p)).into())

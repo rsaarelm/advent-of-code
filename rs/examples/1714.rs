@@ -26,7 +26,7 @@ fn main() {
         if buf[bounds.idx(p)] && !seen.contains(&p) {
             groups += 1;
             // Flood fill the rest of the new group and mark it as seen.
-            for (p, _) in dijkstra_map(
+            for (p, _) in bfs(
                 |&p| {
                     neighbors_4(p)
                         .filter(|&p| bounds.contains(p) && buf[bounds.idx(p)])

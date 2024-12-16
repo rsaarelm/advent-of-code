@@ -115,7 +115,7 @@ fn main() {
     let p1: State = stdin_string().parse().unwrap();
     assert!(p1.is_valid());
 
-    for (e, i) in dijkstra_map(State::neighbors, &p1) {
+    for (e, i) in bfs(State::neighbors, &p1) {
         if e.is_end() {
             println!("{i}");
             break;
@@ -125,7 +125,7 @@ fn main() {
     let mut p2 = p1.clone();
     p2.extend([0, 0, 0, 0]);
 
-    for (e, i) in dijkstra_map(State::neighbors, &p2) {
+    for (e, i) in bfs(State::neighbors, &p2) {
         if e.is_end() {
             println!("{i}");
             break;

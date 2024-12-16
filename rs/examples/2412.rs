@@ -10,7 +10,7 @@ fn main() {
     let mut points = HashSet::from_iter(bounds);
     while let Some(seed) = points.pop() {
         let c = grid[bounds.idx(seed)];
-        let region = dijkstra_map(
+        let region = bfs(
             |&p| {
                 neighbors_4(p)
                     .filter(|&p| bounds.contains(p) && grid[bounds.idx(p)] == c)

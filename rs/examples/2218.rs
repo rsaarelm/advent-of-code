@@ -22,7 +22,7 @@ fn main() {
     let bounds = Cube::from_points_inclusive(droplets.iter().copied())
         .inflate([1, 1, 1]);
 
-    let open: HashSet<IVec3> = dijkstra_map(
+    let open: HashSet<IVec3> = bfs(
         |&p| {
             let droplets = &droplets; // safe to move.
             SPACE_6.iter().filter_map(move |&d| {

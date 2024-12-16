@@ -25,7 +25,7 @@ fn main() {
 
     // Part 2
     let mut locs: HashSet<[i32; 2]> = HashSet::from_iter([[1, 1]]);
-    for (loc, n) in dijkstra_map(neighbors, &[1, 1]) {
+    for (loc, n) in bfs(neighbors, &[1, 1]) {
         if n > 50 {
             break;
         }

@@ -404,7 +404,7 @@ pub fn print_grid(bounds: &Rect<i32>, mut f: impl FnMut(IVec2)) {
 }
 
 /// Generate a shortest paths map on a grid according to a neighbors function.
-pub fn dijkstra_map<'a, T, I>(
+pub fn bfs<'a, T, I>(
     neighbors: impl Fn(&T) -> I + 'a,
     start: &T,
 ) -> impl Iterator<Item = (T, usize)> + 'a

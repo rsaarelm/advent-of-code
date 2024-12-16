@@ -34,7 +34,7 @@ fn main() {
     let mut p1 = 0;
     let mut p2 = 0;
     for p in &starts {
-        let paths: Vec<_> = dijkstra_map(neighbors, &vec![*p])
+        let paths: Vec<_> = bfs(neighbors, &vec![*p])
             .filter_map(|(p, _)| {
                 (grid[bounds.idx(p[p.len() - 1])] == 9).then_some(p)
             })
