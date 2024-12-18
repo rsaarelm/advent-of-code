@@ -32,17 +32,13 @@ fn main() {
     // P2: Binary search for first blocking tile.
     let mut min = 0;
     let mut max = input.len();
-    loop {
-        if min >= max - 1 {
-            println!("{},{}", input[min].x, input[min].y);
-            break;
-        }
-
-        let middle = min + (max - min) / 2;
-        if path(&input, &bounds, middle).is_some() {
-            min = middle;
+    while min < max {
+        let mid = min + (max - min) / 2;
+        if path(&input, &bounds, mid + 1).is_some() {
+            min = mid + 1;
         } else {
-            max = middle;
+            max = mid;
         }
     }
+    println!("{},{}", input[min].x, input[min].y);
 }
