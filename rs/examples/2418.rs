@@ -18,14 +18,10 @@ fn main() {
     let input: Vec<IVec2> = stdin_lines()
         .map(|a| IVec2::from(fixed_numbers(a)))
         .collect();
+    let bounds = Rect::from_points_inclusive(input.iter().copied());
 
-    let (p1_t, bounds) = if input.len() == 25 {
-        // Example.
-        (12, area(7, 7))
-    } else {
-        // Main input.
-        (1024, area(71, 71))
-    };
+    // Example vs main input.
+    let p1_t = if input.len() == 25 { 12 } else { 1024 };
 
     println!("{}", path(&input, &bounds, p1_t).unwrap().len() - 1);
 
