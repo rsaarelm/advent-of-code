@@ -1,44 +1,56 @@
 use aoc::prelude::*;
-use memoize::memoize;
 
-#[memoize]
-fn can_build(towels: Vec<String>, design: String) -> usize {
-    if design.is_empty() {
-        return 1;
+/// Memoizing pattern counter.
+struct Builder {
+    towels: Vec<String>,
+    cache: HashMap<String, usize>,
+}
+
+impl FromStr for Builder {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Builder {
+            towels: s.split(", ").map(String::from).collect(),
+            cache: Default::default(),
+        })
     }
-    let mut ret = 0;
-    for t in &towels {
-        if let Some(suffix) = design.strip_prefix(t) {
-            ret += can_build(towels.clone(), suffix.to_string());
+}
+
+impl Builder {
+    fn designs(&mut self, design: &str) -> usize {
+        if design.is_empty() {
+            return 1;
         }
-    }
 
-    ret
+        if let Some(&n) = self.cache.get(design) {
+            return n;
+        }
+
+        let mut ret = 0;
+        for i in 0..self.towels.len() {
+            if let Some(suffix) = design.strip_prefix(&self.towels[i]) {
+                ret += self.designs(suffix);
+            }
+        }
+
+        self.cache.insert(design.to_owned(), ret);
+        ret
+    }
 }
 
 fn main() {
     let mut lines = stdin_lines();
-    let towels: Vec<String> = lines
-        .next()
-        .unwrap()
-        .split(", ")
-        .map(|a| a.to_string())
-        .collect();
+    let mut builder: Builder = lines.next().unwrap().parse().unwrap();
     lines.next().unwrap();
     let designs: Vec<String> = lines.map(|a| a.to_string()).collect();
 
     println!(
         "{}",
-        designs
-            .iter()
-            .filter(|d| can_build(towels.clone(), d.to_string()) > 0)
-            .count()
+        designs.iter().filter(|d| builder.designs(d) > 0).count()
     );
     println!(
         "{}",
-        designs
-            .iter()
-            .map(|d| can_build(towels.clone(), d.to_string()))
-            .sum::<usize>()
+        designs.iter().map(|d| builder.designs(d)).sum::<usize>()
     );
 }
