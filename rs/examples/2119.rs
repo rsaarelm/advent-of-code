@@ -1,44 +1,45 @@
 use aoc::prelude::*;
 use glam::IVec3;
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use rayon::prelude::*;
 use std::{
     convert::TryInto,
     f32,
     ops::{Deref, DerefMut},
+    sync::LazyLock,
 };
 
 /// Transform a vector into 24 possible axis-aligned cube orientations.
 fn rotations(vec: impl Into<IVec3>) -> [IVec3; 24] {
     use glam::{EulerRot, Mat3A};
 
-    lazy_static! {
-        static ref ORIENTATIONS: Vec<Mat3A> = {
-            let mut ret = Vec::new();
-            for &(xa, ya) in &[
-                // Facings:
-                // front,
-                (0.0, 0.0),
-                // sides
-                (0.0, f32::consts::FRAC_PI_2),
-                (0.0, -f32::consts::FRAC_PI_2),
-                // back,
-                (0.0, f32::consts::PI),
-                // up and down.
-                (f32::consts::FRAC_PI_2, 0.0),
-                (-f32::consts::FRAC_PI_2, 0.0),
+    static ORIENTATIONS: LazyLock<Vec<Mat3A>> = LazyLock::new(|| {
+        let mut ret = Vec::new();
+        for &(xa, ya) in &[
+            // Facings:
+            // front,
+            (0.0, 0.0),
+            // sides
+            (0.0, f32::consts::FRAC_PI_2),
+            (0.0, -f32::consts::FRAC_PI_2),
+            // back,
+            (0.0, f32::consts::PI),
+            // up and down.
+            (f32::consts::FRAC_PI_2, 0.0),
+            (-f32::consts::FRAC_PI_2, 0.0),
+        ] {
+            // Different up vectors.
+            for &za in &[
+                0.0,
+                f32::consts::FRAC_PI_2,
+                f32::consts::PI,
+                -f32::consts::FRAC_PI_2,
             ] {
-                // Different up vectors.
-                for &za in &[0.0, f32::consts::FRAC_PI_2,
-                            f32::consts::PI, -f32::consts::FRAC_PI_2] {
-                    ret.push(Mat3A::from_euler(EulerRot::ZXY,
-                        za, xa, ya));
-                }
+                ret.push(Mat3A::from_euler(EulerRot::ZXY, za, xa, ya));
             }
-            ret
-        };
-    }
+        }
+        ret
+    });
 
     let vec = vec.into().as_vec3a();
 

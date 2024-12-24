@@ -1,14 +1,15 @@
+use std::sync::LazyLock;
+
 use aoc::prelude::*;
-use lazy_static::lazy_static;
 
 const TOTAL_SPACE: usize = 70_000_000;
 const NEEDED_SPACE: usize = 30_000_000;
 const DELETION_CANDIDATE: usize = 100_000;
 
-lazy_static! {
-    static ref FILE_ENTRY: ReParser<usize> = ReParser::new(r"^(\d+) .+$");
-    static ref SUBDIR_CD: ReParser<String> = ReParser::new(r"^\$ cd (.+)$");
-}
+static FILE_ENTRY: LazyLock<ReParser<usize>> =
+    LazyLock::new(|| ReParser::new(r"^(\d+) .+$"));
+static SUBDIR_CD: LazyLock<ReParser<String>> =
+    LazyLock::new(|| ReParser::new(r"^\$ cd (.+)$"));
 
 #[derive(Default, Debug)]
 struct Dir {

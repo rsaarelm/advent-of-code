@@ -1,13 +1,11 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, sync::LazyLock};
 
-use lazy_static::lazy_static;
 use rustc_hash::FxHashMap as HashMap;
 
 pub type PointCloud = BTreeSet<[i32; 2]>;
 
-lazy_static! {
-    static ref LETTERS: HashMap<PointCloud, char> = {
-        const GLYPHS: &str = "\
+static LETTERS: LazyLock<HashMap<PointCloud, char>> = LazyLock::new(|| {
+    const GLYPHS: &str = "\
 .##.
 #..#
 #..#
@@ -292,15 +290,14 @@ lazy_static! {
 #.....
 ######";
 
-        const CHARS: &str = "AABBCCEEFFGGHHIJJKKLLNOPPRRSUXZZ";
-        debug_assert_eq!(GLYPHS.split("\n\n").count(), CHARS.len());
-        GLYPHS
-            .split("\n\n")
-            .map(points)
-            .zip(CHARS.chars())
-            .collect()
-    };
-}
+    const CHARS: &str = "AABBCCEEFFGGHHIJJKKLLNOPPRRSUXZZ";
+    debug_assert_eq!(GLYPHS.split("\n\n").count(), CHARS.len());
+    GLYPHS
+        .split("\n\n")
+        .map(points)
+        .zip(CHARS.chars())
+        .collect()
+});
 
 struct Shape {
     offset: (i32, i32),

@@ -7,11 +7,11 @@ use std::{
     io::{stdin, BufRead},
     ops::{Add, Sub},
     rc::Rc,
+    sync::LazyLock,
 };
 
 use derive_more::Deref;
 use glam::Mat3;
-use lazy_static::lazy_static;
 use nalgebra::{DMatrix, DVector};
 use num_traits::{One, Zero};
 use regex::Regex;
@@ -198,9 +198,8 @@ pub fn stdin_grid_iter(
     })
 }
 
-lazy_static! {
-    static ref SIGNED_INTEGER: Regex = Regex::new(r"-?\d+").unwrap();
-}
+static SIGNED_INTEGER: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"-?\d+").unwrap());
 
 /// Extract numbers from a string.
 pub fn numbers<T: FromStr>(line: impl AsRef<str>) -> Vec<T> {
@@ -751,7 +750,7 @@ primitive_parseable!(
     i8, i16, i32, i64, i128, isize
 );
 
-// Concrete regex parser that can be stored in lazy_static.
+// Concrete regex parser that can be stored in LazyLock.
 pub struct ReParser<T> {
     re: Regex,
     marker: std::marker::PhantomData<T>,

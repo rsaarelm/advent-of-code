@@ -1,5 +1,6 @@
+use std::sync::LazyLock;
+
 use aoc::prelude::*;
-use lazy_static::lazy_static;
 use regex::Regex;
 
 type F = fraction::Fraction;
@@ -29,9 +30,8 @@ impl<T> Eqn<T> {
     }
 }
 
-lazy_static! {
-    static ref EQN: Regex = Regex::new("^(.+) (.) (.+)$").unwrap();
-}
+static EQN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new("^(.+) (.) (.+)$").unwrap());
 
 impl<T: FromStr> FromStr for Eqn<T> {
     type Err = ();

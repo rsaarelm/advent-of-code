@@ -70,7 +70,6 @@ dependencies = [
  "idm",
  "indexmap 2.6.0",
  "itertools",
- "lazy_static",
  "memoize",
  "nalgebra",
  "nom",
