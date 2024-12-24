@@ -49,10 +49,7 @@ impl Alu {
         ret
     }
 
-    pub fn error(&self) -> f32 {
-        // How hard do we work to find a stable value.
-        const N_TRIES: usize = 500;
-
+    pub fn error(&self, n: usize) -> f32 {
         // Cycle detection.
         let mut graph = petgraph::Graph::<(), ()>::new();
         let nodes = self
@@ -80,7 +77,7 @@ impl Alu {
         let mut errs = Vec::new();
         let mut rng = thread_rng();
 
-        for _ in 0..N_TRIES {
+        for _ in 0..n {
             let (x, y) = (rng.gen::<u64>() & mask, rng.gen::<u64>() & mask);
             let z = self.run(x, y);
             let mut bad = 0;
@@ -191,65 +188,79 @@ fn main() {
         return;
     }
 
-    let mut error = alu.error();
-    let mut alu2 = alu.clone();
-    let mut dirty_set = HashSet::default();
+    let err_baseline = alu.error(1000);
 
-    eprintln!("Initial error: {error}. Commencing percussive maintenance.");
-
-    for _ in 0..4 {
-        let mut best_error = 1.0;
-        let mut best_i = 0;
-        let mut best_j = 0;
+    // Since scoring is random, things are a bit wobbly, try a few times to
+    // hit the solution.
+    for _retry in 0..10 {
+        let mut swap_scores = HashMap::default();
         for i in 0..alu.mem.len() {
-            if dirty_set.contains(&i) {
-                continue;
-            }
-
             for j in (i + 1)..alu.mem.len() {
                 if j % 11 == 0 {
                     eprint!(
-                        "{} / {} ({best_error})           \r",
+                        "Evaluating swaps: {} / {}            \r",
                         j + i * alu.mem.len(),
                         alu.mem.len() * alu.mem.len()
                     );
                 }
-                if dirty_set.contains(&j) {
-                    continue;
+
+                let mut blu = alu.clone();
+                blu.mem.swap(i, j);
+
+                // Get a quick look at error.
+                let mut error = blu.error(10);
+                if error < err_baseline * 0.9 {
+                    // It looks small, get a more precise value.
+                    error = blu.error(1000);
                 }
 
-                let mut clu = alu2.clone();
-                clu.mem.swap(i, j);
-                let e = clu.error();
-                if e < best_error {
-                    best_error = e;
-                    (best_i, best_j) = (i, j);
-                    if e == 0.0 {
-                        // We're done!
-                        break;
-                    }
-                }
+                swap_scores.insert((i, j), error);
             }
         }
 
-        eprintln!(
-            "Best swap: {}-{} at {}",
-            alu.names[best_i], alu.names[best_j], best_error
-        );
-        alu2.mem.swap(best_i, best_j);
-        error = best_error;
-        dirty_set.insert(best_i);
-        dirty_set.insert(best_j);
+        // Figure out pairs that improve the system the most. Make sure
+        // solution consists of unique swaps, the same node may show up
+        // multiple times in top swaps.
+        let mut pairs = swap_scores.keys().cloned().collect::<Vec<_>>();
+        pairs.sort_by_key(|a| (swap_scores[a] * 100000.0) as i64);
+        let mut sln = Vec::new();
+        for (x, y) in &pairs {
+            if sln.len() == 4 {
+                break;
+            }
+            if sln
+                .iter()
+                .any(|(i, j)| i == x || i == y || j == x || j == y)
+            {
+                continue;
+            }
+
+            sln.push((*x, *y));
+        }
+
+        let mut blu = alu.clone();
+        eprint!("Verifying answer, swapping");
+        for &(i, j) in &sln {
+            eprint!(" {}-{}", alu.names[i], alu.names[j]);
+            blu.mem.swap(i, j);
+        }
+        eprintln!();
+        if blu.error(100) > 0.0 {
+            eprintln!("Didn't find answer, retrying...");
+            continue;
+        }
+
+        let mut elts = pairs
+            .into_iter()
+            .take(4)
+            .flat_map(|(a, b)| [alu.names[a].as_ref(), alu.names[b].as_ref()])
+            .collect::<Vec<_>>();
+        elts.sort();
+
+        println!("{}", elts.join(","));
+
+        return;
     }
 
-    if error > 0.0 {
-        eprintln!("Sorry, looks like there's still errors, the answer is invalid...");
-    }
-
-    let mut ret = dirty_set
-        .iter()
-        .map(|&i| alu2.names[i].as_ref())
-        .collect::<Vec<_>>();
-    ret.sort();
-    println!("{}", ret.join(","));
+    eprintln!("Failed to solve P2, sorry.");
 }
