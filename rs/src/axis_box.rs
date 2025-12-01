@@ -152,11 +152,11 @@ impl<T: Element, const N: usize> AxisBox<T, N> {
     }
 
     pub fn contains_other(&self, r: &Self) -> bool {
-        (0..N).all(|i| (self.p0[i] <= r.p0[i] && self.p1[i] >= r.p1[i]))
+        (0..N).all(|i| self.p0[i] <= r.p0[i] && self.p1[i] >= r.p1[i])
     }
 
     pub fn intersects(&self, r: &Self) -> bool {
-        (0..N).all(|i| (r.p0[i] < self.p1[i] && r.p1[i] > self.p0[i]))
+        (0..N).all(|i| r.p0[i] < self.p1[i] && r.p1[i] > self.p0[i])
     }
 
     /// Return the product of the components of the dimension vector of the
