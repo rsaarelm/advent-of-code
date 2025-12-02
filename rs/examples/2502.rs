@@ -23,8 +23,7 @@ fn is_bad2(num: i64) -> bool {
 }
 
 fn main() {
-    // XXX: Need to mangle the string so hyphens aren't parsed as minuses.
-    let input: Vec<i64> = numbers(stdin_string().replace("-", " "));
+    let input: Vec<i64> = numbers(stdin_string());
 
     let mut ret = 0;
     for r in input.chunks(2).map(|c| c[0]..=c[1]) {

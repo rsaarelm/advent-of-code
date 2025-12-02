@@ -199,17 +199,19 @@ pub fn stdin_grid_iter(
 }
 
 static SIGNED_INTEGER: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"-?\d+").unwrap());
+    LazyLock::new(|| Regex::new(r"(-?\d+)(.|$)").unwrap());
 
 /// Extract numbers from a string.
 pub fn numbers<T: FromStr>(line: impl AsRef<str>) -> Vec<T> {
-    // TODO: Can this be made to parse "1-2" as [1, 2] instead of [1, -2]? The
-    // minus sign needs to be right next to the previous number so it'll be
-    // interpreted as hyphen instead.
+    // The regex captures one character after the number as well so we can
+    // parse "1-2" as [1, 2] instead of [1, -2]. This means we need to use
+    // captures_iter for the input.
     SIGNED_INTEGER
-        .find_iter(line.as_ref())
-        .map(|s| {
-            s.as_str()
+        .captures_iter(line.as_ref())
+        .map(|caps| {
+            caps.get(1)
+                .unwrap()
+                .as_str()
                 .parse()
                 .unwrap_or_else(|_| panic!("Type didn't parse from integer"))
         })
