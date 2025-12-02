@@ -203,6 +203,9 @@ static SIGNED_INTEGER: LazyLock<Regex> =
 
 /// Extract numbers from a string.
 pub fn numbers<T: FromStr>(line: impl AsRef<str>) -> Vec<T> {
+    // TODO: Can this be made to parse "1-2" as [1, 2] instead of [1, -2]? The
+    // minus sign needs to be right next to the previous number so it'll be
+    // interpreted as hyphen instead.
     SIGNED_INTEGER
         .find_iter(line.as_ref())
         .map(|s| {
