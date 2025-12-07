@@ -3,7 +3,6 @@ use memoize::memoize;
 
 fn main() {
     let mut origin: IVec2 = Default::default();
-    // Using a Vec instead of a set so memoizer can eat it later.
     let mut splitters: Vec<IVec2> = Default::default();
     let mut bounds = Rect::default();
 
@@ -18,6 +17,10 @@ fn main() {
             _ => {}
         }
     }
+
+    // Leak the finished splitter collection into a static reference we can
+    // use with the memoizer.
+    let splitters = splitters.leak();
 
     let mut beams = HashSet::from_iter([origin.x]);
 
@@ -38,19 +41,20 @@ fn main() {
 
     println!("{splits}");
 
-    println!(
-        "{}",
-        num_paths(bounds, splitters.clone(), origin)
-    );
+    println!("{}", num_paths(bounds, splitters, origin));
 }
 
 #[memoize]
-fn num_paths(bounds: Rect<i32>, splitters: Vec<IVec2>, pos: IVec2) -> usize {
+fn num_paths(
+    bounds: Rect<i32>,
+    splitters: &'static [IVec2],
+    pos: IVec2,
+) -> usize {
     for y in pos.y..bounds.height() {
         let p = ivec2(pos.x, y);
         if splitters.contains(&p) {
-            return num_paths(bounds, splitters.clone(), p - ivec2(1, 0))
-                + num_paths(bounds, splitters.clone(), p + ivec2(1, 0));
+            return num_paths(bounds, splitters, p - ivec2(1, 0))
+                + num_paths(bounds, splitters, p + ivec2(1, 0));
         }
     }
 
