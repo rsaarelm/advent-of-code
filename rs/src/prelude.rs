@@ -223,14 +223,15 @@ pub fn fixed_numbers<T, const N: usize>(line: impl AsRef<str>) -> [T; N]
 where
     T: Copy + FromStr,
 {
-    let elts: Vec<T> = SIGNED_INTEGER
-        .find_iter(line.as_ref())
-        .map(|s| {
-            s.as_str()
-                .parse()
-                .unwrap_or_else(|_| panic!("Type didn't parse from integer"))
-        })
-        .collect();
+    let elts: Vec<T> =
+        SIGNED_INTEGER
+            .captures_iter(line.as_ref())
+            .map(|caps| {
+                caps.get(1).unwrap().as_str().parse().unwrap_or_else(|_| {
+                    panic!("Type didn't parse from integer")
+                })
+            })
+            .collect();
 
     elts.as_slice().try_into().unwrap()
 }
