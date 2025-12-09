@@ -1,9 +1,10 @@
 run task:
     #!/bin/sh
-    if [[ -z "${DEBUG}" ]]; then
-        RUST_BACKTRACE=1 cargo run --release --example {{task}}
-    else
+    if [[ -z "${TURBO}" ]]; then
+        >&2 echo "Running Rust solution in debug mode, set TURBO=1 to go fast."
         RUST_BACKTRACE=1 cargo run --example {{task}}
+    else
+        RUST_BACKTRACE=1 cargo run --release --example {{task}}
     fi
 
 exists task:
