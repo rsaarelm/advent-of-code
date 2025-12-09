@@ -77,18 +77,18 @@ pub const ROT_CCW: Mat3 =
            0.0,  0.0,  1.0]);
 
 /// Can be indexed with `LEFT`, `RIGHT`, `UP` and `DOWN`.
-pub const DIR_4: [IVec2; 4] =
-    [ivec2(1, 0), ivec2(0, 1), ivec2(-1, 0), ivec2(0, -1)];
+pub const DIR_4: [I64Vec2; 4] =
+    [i64vec2(1, 0), i64vec2(0, 1), i64vec2(-1, 0), i64vec2(0, -1)];
 
-pub const DIR_8: [IVec2; 8] = [
-    ivec2(1, 0),
-    ivec2(1, 1),
-    ivec2(0, 1),
-    ivec2(-1, 1),
-    ivec2(-1, 0),
-    ivec2(-1, -1),
-    ivec2(0, -1),
-    ivec2(1, -1),
+pub const DIR_8: [I64Vec2; 8] = [
+    i64vec2(1, 0),
+    i64vec2(1, 1),
+    i64vec2(0, 1),
+    i64vec2(-1, 1),
+    i64vec2(-1, 0),
+    i64vec2(-1, -1),
+    i64vec2(0, -1),
+    i64vec2(1, -1),
 ];
 
 pub fn char_to_dir(c: char) -> Option<IVec2> {
@@ -101,19 +101,19 @@ pub fn char_to_dir(c: char) -> Option<IVec2> {
     }
 }
 
-pub fn neighbors_4<T: Clone + Into<IVec2> + From<IVec2>>(
+pub fn neighbors_4<T: Clone + Into<I64Vec2> + From<I64Vec2>>(
     p: T,
 ) -> impl Iterator<Item = T> {
     DIR_4.iter().map(move |&d| (d + p.clone().into()).into())
 }
 
-pub fn neighbors_8<T: Clone + Into<IVec2> + From<IVec2>>(
+pub fn neighbors_8<T: Clone + Into<I64Vec2> + From<I64Vec2>>(
     p: T,
 ) -> impl Iterator<Item = T> {
     DIR_8.iter().map(move |&d| (d + p.clone().into()).into())
 }
 
-pub fn dir4(a: impl Into<IVec2>) -> usize {
+pub fn dir4(a: impl Into<I64Vec2>) -> usize {
     let a = a.into();
     DIR_4.iter().position(|&x| x == a).unwrap()
 }
