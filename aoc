@@ -414,6 +414,13 @@ fn run(
     for (a, exp) in lines.iter().zip(expected) {
         let a = a.trim();
         match (a, exp) {
+            // Answer is known, but implementation skips it
+            ("-", Some(b)) => {
+                eprintln!("\x1b[1;33mSkipped by solution, is {b}.\x1b[0m");
+            }
+            ("-", _) => {
+                eprintln!("\x1b[1;33mSkipped by solution.\x1b[0m");
+            }
             // Known wrong answer, print an error
             (a, Some(b)) if b.trim() != a => {
                 errors += 1;
