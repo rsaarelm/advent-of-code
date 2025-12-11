@@ -3,8 +3,8 @@ use std::{
     collections::{BTreeSet, BinaryHeap, VecDeque},
     convert::TryInto,
     fmt::{Debug, Write},
-    hash::Hash,
-    io::{stdin, BufRead},
+    hash::{Hash, Hasher},
+    io::{BufRead, stdin},
     ops::{Add, Sub},
     rc::Rc,
     sync::LazyLock,
@@ -1139,6 +1139,33 @@ impl Iterator for SpacePoints {
         }
 
         Some(ret)
+    }
+}
+
+/// Smart pointer that hashes and identifies itself by memory address.
+///
+/// Useful for passing cheap handles of an immutable context object to
+/// memoizing functions.
+#[derive(Clone, Deref)]
+pub struct PtrId<T>(Rc<T>);
+
+impl<T> PtrId<T> {
+    pub fn new(value: T) -> Self {
+        PtrId(Rc::new(value))
+    }
+}
+
+impl<T> PartialEq for PtrId<T> {
+    fn eq(&self, other: &Self) -> bool {
+        Rc::as_ptr(&self.0) == Rc::as_ptr(&other.0)
+    }
+}
+
+impl<T> Eq for PtrId<T> {}
+
+impl<T> Hash for PtrId<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        Rc::as_ptr(&self.0).hash(state);
     }
 }
 
