@@ -28,6 +28,8 @@
             pkg-config
             openssl
 
+            (agda.withPackages (p: [ p.standard-library ]))
+
             rustc
             rust-analyzer
             clippy

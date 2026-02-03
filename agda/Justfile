@@ -1,0 +1,12 @@
+run task:
+    @agda --compile-dir=bin/ --compile a{{task}}.agda
+    @./bin/a{{task}}
+
+exists task:
+    #!/bin/sh
+    if [ ! -f a{{task}}.agda ]; then
+        exit 1
+    fi
+
+clean:
+    rm -rf *.agdai bin/
