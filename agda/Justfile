@@ -1,7 +1,10 @@
 run task:
+    # Agda really likes finite things so we capture the input to a file.
+    cat > aoc-input.txt
     # Direct compiler output to stderr so only the program output shows up in stdout for the AoC runner to capture.
     @agda --compile-dir=bin/ --compile a{{task}}.agda 1>&2
     @./bin/a{{task}}
+    rm -f aoc-input.txt
 
 exists task:
     #!/bin/sh
