@@ -6,4 +6,6 @@ open import IO
 -- TODO: Actual solution for 1501 here
 
 main : Main
-main = run ((readFiniteFile "aoc-input.txt") >>= putStrLn)
+main = run do
+    input <- readFiniteFile "aoc-input.txt"
+    putStrLn input
